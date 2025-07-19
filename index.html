@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ป้อนรหัสผ่าน</title>
+  <style>
+    body {
+      background-color: #ffe4ec;
+      font-family: 'Kanit', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #passwordPage {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 200px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #d14776;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="passwordPage">
+    <h2>ใส่รหัสผ่านเพื่อดูความน่ารัก 💕</h2>
+    <input type="password" id="password" placeholder="พิมพ์รหัส">
+    <br>
+    <button onclick="checkPassword()">เข้าสู่โลกแห่งความรัก</button>
+    <p id="error" style="color: red; display: none; margin-top: 10px;">รหัสผิดนะ ลองใหม่อีกครั้ง</p>
+  </div>
+
+  <script>
+    const correctPassword = "080625"; // 👉 เปลี่ยนรหัสตรงนี้ได้
+
+    function checkPassword() {
+      const input = document.getElementById("password").value;
+      if (input === correctPassword) {
+        // ลบหน้า password แล้วโหลดเว็บจริง
+        document.body.innerHTML = '';
+        loadRealSite();
+      } else {
+        document.getElementById("error").style.display = 'block';
+      }
+    }
+
+    function loadRealSite() {
+      // โหลดไฟล์ HTML จริงแบบฝังไว้ตรงนี้ หรือจะใช้ fetch/load ก็ได้
+      window.location.href = "main.html"; // 👉 ให้คุณเอาเว็บหลักไว้ในไฟล์ชื่อ main.html
+    }
+  </script>
+
+</body>
+</html>
