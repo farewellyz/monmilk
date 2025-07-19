@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>หัวใจของม่อน 💗</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(#ffe4ec, #ffc1d3);
+      font-family: 'Kanit', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #d14776;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    #heartCount {
+      font-size: 60px;
+      margin: 10px 0;
+      color: #ff4d88;
+    }
+
+    button {
+      background-color: #d14776;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 30px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .heart {
+      font-size: 30px;
+      animation: pop 0.3s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1.2); opacity: 1; }
+    }
+
+    .floating-img {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatUp 1.2s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-120px) scale(1.5);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>จำนวนครั้งที่มิ้วคิดถึงม่อน 💕</h1>
+  <div id="heartCount">❤️ 0</div>
+  <button onclick="addHeart()">❤️ กดเพื่อเพิ่มหัวใจ</button>
+  <p id="message" class="heart">💖</p>
+
+  <script>
+    // 💖 เก็บจำนวนหัวใจ
+    let count = localStorage.getItem('heartCount') || 0;
+    count = parseInt(count);
+    const heartCountEl = document.getElementById('heartCount');
+    const messageEl = document.getElementById('message');
+
+    const phrases = [
+      "มิ้วรู้ยัง... ม่อนคิดถึงตลอดเลย 💓",
+      "ความคิดถึงส่งไปหาแล้วนะ!",
+      "หัวใจของม่อนอยู่ที่มิ้ว 💘",
+      "อยากกอดเธอทุกครั้งที่กด ❤️",
+      "เพราะมิ้วน่ารักไง หัวใจเลยเพิ่มขึ้นเรื่อยๆ 🥺"
+    ];
+
+    const soundList = [
+      "sound1.mp3",
+      "sound2.mp3",
+      "sound3.mp3",
+      "sound4.mp3",
+      "sound5.mp3"
+    ];
+
+    function updateUI() {
+      heartCountEl.textContent = `❤️ ${count}`;
+      const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+      messageEl.textContent = randomPhrase;
+      messageEl.classList.remove("heart");
+      void messageEl.offsetWidth;
+      messageEl.classList.add("heart");
+    }
+
+    function addHeart() {
+      count++;
+      localStorage.setItem('heartCount', count);
+      updateUI();
+      spawnMultipleFloatingImages();
+      playRandomSound();
+    }
+
+    function spawnMultipleFloatingImages() {
+      const howMany = Math.floor(Math.random() * 5) + 1;
+      for (let i = 0; i < howMany; i++) {
+        const img = document.createElement("img");
+        img.src = "heart.png"; // 👉 รูปหัวใจ (เช่น heart.png)
+        img.className = "floating-img";
+        img.style.left = Math.random() * 90 + "vw";
+        img.style.top = Math.random() * 80 + "vh";
+        img.style.transform = `scale(${0.8 + Math.random() * 0.6}) rotate(${Math.random() * 360}deg)`;
+
+        document.body.appendChild(img);
+        setTimeout(() => img.remove(), 1300);
+      }
+    }
+
+    function playRandomSound() {
+      const soundFile = soundList[Math.floor(Math.random() * soundList.length)];
+      const audio = new Audio(soundFile + "?v=" + Math.random()); // ป้องกันแคช
+      audio.play().catch(e => console.log("เล่นเสียงไม่ได้:", e));
+    }
+
+    updateUI();
+  </script>
+
+</body>
+</html>
