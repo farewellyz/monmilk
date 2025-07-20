@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>รูปประจำเดือนของม่อนและมิ้ว 💖</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(#ffe4ec, #ffc1d3);
+      margin: 0;
+      padding: 20px;
+      color: #d14776;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      font-size: 26px;
+      color: #d14776;
+    }
+
+    .month-box {
+      background: #fff0f5;
+      border: 2px dashed #ffbdd7;
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 20px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .month-title {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #ff4d88;
+    }
+
+    .images {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .image-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .image-box img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .image-box img:hover {
+      transform: scale(1.05);
+    }
+
+    .image-caption {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #d14776;
+    }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .popup img {
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.7);
+    }
+
+    .popup:active {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .image-box img {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>รูปประจำเดือนของม่อนและมิ้ว 💕</h1>
+
+  <div id="all-months"></div>
+
+  <div class="popup" id="popup" onclick="hidePopup()">
+    <img id="popupImg" src="" alt="รูปใหญ่">
+  </div>
+
+  <script>
+    const allMonths = document.getElementById('all-months');
+    const popup = document.getElementById('popup');
+    const popupImg = document.getElementById('popupImg');
+
+    for (let i = 1; i <= 12; i++) {
+      const box = document.createElement('div');
+      box.className = 'month-box';
+
+      box.innerHTML = `
+        <div class="month-title">เดือน ${i}</div>
+        <div class="images">
+          <div class="image-box">
+            <img src="img/mon${i}.jpg" alt="ม่อนเดือน ${i}" onclick="showPopup(this.src)">
+            <div class="image-caption">ม่อน 💙</div>
+          </div>
+          <div class="image-box">
+            <img src="img/milk${i}.jpg" alt="มิ้วเดือน ${i}" onclick="showPopup(this.src)">
+            <div class="image-caption">มิ้ว 💖</div>
+          </div>
+        </div>
+      `;
+
+      allMonths.appendChild(box);
+    }
+
+    function showPopup(src) {
+      popupImg.src = src;
+      popup.style.display = 'flex';
+    }
+
+    function hidePopup() {
+      popup.style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
