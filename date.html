@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ปฏิทินรักของม่อนกับมิ้ว 💖</title>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(#ffe4ec, #ffc1d3);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #d14776;
+      margin: 20px;
+      font-size: 32px;
+      text-shadow: 1px 1px 2px #ffffff80;
+    }
+
+    #playMusicBtn {
+      margin-bottom: 20px;
+      background-color: #ffa5c4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #playMusicBtn:hover {
+      background-color: #ff89b6;
+    }
+
+    .calendar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 1000px;
+      width: 90%;
+    }
+
+    .month {
+      text-align: center;
+      font-size: 26px;
+      color: #ff4d88;
+      margin: 30px 0 15px;
+      font-weight: bold;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 15px;
+      width: 100%;
+    }
+
+    .day {
+      background: #fff0f5;
+      border: 2px dashed #ffbdd7;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-weight: bold;
+      color: #d14776;
+    }
+
+    .day:hover {
+      background-color: #ffe0eb;
+      transform: scale(1.08);
+    }
+
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      animation: popupFade 0.3s ease;
+    }
+
+    .popup-content img {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .popup-content p {
+      font-size: 18px;
+      color: #d14776;
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      background: #d14776;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    @keyframes popupFade {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>ปฏิทินรักของม่อนกับมิ้ว 💕</h1>
+  <button id="playMusicBtn" onclick="toggleMusic()">🎶 เปิดเพลงพิเศษ</button>
+  <audio id="bgMusic" src="music/love.mp3" preload="auto"></audio>
+
+  <div class="calendar-container">
+    <div class="month">มิถุนายน 2025</div>
+    <div class="calendar" id="calendar-june"></div>
+
+    <div class="month">กรกฎาคม 2025</div>
+    <div class="calendar" id="calendar-july"></div>
+	
+	<div class="month">สิงหาคม 2025</div>
+    <div class="calendar" id="calendar-august"></div>
+	
+	<div class="month">กันยายน 2025</div>
+	<div class="calendar" id="calendar-september"></div>
+
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <img id="popupImg" src="" alt="ภาพความทรงจำ">
+      <p id="popupText"></p>
+      <button class="close-btn" onclick="closePopup()">ปิด</button>
+    </div>
+  </div>
+
+  <audio id="popupSound" src="sound/open.mp3" preload="auto"></audio>
+
+  <script>
+    const memories = {
+      '2025-06-08': { img: 'img/june8.jpg', text: 'เดทแรกของเรา ❤️' },
+      '2025-06-15': { img: 'img/june15.jpg', text: 'ท้องฟ้าจำลอง,สวนเบญ,สยาม ครั้งแรก 🥰' },
+      '2025-06-22': { img: 'img/june22.jpg', text: 'มิ้วมาบ้านม่อนครั้งแรก อันล็อคทั้งหมด 💕' },
+      '2025-06-25': { img: 'img/june25.jpg', text: 'mbk ครั้งแรกของเรา 🌸' },
+      '2025-06-29': { img: 'img/june29.jpg', text: 'copper ครั้งแรก+อันล็อคเพิ่มอีกอย่าง 😚' },
+      '2025-07-02': { img: 'img/july2.jpg', text: 'same place same person 💗' },
+      '2025-07-06': { img: 'img/july6.jpg', text: 'แลกของขวัญครบรอบ1เดือน 💫' },
+      '2025-07-09': { img: 'img/july9.jpg', text: 'ครบรอบ1เดือน 💞' },
+      '2025-07-13': { img: 'img/july13.jpg', text: 'รู้สึกผิดครั้งแรก 😔' },
+      '2025-07-21': { img: 'img/july21.jpg', text: 'ความทรงจำวันที่ 21 ก.ค. 🐻' },
+      '2025-07-25': { img: 'img/july25.jpg', text: 'ความทรงจำวันที่ 25 ก.ค. ☁️' },
+      '2025-07-27': { img: 'img/july27.jpg', text: 'ความทรงจำวันที่ 27 ก.ค. 🌷' },
+      '2025-07-30': { img: 'img/july30.jpg', text: 'ความทรงจำวันที่ 30 ก.ค. 💖' },
+	  '2025-08-03': { img: 'img/august3.jpg', text: 'ความทรงจำวันที่ 21 ก.ค. 🐻' },
+      '2025-08-06': { img: 'img/august6.jpg', text: 'ความทรงจำวันที่ 25 ก.ค. ☁️' },
+      '2025-08-10': { img: 'img/august10.jpg', text: 'ความทรงจำวันที่ 27 ก.ค. 🌷' },
+	  '2025-08-13': { img: 'img/august13.jpg', text: 'ความทรงจำวันที่ 21 ก.ค. 🐻' },
+      '2025-08-17': { img: 'img/august17.jpg', text: 'ความทรงจำวันที่ 25 ก.ค. ☁️' },
+      '2025-08-20': { img: 'img/august20.jpg', text: 'ความทรงจำวันที่ 27 ก.ค. 🌷' },
+	  '2025-08-24': { img: 'img/august24.jpg', text: 'ความทรงจำวันที่ 21 ก.ค. 🐻' },
+      '2025-08-27': { img: 'img/august27.jpg', text: 'ความทรงจำวันที่ 25 ก.ค. ☁️' },
+      '2025-08-31': { img: 'img/august31.jpg', text: 'ความทรงจำวันที่ 27 ก.ค. 🌷' },
+	  '2025-09-03': { img: 'img/sept3.jpg', text: 'ความทรงจำวันที่ 3 ก.ย. 🩷' },
+	  '2025-09-07': { img: 'img/sept7.jpg', text: 'ความทรงจำวันที่ 7 ก.ย. 🩷' },
+	  '2025-09-10': { img: 'img/sept10.jpg', text: 'ความทรงจำวันที่ 10 ก.ย. 🩷' },
+	  '2025-09-14': { img: 'img/sept14.jpg', text: 'ความทรงจำวันที่ 14 ก.ย. 🩷' },
+	  '2025-09-17': { img: 'img/sept17.jpg', text: 'ความทรงจำวันที่ 17 ก.ย. 🩷' },
+	  '2025-09-21': { img: 'img/sept21.jpg', text: 'ความทรงจำวันที่ 21 ก.ย. 🩷' },
+	  '2025-09-24': { img: 'img/sept24.jpg', text: 'ความทรงจำวันที่ 24 ก.ย. 🩷' },
+	  '2025-09-28': { img: 'img/sept28.jpg', text: 'ความทรงจำวันที่ 28 ก.ย. 🩷' },
+
+    };
+
+    function generateCalendar(containerId, month, dates) {
+      const container = document.getElementById(containerId);
+      dates.forEach(day => {
+        const dateKey = `${month}-${String(day).padStart(2, '0')}`;
+        const div = document.createElement('div');
+        div.className = 'day';
+        div.textContent = day;
+        div.onclick = () => showPopup(memories[dateKey]);
+        container.appendChild(div);
+      });
+    }
+
+    generateCalendar('calendar-june', '2025-06', [8, 15, 22, 25, 29]);
+    generateCalendar('calendar-july', '2025-07', [2, 6, 9, 13, 21, 25, 27, 30]);
+	generateCalendar('calendar-august', '2025-08', [3, 6, 10, 13, 17, 20, 24, 27 , 31]);
+	generateCalendar('calendar-september', '2025-09', [3, 7, 10, 14, 17, 21, 24, 28]);
+
+    function showPopup(data) {
+      const audio = document.getElementById('popupSound');
+      audio.currentTime = 0;
+      audio.play();
+
+      document.getElementById('popupImg').src = data.img;
+      document.getElementById('popupText').textContent = data.text;
+      document.getElementById('popup').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    function toggleMusic() {
+      const music = document.getElementById('bgMusic');
+      const btn = document.getElementById('playMusicBtn');
+      if (music.paused) {
+        music.play();
+        btn.textContent = '⏸️ หยุดเพลงพิเศษ';
+      } else {
+        music.pause();
+        btn.textContent = '🎶 เปิดเพลงพิเศษ';
+      }
+    }
+  </script>
+</body>
+</html>
