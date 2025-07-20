@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ลากม่อนไปหามิ้ว 💖</title>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(#ffe4ec, #ffc1d3);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d14776;
+      margin-bottom: 40px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      height: 120px;
+      position: relative;
+      background: #fff0f5;
+      border-radius: 30px;
+      border: 2px dashed #ffbdd7;
+      box-shadow: inset 0 0 10px #ffd1e1;
+      overflow: hidden;
+    }
+
+    .character {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      position: absolute;
+      top: 20px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .end {
+      right: 20px;
+      background-image: url('img/milk.jpg');
+    }
+
+    .start {
+      left: 20px;
+      background-image: url('img/mon.jpg');
+    }
+
+    .heart-track {
+      position: absolute;
+      top: 50%;
+      left: 90px;
+      right: 110px;
+      transform: translateY(-50%);
+      height: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .heart-track span {
+      font-size: 20px;
+      transition: opacity 0.2s ease;
+    }
+
+    .popup {
+      margin-top: 30px;
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      color: #d14776;
+      font-size: 18px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .replay-btn {
+      margin-top: 15px;
+      background: #d14776;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .emoji {
+      position: fixed;
+      font-size: 30px;
+      animation: float 1s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-100px) scale(1.5);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ลากม่อนไปหามิ้ว 💕</h1>
+
+  <div class="container" id="track">
+    <div class="heart-track" id="heartTrack"></div>
+    <div class="character start" id="mon"></div>
+    <div class="character end" id="milk"></div>
+  </div>
+
+  <div class="popup" id="popupText">
+    <span id="popupMessage">ในที่สุดม่อนก็ถึงมิ้วแล้วน้าาา 🥰</span><br>
+    <button class="replay-btn" onclick="restart()">เล่นอีกครั้ง</button>
+  </div>
+
+  <audio id="slideSound" src="sound/love.mp3" preload="auto"></audio>
+
+  <script>
+    const mon = document.getElementById('mon');
+    const milk = document.getElementById('milk');
+    const popup = document.getElementById('popupText');
+    const message = document.getElementById('popupMessage');
+    const sound = document.getElementById('slideSound');
+    const heartTrack = document.getElementById('heartTrack');
+    const emojis = ['💘', '💓', '💞', '💖', '🌹', '🌸', '💕'];
+
+    const phrases = [
+      'ในที่สุดม่อนก็ถึงมิ้วแล้วน้าาา 🥰',
+      'ไม่ต้องลากแล้ว... อยู่ด้วยกันเลยดีมั้ย 💗',
+      'มิ้วรอมานานแล้ว ม่อนมาถึงแล้วน้า 💕',
+      'ทางมันไกล... แต่ม่อนก็ถึงมิ้วจนได้ 💫',
+      'รักมากเลยรู้มั้ย จะไปหามิ้วให้ได้ 💝'
+    ];
+
+    let isDragging = false;
+    let offsetX = 0;
+    let hasMet = false;
+    let hearts = [];
+
+    function createHearts(count = 12) {
+      heartTrack.innerHTML = '';
+      hearts = [];
+      for (let i = 0; i < count; i++) {
+        const span = document.createElement('span');
+        span.textContent = '❤️';
+        heartTrack.appendChild(span);
+        hearts.push(span);
+      }
+    }
+
+    function restart() {
+      popup.style.display = 'none';
+      mon.style.left = '20px';
+      hasMet = false;
+      createHearts();
+    }
+
+    function showEmojiExplosion() {
+      for (let i = 0; i < 20; i++) {
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji';
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = `${Math.random() * 100}%`;
+        emoji.style.top = `${Math.random() * 100}%`;
+        document.body.appendChild(emoji);
+
+        setTimeout(() => {
+          emoji.remove();
+        }, 1000);
+      }
+    }
+
+    function handleMove(x) {
+      const maxX = milk.offsetLeft - mon.offsetWidth + 10;
+      const minX = 0;
+      x = Math.max(minX, Math.min(x, maxX));
+      mon.style.left = x + 'px';
+
+      const progress = x / maxX;
+      const heartToHide = Math.floor(progress * hearts.length);
+      hearts.forEach((heart, i) => {
+        heart.style.opacity = i <= heartToHide ? '0' : '1';
+      });
+
+      if (x >= maxX - 5 && !hasMet) {
+        hasMet = true;
+        mon.style.left = (milk.offsetLeft - mon.offsetWidth + 10) + 'px';
+        message.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+        popup.style.display = 'block';
+        sound.play();
+        showEmojiExplosion();
+      }
+    }
+
+    mon.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - mon.offsetLeft;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || hasMet) return;
+      handleMove(e.clientX - offsetX);
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    mon.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      offsetX = e.touches[0].clientX - mon.offsetLeft;
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging || hasMet) return;
+      handleMove(e.touches[0].clientX - offsetX);
+    });
+
+    document.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    createHearts();
+  </script>
+</body>
+</html>
