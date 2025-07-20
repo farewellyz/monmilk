@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>เช็คอินสะสมวันแบบตาราง (มือถือรองรับ)</title>
+<style>
+  body {
+    font-family: 'Kanit', sans-serif;
+    background: linear-gradient(#ffe4ec, #ffc1d3);
+    color: #d14776;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-size: 1.8em;
+  }
+  #daysGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap: 10px;
+    max-width: 350px;
+    margin: 20px auto;
+  }
+  .day {
+    aspect-ratio: 1 / 1; /* ทำให้กล่องเป็นสี่เหลี่ยมจตุรัส */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #ffc1d3;
+    border-radius: 50%;
+    color: #d14776;
+    font-weight: bold;
+    user-select: none;
+    cursor: default;
+    position: relative;
+    font-size: 1.1rem;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  .day.checked {
+    background-color: #ff4d88;
+    border-color: #ff4d88;
+    color: white;
+  }
+  .day.checked::after {
+    content: '👄';
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 0.8rem;
+  }
+  #checkinBtn {
+    background-color: #d14776;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    margin-top: 10px;
+    width: 90%;
+    max-width: 320px;
+  }
+  #checkinBtn:hover:not(:disabled) {
+    transform: scale(1.05);
+  }
+  #checkinBtn:disabled {
+    background-color: #e7a5be;
+    cursor: default;
+  }
+  #message {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    min-height: 48px;
+    padding: 0 10px;
+  }
+  /* สำหรับหน้าจอเล็กกว่าหรือเท่ากับ 400px */
+  @media (max-width: 400px) {
+    #daysGrid {
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 280px;
+    }
+    .day {
+      font-size: 1rem;
+    }
+    #checkinBtn {
+      padding: 12px 24px;
+      font-size: 1rem;
+      max-width: 260px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>เช็คอินสะสมวัน เพื่อรับรางวัลพิเศษ</h1>
+<div id="daysGrid"></div>
+
+<button id="checkinBtn">เช็คอินวันนี้</button>
+<div id="message"></div>
+
+<script>
+  const daysGrid = document.getElementById('daysGrid');
+  const btn = document.getElementById('checkinBtn');
+  const messageEl = document.getElementById('message');
+
+  let checkinCount = parseInt(localStorage.getItem('checkinCount')) || 0;
+  let lastCheckin = localStorage.getItem('lastCheckin') || null;
+
+  function isCheckedInToday() {
+    if (!lastCheckin) return false;
+    const last = new Date(lastCheckin);
+    const now = new Date();
+    return last.getFullYear() === now.getFullYear() &&
+           last.getMonth() === now.getMonth() &&
+           last.getDate() === now.getDate();
+  }
+
+  function renderDays() {
+    daysGrid.innerHTML = '';
+    for(let i = 1; i <= 28; i++) {
+      const dayDiv = document.createElement('div');
+      dayDiv.classList.add('day');
+      dayDiv.textContent = i;
+      if(i <= checkinCount) {
+        dayDiv.classList.add('checked');
+      }
+      daysGrid.appendChild(dayDiv);
+    }
+  }
+
+  function updateUI() {
+    renderDays();
+
+    if (checkinCount >= 28) {
+      messageEl.textContent = "🎉 ยินดีด้วย! บี๋สะสมครบ 28 วัน ได้รับรางวัลพิเศษ! 🎁";
+      btn.disabled = true;
+      return;
+    }
+
+    if (isCheckedInToday()) {
+      btn.disabled = true;
+      messageEl.textContent = "เบบี๋เช็คอินวันนี้แล้ว กลับมาใหม่พรุ่งนี้นะคะ 😊";
+    } else {
+      btn.disabled = false;
+      messageEl.textContent = "";
+    }
+
+    if ([7, 14, 21].includes(checkinCount)) {
+      messageEl.textContent = `🎉 ยินดีด้วย! บี๋สะสมครบ ${checkinCount} วัน ได้รับรางวัล! 🎁`;
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    if (isCheckedInToday()) return;
+    checkinCount++;
+    lastCheckin = new Date().toISOString();
+    localStorage.setItem('checkinCount', checkinCount);
+    localStorage.setItem('lastCheckin', lastCheckin);
+    updateUI();
+  });
+
+  updateUI();
+</script>
+
+</body>
+</html>
