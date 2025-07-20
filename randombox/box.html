@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สุ่มกล่องกาชา</title>
+  <style>
+    body {
+      font-family: "Prompt", sans-serif;
+      text-align: center;
+      background: #fffafc;
+      color: #333;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      color: #d63384;
+    }
+
+    .boxes {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .box {
+      width: 150px;
+      height: 150px;
+      border-radius: 20px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      border: 4px solid #ffb6c1;
+    }
+
+    .box:hover {
+      transform: scale(1.05);
+    }
+
+    .box.spin {
+      animation: spin 0.8s ease-in-out;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .result {
+      font-size: 1.2em;
+      margin: 10px 0;
+      color: #cc3366;
+    }
+
+    .emoji {
+      position: absolute;
+      animation: floatUp 1s ease forwards;
+      font-size: 2em;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-100px); }
+    }
+
+    @media (max-width: 600px) {
+      .box {
+        width: 120px;
+        height: 120px;
+      }
+
+      .result {
+        font-size: 1em;
+      }
+
+      h1 {
+        font-size: 1.4em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>สุ่มกล่องกาชา 🎁</h1>
+
+  <div class="boxes">
+    <div id="box1" class="box" style="background-image: url('boxA.png');" onclick="spinSingleBox(1)"></div>
+    <div id="box2" class="box" style="background-image: url('boxB.png');" onclick="spinSingleBox(2)"></div>
+  </div>
+
+  <div id="result1" class="result">กล่อง 1: ยังไม่สุ่ม</div>
+  <div id="result2" class="result">กล่อง 2: ยังไม่สุ่ม</div>
+
+  <audio id="spinSound" src="spin.mp3"></audio>
+  <audio id="winSound" src="win.mp3"></audio>
+
+  <script>
+    // รายการของรางวัลในแต่ละกล่อง พร้อมโอกาส (%) 
+    const eventsA = [
+      { text: "เล่นบอร์ดเกม", chance: 5 },
+      { text: "ดูหนัง", chance: 5 },
+      { text: "ร้องคาราโอเกะ", chance: 5 },
+      { text: "ออกกำลังกาย", chance: 5 },
+      { text: "ช้อปปิ้งตามทอปปิค(งบน้อย)", chance: 5 },
+	  { text: "ช้อปปิ้งตามทอปปิค(งบกลาง)", chance: 5 },
+      { text: "ถ่ายรูป ทำคอนเท้น (สถานที่ฟรี)", chance: 5 },
+      { text: "ถ่ายรูป ทำคอนเท้น (ใช้งบน้อย)", chance: 5 },
+      { text: "เดินตลาดนัดกลางคืน/ตลาดน้ำ", chance: 5 },
+      { text: "แฮงค์เอ้าท์/ดริ้ง", chance: 5 },
+	  { text: "หาของกินแบบตั้งbudget เลือกตามสี ตัวอักษร", chance: 5 },
+      { text: "ทำDIY Workshop", chance: 5 },
+      { text: "คาเฟ่สัตว์/กิจกรรมที่เกี่ยวกับสัตว์", chance: 5 },
+      { text: "เปิดปสก.ใหม่ด้วยกัน(ช่วยกันคิด)", chance: 5 },
+      { text: "one day trip ตจว.ใกล้บ้านเค้า/บ้านเธอ", chance: 5 },
+	  { text: "คอนเสิร์ตฟรี/เสียตัง", chance: 5 },
+      { text: "เที่ยวตามงานอีเว้น/งานแฟร์/งานวัด/งานนิทรรศการ", chance: 5 },
+      { text: "เที่ยวสถานที่ตามแนวรถไฟ/bts/mrt", chance: 5 },
+      { text: "ดูพระอาทิตย์ตกดินด้วยกัน+นั่งริมเล/ริมหาด", chance: 5 },
+      { text: "ตะลุยของกินแนวสตรีทฟู้ด/ร้านอาหารข้างทาง", chance: 5 },
+    ];
+
+    const eventsB = [
+      { text: "เลือกหนังมาดูคนละ1เรื่อง", chance: 5 },
+      { text: "เล่นเกมส์", chance: 5 },
+      { text: "ร้องเพลง+เล่นดนตรี", chance: 5 },
+      { text: "ทำขนม1เมนู", chance: 5 },
+      { text: "นอนกอด", chance: 5 },
+	  { text: "เล่นชาเล้นตามTT", chance: 5 },
+      { text: "ตามใจกัน100%", chance: 5 },
+      { text: "ขออะไรก็ได้จากอีกคนได้5ครั้ง", chance: 5 },
+      { text: "ดูหนังเรท18+", chance: 5 },
+      { text: "ทำกิจกรรมที่ไม่เคยทำ", chance: 5 },
+	  { text: "ออกกำลังกาย18+", chance: 5 },
+      { text: "ทำอาหารชุดใหญ่", chance: 5 },
+      { text: "หามินิเกมส์เล่นหาคนโดนลงโทษ", chance: 5 },
+      { text: "ถ่ายคลิป(อะไรก็ได้)", chance: 5 },
+      { text: "ดูซีรีย์3ตอน", chance: 5 },
+	  { text: "ดื่มแอล", chance: 5 },
+      { text: "ดูการ์ตูน4ตอน", chance: 5 },
+      { text: "เลือกชุดให้อีกคนใส่", chance: 5 },
+      { text: "มินิเกมส์18+", chance: 5 },
+      { text: "coverเพลงจริงจัง", chance: 5 },
+    ];
+
+    function spinSingleBox(boxNumber) {
+      const box = document.getElementById(`box${boxNumber}`);
+      const result = document.getElementById(`result${boxNumber}`);
+      const spinSound = document.getElementById("spinSound");
+      const winSound = document.getElementById("winSound");
+
+      spinSound.currentTime = 0;
+      spinSound.play();
+
+      box.classList.add("spin");
+      result.textContent = "กำลังสุ่ม...";
+
+      setTimeout(() => {
+        const eventList = boxNumber === 1 ? eventsA : eventsB;
+        const pick = getWeightedRandom(eventList);
+
+        box.classList.remove("spin");
+        result.textContent = `📦 กล่อง ${boxNumber}: ${pick.text}`;
+
+        winSound.currentTime = 0;
+        winSound.play();
+
+        showFloatingEmojis(pick.text);
+      }, 1500);
+    }
+
+    function getWeightedRandom(list) {
+      const total = list.reduce((sum, item) => sum + item.chance, 0);
+      let rand = Math.random() * total;
+      for (const item of list) {
+        if (rand < item.chance) return item;
+        rand -= item.chance;
+      }
+    }
+
+    function showFloatingEmojis(text) {
+      const emoji = document.createElement("div");
+      emoji.className = "emoji";
+      emoji.textContent = text.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji}/gu)?.[0] || "✨";
+      emoji.style.left = Math.random() * 80 + 10 + "%";
+      emoji.style.top = "50%";
+      document.body.appendChild(emoji);
+
+      setTimeout(() => {
+        document.body.removeChild(emoji);
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
