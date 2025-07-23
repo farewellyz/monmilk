@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ฝนความคิดถึง 💖</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: black;
+      font-family: 'Kanit', sans-serif;
+    }
+
+    .rain-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      perspective: 1000px;
+      overflow: hidden;
+    }
+
+    .drop {
+      position: absolute;
+      top: -50px;
+      font-size: 24px;
+      color: #ffffff;
+      background: rgba(255, 105, 180, 0.3);
+      padding: 8px 16px;
+      border-radius: 20px;
+      animation: fall linear forwards;
+      white-space: nowrap;
+      text-shadow: 1px 1px 3px #ff7eb9;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .drop-img {
+      position: absolute;
+      top: -100px;
+      width: 250px;
+      height: 250px;
+      object-fit: contain;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0.9; }
+    }
+
+    .big-button {
+      position: absolute;
+      z-index: 10;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ff75a0;
+      border: none;
+      padding: 20px 40px;
+      border-radius: 30px;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="rain-container" id="rainContainer"></div>
+  <button class="big-button" id="startBtn">เริ่มดูข้อความรัก 💕</button>
+
+  <audio id="bgMusic" src="bg.mp3" preload="auto" loop></audio>
+  <audio id="dropSound" src="drop.mp3" preload="auto"></audio>
+
+  <script>
+    const rainContainer = document.getElementById('rainContainer');
+    const startBtn = document.getElementById('startBtn');
+    const bgMusic = document.getElementById('bgMusic');
+    const dropSound = document.getElementById('dropSound');
+
+    const words = [
+      "คิดถึงนะ ❤️", "ฝันดี 🖤", "อยากกอดเธอ 🤍", "คนดีของม่อน 💗", "อยู่ด้วยกันนานๆ 💖",
+      "จุ๊บๆ 💘", "ม่อนเลิฟมิ้ว 💞", "ใจอยู่กับเธอ 💓", "ม่อนชอบมิ้วที่สุด 💝", "จะไม่ปล่อยมือเลยนะ 🥰"
+    ];
+
+    function createDrop() {
+      const isImage = Math.random() < 0.2;
+      const el = isImage ? document.createElement("img") : document.createElement("div");
+
+      if (isImage) {
+        el.className = "drop-img";
+        el.src = Math.random() < 0.5 ? "mon.jpg" : "milk.jpg";
+      } else {
+        el.className = "drop";
+        el.textContent = words[Math.floor(Math.random() * words.length)];
+      }
+
+      el.style.left = Math.random() * 90 + "%";
+      el.style.animationDuration = (Math.random() * 2 + 3) + "s";
+
+      let removed = false;
+
+      el.addEventListener("animationend", () => {
+        if (!removed) {
+          removed = true;
+          el.remove();
+          dropSound.currentTime = 0;
+          dropSound.play();
+        }
+      });
+
+      el.addEventListener("click", () => {
+        if (!removed) {
+          removed = true;
+          el.remove();
+        }
+      });
+
+      rainContainer.appendChild(el);
+    }
+
+    function startRain() {
+      setInterval(() => {
+        createDrop();
+      }, 400);
+    }
+
+    startBtn.addEventListener("click", () => {
+      startBtn.style.display = "none";
+      bgMusic.play().catch(() => {}); // บางเบราว์เซอร์ต้องให้ user กดก่อน
+      startRain();
+    });
+
+    // Parallax
+    document.addEventListener("mousemove", (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 60;
+      const y = (e.clientY / window.innerHeight - 0.5) * 60;
+      rainContainer.style.transform = `rotateX(${y}deg) rotateY(${x}deg)`;
+    });
+
+    document.addEventListener("touchmove", (e) => {
+      const touch = e.touches[0];
+      const x = (touch.clientX / window.innerWidth - 0.5) * 60;
+      const y = (touch.clientY / window.innerHeight - 0.5) * 60;
+      rainContainer.style.transform = `rotateX(${y}deg) rotateY(${x}deg)`;
+    });
+  </script>
+</body>
+</html>
