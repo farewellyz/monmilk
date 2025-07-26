@@ -16,6 +16,15 @@
       background-image: radial-gradient(#f8bbd0 1px, transparent 1px);
       background-size: 15px 15px;
     }
+    /* Style for the chat messages container to hold the background image */
+    #chat-messages {
+      background-color: #ffffff; /* Default background for the chat area */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 0.3s ease-in-out; /* Smooth transition for background image */
+      flex-1 p-4 overflow-y-auto space-y-4; /* Existing Tailwind classes */
+    }
     #chat-messages::-webkit-scrollbar {
       width: 6px;
     }
@@ -34,16 +43,22 @@
 <body class="flex items-center justify-center min-h-screen bg-gray-100">
 
   <div class="w-full max-w-md h-[90vh] md:h-[80vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-white">
-    <header class="bg-pink-400 text-white p-4 flex items-center justify-center shadow-md">
-      <h1 class="text-xl font-semibold">คุยกับคนโปรด 💖</h1>
+    <header class="bg-pink-400 text-white p-4 flex items-center justify-between shadow-md">
+      <h1 class="text-xl font-semibold"> 𝑴𝒚 𝒍𝒊𝒍 𝒃𝒐𝒚 ♡</h1>
+      <label for="upload-bg-input" class="cursor-pointer bg-pink-500 hover:bg-pink-600 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center transition shadow-md hover:shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+        <input type="file" id="upload-bg-input" accept="image/*" class="hidden">
+      </label>
     </header>
 
     <main id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4"></main>
 
     <div id="typing-indicator" class="px-4 pb-2 hidden">
       <div class="flex items-center gap-2">
-        <img src="bot-avatar.jpg";
-             alt="Bot Avatar" 
+        <img src="bot-avatar.jpg"
+             alt="Bot Avatar"
              class="w-8 h-8 rounded-full object-cover flex-shrink-0">
         <div class="text-gray-500 text-sm bg-gray-200 px-3 py-2 rounded-lg">
           กำลังพิมพ์...
@@ -67,6 +82,19 @@
       const messageInput = document.getElementById('message-input');
       const sendButton = document.getElementById('send-button');
       const typingIndicator = document.getElementById('typing-indicator');
+      const uploadBgInput = document.getElementById('upload-bg-input');
+
+      // Load background from local storage for the chat messages area
+      const savedChatBgImage = localStorage.getItem('chatMessagesBackgroundImage');
+      if (savedChatBgImage) {
+        chatMessages.style.backgroundImage = `url('${savedChatBgImage}')`;
+        chatMessages.style.backgroundSize = 'cover';
+        chatMessages.style.backgroundPosition = 'center';
+        chatMessages.style.backgroundRepeat = 'no-repeat';
+      } else {
+        // Default background for chat messages area if none is saved
+        chatMessages.style.backgroundImage = 'none'; // No default image, just background-color
+      }
 
       const keywordReplies = {
         'คิดถึง': 'คิดถึงเหมือนกันค้าบ 🥰',
@@ -75,6 +103,13 @@
         'ฝันดี': 'ฝันดีค่าาา ขอให้ฝันถึงเค้านะ 😴',
         'ทำไร': 'คิดถึงเธออยู่ไงค้าบบบ',
         'บ้า': 'บ้าก็รักน้าาาา~'
+      };
+
+      // เพิ่ม object สำหรับ Voice Message Replies
+      const voiceReplies = {
+        'บี๋': 'audio/babe.mp3', // สมมติว่ามีไฟล์เสียงชื่อ hello.mp3 อยู่ในโฟลเดอร์ audio
+        'หิว': 'audio/hungry.mp3', // สมมติว่ามีไฟล์เสียงชื่อ hungry.mp3
+        'จุ๊บ': 'audio/kiss.mp3'    // สมมติว่ามีไฟล์เสียงชื่อ kiss.mp3
       };
 
       const autoReplies = [
@@ -88,24 +123,40 @@
         "ว่าไงคะที่รัก"
       ];
 
-      function addMessage(text, sender) {
+      function addMessage(content, sender, type = 'text') {
         const messageWrapper = document.createElement('div');
         messageWrapper.className = `flex items-end gap-2 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
         const messageBubble = document.createElement('div');
-        messageBubble.textContent = text;
         messageBubble.className = `max-w-xs md:max-w-sm p-3 rounded-2xl shadow`;
 
         if (sender === 'user') {
           messageBubble.classList.add('bg-blue-500', 'text-white');
+          messageBubble.textContent = content; // User messages are always text
           messageWrapper.appendChild(messageBubble);
-        } else {
+        } else { // Bot messages (text or audio)
           const botAvatar = document.createElement('img');
           botAvatar.src = 'bot-avatar.jpg';
           botAvatar.alt = 'Bot Avatar';
           botAvatar.className = 'w-8 h-8 rounded-full object-cover flex-shrink-0';
 
           messageBubble.classList.add('bg-gray-200', 'text-gray-800');
+
+          if (type === 'audio') {
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true; // ให้แสดง control ของ Audio (เช่นปุ่ม Play/Pause)
+            audioPlayer.src = content;
+            messageBubble.appendChild(audioPlayer);
+
+            // Removed audioPlayer.play() to prevent autoplay
+            // audioPlayer.oncanplaythrough = () => {
+            //     audioPlayer.play().catch(e => console.error("Autoplay failed:", e));
+            // };
+
+          } else { // type === 'text'
+            messageBubble.textContent = content;
+          }
+
           messageWrapper.appendChild(botAvatar);
           messageWrapper.appendChild(messageBubble);
         }
@@ -130,21 +181,55 @@
       }
 
       function sendBotReply(userMessage) {
-        let replyText = null;
-        for (const keyword in keywordReplies) {
+        let replyContent = null;
+        let replyType = 'text'; // Default reply type
+
+        // ตรวจสอบ Voice Replies ก่อน
+        for (const keyword in voiceReplies) {
           if (userMessage.includes(keyword)) {
-            replyText = keywordReplies[keyword];
+            replyContent = voiceReplies[keyword];
+            replyType = 'audio';
             break;
           }
         }
-        if (!replyText) {
+
+        // ถ้าไม่มี Voice Reply ให้ตรวจสอบ Text Replies
+        if (!replyContent) {
+          for (const keyword in keywordReplies) {
+            if (userMessage.includes(keyword)) {
+              replyContent = keywordReplies[keyword];
+              replyType = 'text';
+              break;
+            }
+          }
+        }
+
+        // ถ้ายังไม่มี Reply ให้ส่ง Auto Reply สุ่ม
+        if (!replyContent) {
           const randomIndex = Math.floor(Math.random() * autoReplies.length);
-          replyText = autoReplies[randomIndex];
+          replyContent = autoReplies[randomIndex];
+          replyType = 'text';
         }
 
         typingIndicator.classList.add('hidden');
-        addMessage(replyText, 'bot');
+        addMessage(replyContent, 'bot', replyType);
       }
+
+      uploadBgInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageUrl = e.target.result;
+            chatMessages.style.backgroundImage = `url('${imageUrl}')`;
+            chatMessages.style.backgroundSize = 'cover';
+            chatMessages.style.backgroundPosition = 'center';
+            chatMessages.style.backgroundRepeat = 'no-repeat';
+            localStorage.setItem('chatMessagesBackgroundImage', imageUrl); // Save the image as a Data URL
+          };
+          reader.readAsDataURL(file); // Read the image file as a Data URL
+        }
+      });
 
       sendButton.addEventListener('click', handleSendMessage);
       messageInput.addEventListener('keydown', (event) => {
@@ -152,7 +237,7 @@
       });
 
       setTimeout(() => {
-        addMessage('ทักมาหาเค้าได้ตลอดเลยน้าา 😊', 'bot');
+        addMessage('คิดถึงเค้าหรอคะบี๋', 'bot');
       }, 500);
     });
   </script>
