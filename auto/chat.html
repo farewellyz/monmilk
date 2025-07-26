@@ -38,6 +38,63 @@
     #chat-messages::-webkit-scrollbar-thumb:hover {
       background: #555;
     }
+
+    /* Custom styles for voice message player */
+    .voice-message-player {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Space between play button and progress bar */
+      background-color: #ffe0f0; /* Light pink background for the bubble */
+      padding: 8px 12px;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .voice-message-player button {
+      background-color: #ff85a2; /* Pink button */
+      color: white;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+
+    .voice-message-player button:hover {
+      background-color: #ff6e91;
+    }
+
+    .voice-message-player progress {
+      flex-grow: 1; /* Make progress bar take available space */
+      height: 8px;
+      border-radius: 4px;
+      background-color: #fce4ec; /* Background of the bar */
+      border: none;
+      -webkit-appearance: none; /* For Safari/Chrome */
+      appearance: none;
+    }
+
+    /* Style for progress bar fill */
+    .voice-message-player progress::-webkit-progress-bar {
+      background-color: #fce4ec;
+      border-radius: 4px;
+    }
+    .voice-message-player progress::-webkit-progress-value {
+      background-color: #ff85a2; /* Pink fill color */
+      border-radius: 4px;
+    }
+    .voice-message-player progress::-moz-progress-bar {
+      background-color: #ff85a2;
+      border-radius: 4px;
+    }
+    .voice-message-player .time-display {
+      font-size: 0.75rem; /* text-xs */
+      color: #718096; /* gray-600 */
+      min-width: 40px; /* To prevent flickering when numbers change */
+      text-align: right;
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-100">
@@ -68,6 +125,12 @@
 
     <footer class="p-4 bg-white border-t border-gray-200">
       <div class="flex items-center space-x-2">
+        <label for="upload-image-input" class="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center transition shadow-sm hover:shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008v-.008zm.008 0h.008v.008h-.008v-.008z" />
+          </svg>
+          <input type="file" id="upload-image-input" accept="image/*" class="hidden">
+        </label>
         <input type="text" id="message-input" placeholder="พิมพ์ข้อความ..." class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-400 transition">
         <button id="send-button" class="bg-pink-500 hover:bg-pink-600 text-white rounded-full p-3 w-12 h-12 flex items-center justify-center transition shadow-md hover:shadow-lg">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -83,6 +146,7 @@
       const sendButton = document.getElementById('send-button');
       const typingIndicator = document.getElementById('typing-indicator');
       const uploadBgInput = document.getElementById('upload-bg-input');
+      const uploadImageInput = document.getElementById('upload-image-input');
 
       // Load background from local storage for the chat messages area
       const savedChatBgImage = localStorage.getItem('chatMessagesBackgroundImage');
@@ -92,8 +156,7 @@
         chatMessages.style.backgroundPosition = 'center';
         chatMessages.style.backgroundRepeat = 'no-repeat';
       } else {
-        // Default background for chat messages area if none is saved
-        chatMessages.style.backgroundImage = 'none'; // No default image, just background-color
+        chatMessages.style.backgroundImage = 'none';
       }
 
       const keywordReplies = {
@@ -105,12 +168,18 @@
         'บ้า': 'บ้าก็รักน้าาาา~'
       };
 
-      // เพิ่ม object สำหรับ Voice Message Replies
       const voiceReplies = {
-        'บี๋': 'audio/babe.mp3', // สมมติว่ามีไฟล์เสียงชื่อ hello.mp3 อยู่ในโฟลเดอร์ audio
-        'หิว': 'audio/hungry.mp3', // สมมติว่ามีไฟล์เสียงชื่อ hungry.mp3
-        'จุ๊บ': 'audio/kiss.mp3'    // สมมติว่ามีไฟล์เสียงชื่อ kiss.mp3
+        'บี๋': 'audio/babe.mp3',
+        'หิว': 'audio/hungry.mp3',
+        'กอด': 'audio/hug.mp3'
       };
+
+      const imageReplies = [
+        'images/1.jpg',
+        'images/2.jpg',
+        'images/3.jpg',
+        'images/4.jpg',
+      ];
 
       const autoReplies = [
         "สู้ๆ นะคะคนเก่ง ✌️",
@@ -123,37 +192,138 @@
         "ว่าไงคะที่รัก"
       ];
 
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+      }
+
       function addMessage(content, sender, type = 'text') {
         const messageWrapper = document.createElement('div');
         messageWrapper.className = `flex items-end gap-2 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
         const messageBubble = document.createElement('div');
-        messageBubble.className = `max-w-xs md:max-w-sm p-3 rounded-2xl shadow`;
+        // Apply common classes first
+        messageBubble.classList.add('rounded-2xl', 'shadow');
+
+        if (type === 'image') {
+            // Specific styles for image bubbles: max-width for bubble, and image fills bubble
+            messageBubble.style.maxWidth = '50%'; // Limit bubble width to 50% of chat area
+            messageBubble.classList.add('p-1'); // Padding for image bubble
+        } else {
+            // Standard max-width for text/audio bubbles
+            messageBubble.classList.add('max-w-xs', 'md:max-w-sm', 'p-3');
+        }
+
 
         if (sender === 'user') {
-          messageBubble.classList.add('bg-blue-500', 'text-white');
-          messageBubble.textContent = content; // User messages are always text
+          if (type === 'image') {
+            const imgElement = document.createElement('img');
+            imgElement.src = content;
+            imgElement.alt = 'User sent image';
+            imgElement.style.width = '100%'; // Image fills its bubble
+            imgElement.style.height = 'auto';
+            imgElement.classList.add('rounded-lg', 'object-cover');
+            messageBubble.classList.add('bg-blue-500'); // Apply background color for user images
+            messageBubble.appendChild(imgElement);
+          } else { // User text message
+            messageBubble.classList.add('bg-blue-500', 'text-white');
+            messageBubble.textContent = content;
+          }
           messageWrapper.appendChild(messageBubble);
-        } else { // Bot messages (text or audio)
+
+        } else { // Bot messages (text, audio, or image)
           const botAvatar = document.createElement('img');
           botAvatar.src = 'bot-avatar.jpg';
           botAvatar.alt = 'Bot Avatar';
           botAvatar.className = 'w-8 h-8 rounded-full object-cover flex-shrink-0';
 
-          messageBubble.classList.add('bg-gray-200', 'text-gray-800');
-
           if (type === 'audio') {
+            messageBubble.classList.add('voice-message-player'); // Custom voice message player style
             const audioPlayer = document.createElement('audio');
-            audioPlayer.controls = true; // ให้แสดง control ของ Audio (เช่นปุ่ม Play/Pause)
             audioPlayer.src = content;
+            audioPlayer.preload = 'metadata';
+
+            const playButton = document.createElement('button');
+            playButton.innerHTML = `
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            `;
+
+            const progressBar = document.createElement('progress');
+            progressBar.value = 0;
+            progressBar.max = 1;
+
+            const timeDisplay = document.createElement('span');
+            timeDisplay.className = 'time-display';
+            timeDisplay.textContent = '0:00';
+
+            messageBubble.appendChild(playButton);
+            messageBubble.appendChild(progressBar);
+            messageBubble.appendChild(timeDisplay);
             messageBubble.appendChild(audioPlayer);
 
-            // Removed audioPlayer.play() to prevent autoplay
-            // audioPlayer.oncanplaythrough = () => {
-            //     audioPlayer.play().catch(e => console.error("Autoplay failed:", e));
-            // };
+            playButton.addEventListener('click', () => {
+              if (audioPlayer.paused) {
+                audioPlayer.play();
+                playButton.innerHTML = `
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                  </svg>
+                `;
+              } else {
+                audioPlayer.pause();
+                playButton.innerHTML = `
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                `;
+              }
+            });
 
-          } else { // type === 'text'
+            audioPlayer.addEventListener('timeupdate', () => {
+              progressBar.value = audioPlayer.currentTime;
+              timeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            });
+
+            audioPlayer.addEventListener('loadedmetadata', () => {
+              progressBar.max = audioPlayer.duration;
+              timeDisplay.textContent = formatTime(audioPlayer.duration);
+            });
+
+            audioPlayer.addEventListener('ended', () => {
+              playButton.innerHTML = `
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              `;
+              progressBar.value = 0;
+              timeDisplay.textContent = formatTime(audioPlayer.duration);
+            });
+
+          } else if (type === 'image') { // Bot image message
+            const imgElement = document.createElement('img');
+            imgElement.src = content;
+            imgElement.alt = 'Bot sent image';
+            imgElement.style.width = '100%'; // Image fills its bubble
+            imgElement.style.height = 'auto';
+            imgElement.classList.add('rounded-lg', 'object-cover');
+            messageBubble.classList.add('bg-gray-200'); // Apply background color for bot images
+
+            // Add error handling for bot images
+            imgElement.onerror = () => {
+                console.error('Failed to load bot image:', content);
+                const fallbackText = document.createElement('span');
+                fallbackText.textContent = `บอทส่งรูปไม่ได้ (ไฟล์ไม่พบ: ${content.split('/').pop()})`;
+                messageBubble.replaceChildren(fallbackText); // Replace image with text
+                messageBubble.classList.remove('bg-gray-200', 'p-1'); // Remove image-specific styling
+                messageBubble.classList.add('bg-red-200', 'text-red-800', 'p-3', 'max-w-xs', 'md:max-w-sm'); // Indicate error with text bubble style
+            };
+            messageBubble.appendChild(imgElement);
+
+          } else { // Bot text message
+            messageBubble.classList.add('bg-gray-200', 'text-gray-800');
             messageBubble.textContent = content;
           }
 
@@ -182,39 +352,52 @@
 
       function sendBotReply(userMessage) {
         let replyContent = null;
-        let replyType = 'text'; // Default reply type
+        let replyType = 'text';
+        const lowerCaseMessage = userMessage.toLowerCase();
 
-        // ตรวจสอบ Voice Replies ก่อน
-        for (const keyword in voiceReplies) {
-          if (userMessage.includes(keyword)) {
-            replyContent = voiceReplies[keyword];
-            replyType = 'audio';
-            break;
-          }
+        // Check for image reply keyword first, case-insensitive
+        if (lowerCaseMessage.includes('ส่งรูป') || lowerCaseMessage.includes('ส่งรูปภาพ')) {
+            const randomIndex = Math.floor(Math.random() * imageReplies.length);
+            replyContent = imageReplies[randomIndex];
+            replyType = 'image';
+            console.log(`บอทเลือกรูปภาพ: ${replyContent}`); // Log what bot picked
+        } else {
+            // Check for Voice Replies
+            for (const keyword in voiceReplies) {
+              if (lowerCaseMessage.includes(keyword)) {
+                replyContent = voiceReplies[keyword];
+                replyType = 'audio';
+                console.log(`บอทเลือกเสียง: ${replyContent}`); // Log what bot picked
+                break;
+              }
+            }
         }
 
-        // ถ้าไม่มี Voice Reply ให้ตรวจสอบ Text Replies
+        // If no Voice or Image Reply, check for Text Replies
         if (!replyContent) {
           for (const keyword in keywordReplies) {
-            if (userMessage.includes(keyword)) {
+            if (lowerCaseMessage.includes(keyword)) {
               replyContent = keywordReplies[keyword];
               replyType = 'text';
+              console.log(`บอทเลือกข้อความ: ${replyContent}`); // Log what bot picked
               break;
             }
           }
         }
 
-        // ถ้ายังไม่มี Reply ให้ส่ง Auto Reply สุ่ม
+        // If still no Reply, send Auto Reply
         if (!replyContent) {
           const randomIndex = Math.floor(Math.random() * autoReplies.length);
           replyContent = autoReplies[randomIndex];
           replyType = 'text';
+          console.log(`บอทเลือกข้อความอัตโนมัติ: ${replyContent}`); // Log what bot picked
         }
 
         typingIndicator.classList.add('hidden');
         addMessage(replyContent, 'bot', replyType);
       }
 
+      // Event listener for background upload (existing)
       uploadBgInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -225,11 +408,29 @@
             chatMessages.style.backgroundSize = 'cover';
             chatMessages.style.backgroundPosition = 'center';
             chatMessages.style.backgroundRepeat = 'no-repeat';
-            localStorage.setItem('chatMessagesBackgroundImage', imageUrl); // Save the image as a Data URL
+            localStorage.setItem('chatMessagesBackgroundImage', imageUrl);
           };
-          reader.readAsDataURL(file); // Read the image file as a Data URL
+          reader.readAsDataURL(file);
         }
       });
+
+      // New: Event listener for user image upload
+      uploadImageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageUrl = e.target.result;
+            addMessage(imageUrl, 'user', 'image'); // Add user image to chat
+
+            // Simulate typing "ส่งรูป" to trigger bot's image reply
+            typingIndicator.classList.remove('hidden');
+            setTimeout(() => sendBotReply("ส่งรูป"), 1000 + Math.random() * 500);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
 
       sendButton.addEventListener('click', handleSendMessage);
       messageInput.addEventListener('keydown', (event) => {
