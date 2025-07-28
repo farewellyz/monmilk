@@ -31,7 +31,7 @@
             position: relative;
             max-height: calc(100vh - 120px);
             overflow: auto;
-            border-radius: 1.5rem; /* More rounded corners */
+            border-radius: 1.5rem; /* More rounded corners for the board itself */
             box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Soft shadow */
         }
         .puzzle-slot {
@@ -50,7 +50,7 @@
             flex-wrap: wrap;
             gap: 8px;
             align-content: flex-start;
-            border-radius: 1.5rem; /* More rounded corners */
+            border-radius: 1.5rem; /* More rounded corners for the container */
             box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Soft shadow */
         }
         .puzzle-piece {
@@ -58,9 +58,7 @@
             cursor: grab;
             transition: transform 0.2s, box-shadow 0.2s;
             filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-            border: 2px solid white; /* Slightly thicker white border */
-            border-radius: 0.5rem; /* Slightly rounded piece corners */
-            overflow: hidden; /* Ensures background image stays within border-radius */
+            overflow: hidden; /* Ensures background image stays within defined shape */
         }
         .puzzle-piece:active {
             cursor: grabbing;
@@ -75,7 +73,6 @@
             pointer-events: none;
             filter: none;
             border: none;
-            border-radius: 0; /* Remove border-radius when placed for seamless fit */
         }
         .dragging {
             opacity: 0.5;
@@ -84,7 +81,7 @@
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
         }
-        .win-modal-content {
+        .win-modal-content, .shop-modal-content, .message-modal-content, .wheel-modal-content, .gift-modal-content {
             animation: fadeIn 0.5s ease-out forwards;
             background: linear-gradient(to bottom, #FFF3F8, #FFE9F3); /* Light pink gradient for modal */
             border: 3px solid #FF69B4; /* Hot pink border */
@@ -93,7 +90,7 @@
             box-shadow: 0 0 20px 5px #fde047; /* Yellow glow */
             z-index: 50;
         }
-        .difficulty-card {
+        .difficulty-card, .shop-item-card {
             background: white;
             border-radius: 1.5rem; /* More rounded corners */
             padding: 1.5rem;
@@ -104,7 +101,7 @@
             position: relative; /* Needed for pseudo-elements */
             overflow: hidden; /* Hide overflow for background effects */
         }
-        .difficulty-card::before {
+        .difficulty-card::before, .shop-item-card::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -116,30 +113,35 @@
             transition: all 0.5s ease-out;
             opacity: 0;
         }
-        .difficulty-card:hover::before {
+        .difficulty-card:hover::before, .shop-item-card:hover::before {
             top: -10%;
             left: -10%;
             opacity: 1;
         }
-        .difficulty-card:hover {
+        .difficulty-card:hover, .shop-item-card:hover {
             transform: translateY(-8px) scale(1.02); /* More pronounced lift and slight scale */
             box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.15), 0 8px 12px -6px rgba(0, 0, 0, 0.1);
         }
-        .difficulty-card .text-2xl {
+        .difficulty-card .text-2xl, .shop-item-card .text-2xl {
             margin-bottom: 0.5rem;
         }
-        .difficulty-card h3 {
+        .difficulty-card h3, .shop-item-card h3 {
             font-weight: 700; /* Bold */
             margin-bottom: 0.5rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow */
         }
-        .difficulty-card p {
+        .difficulty-card p, .shop-item-card p {
             color: #6B7280;
         }
         .difficulty-card[data-difficulty="easy"] { border-top-color: #6EE7B7; } /* Green */
         .difficulty-card[data-difficulty="normal"] { border-top-color: #60A5FA; } /* Blue */
         .difficulty-card[data-difficulty="hard"] { border-top-color: #FB923C; } /* Orange */
         .difficulty-card[data-difficulty="impossible"] { border-top-color: #EF4444; } /* Red */
+        .difficulty-card[data-difficulty="impossiblePlus"] { border-top-color: #8B5CF6; } /* Purple for impossiblePlus */
+
+        /* Shop Item Card Specific Styles */
+        .shop-item-card[data-item="spin-wheel"] { border-bottom-color: #FACC15; } /* Yellow */
+        .shop-item-card[data-item="buy-gift"] { border-bottom-color: #EC4899; } /* Pink */
 
         /* Button styles */
         button {
@@ -147,11 +149,11 @@
             transition: all 0.2s ease-in-out;
             letter-spacing: 0.025em; /* Slightly more space */
         }
-        #back-btn, #main-menu-btn {
+        #back-btn, #main-menu-btn, #shop-back-btn {
             background-color: #A78BFA; /* Purple-400 */
             color: white;
         }
-        #back-btn:hover, #main-menu-btn:hover {
+        #back-btn:hover, #main-menu-btn:hover, #shop-back-btn:hover {
             background-color: #8B5CF6; /* Purple-500 */
             transform: translateY(-2px);
         }
@@ -178,16 +180,75 @@
             background-color: #10B981; /* Green-500 */
             transform: translateY(-2px);
         }
+        .shop-btn {
+            background-color: #FF69B4; /* Hot pink */
+            color: white;
+            font-bold py-3 px-8 rounded-full hover:bg-pink-600 transition-colors shadow-lg
+        }
+        .shop-btn:hover {
+            transform: translateY(-2px);
+        }
+        .buy-item-btn {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+        .buy-item-btn:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        .buy-item-btn:disabled {
+            background-color: #D1D5DB;
+            cursor: not-allowed;
+            color: #9CA3AF;
+        }
+        .close-modal-btn {
+            background-color: #EF4444; /* Red */
+            color: white;
+        }
+        .close-modal-btn:hover {
+            background-color: #DC2626;
+        }
 
+        /* Wheel of Fortune Styling */
+        #wheel {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 5px solid #FFD700; /* Gold border */
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            background: conic-gradient(
+                #FFD700 0% 25%, /* Gold */
+                #FF69B4 25% 50%, /* Hot Pink */
+                #8A2BE2 50% 75%, /* Blue Violet */
+                #32CD32 75% 100% /* Lime Green */
+            );
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1); /* Smooth spin */
+        }
+        #wheel.spinning {
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        #wheel-pointer {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #FF4500; /* OrangeRed */
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
         /* Responsive adjustments */
         @media (max-width: 1024px) {
-            .flex-col.lg\\:flex-row {
+            .flex-col.lg\:flex-row {
                 flex-direction: column;
             }
-            .w-full.lg\\:w-\\[45\\%\\] {
+            .w-full.lg\:w-\[45\%\] {
                 width: 100%;
             }
-            .w-full.lg\\:w-\\[55\\%\\] {
+            .w-full.lg\:w-\[55\%\] {
                 width: 100%;
             }
         }
@@ -199,9 +260,10 @@
         
         <div id="start-screen" class="bg-white bg-opacity-80 p-8 rounded-3xl shadow-xl backdrop-blur-sm">
             <h1 class="font-handwritten text-7xl text-purple-700 mb-6 drop-shadow-lg">จิ๊กซอว์สื่อรัก</h1>
-            <p class="text-gray-700 text-xl mb-10 font-medium">เลือกความยากเพื่อเริ่มต่อภาพแห่งความทรงจำของเรา</p>
+            <p class="text-gray-700 text-xl mb-4 font-medium">เลือกความยากเพื่อเริ่มต่อภาพแห่งความทรงจำของเรา</p>
+            <p class="text-gray-700 text-lg mb-8 font-semibold">เหรีญม่อนของคุณ: <span id="money-display" class="text-pink-600">0</span></p>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 w-full max-w-6xl mx-auto">
                 <div data-difficulty="easy" class="difficulty-card border-b-4 border-green-400">
                     <div class="text-3xl text-yellow-500 mb-2">⭐</div>
                     <h3 class="text-3xl font-extrabold mt-2 text-green-600">ง่าย</h3>
@@ -222,7 +284,42 @@
                     <h3 class="text-3xl font-extrabold mt-2 text-red-700">สุดยอด</h3>
                     <p class="text-gray-600 text-lg">128 ชิ้น</p>
                 </div>
+                <div data-difficulty="impossiblePlus" class="difficulty-card border-b-4 border-purple-600">
+                    <div class="text-3xl text-yellow-500 mb-2">⭐⭐⭐⭐⭐</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-purple-700">ยากโคตรๆ</h3>
+                    <p class="text-gray-600 text-lg">1024 ชิ้น</p>
+                </div>
             </div>
+            <button id="shop-btn" class="shop-btn mt-10 py-3 px-12 rounded-full">
+                ร้านค้า
+            </button>
+        </div>
+
+        <div id="shop-screen" class="hidden bg-white bg-opacity-80 p-8 rounded-3xl shadow-xl backdrop-blur-sm">
+            <h2 class="font-handwritten text-6xl text-purple-700 mb-6 drop-shadow-lg">ร้านค้าม่อน</h2>
+            <p class="text-gray-700 text-xl mb-8 font-semibold">เหรีญม่อนของคุณ: <span id="shop-money-display" class="text-pink-600">0</span></p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-xl mx-auto">
+                <div data-item="spin-wheel" class="shop-item-card border-b-4 border-yellow-400">
+                    <div class="text-5xl mb-2">🎡</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-yellow-600">หมุนวงล้อ</h3>
+                    <p class="text-gray-600 text-lg mb-4">ลุ้นรับรางวัลพิเศษ!</p>
+                    <button id="spin-wheel-btn" class="buy-item-btn py-2 px-6 rounded-full text-lg shadow-md">
+                        ซื้อ (100 เหรีญ)
+                    </button>
+                </div>
+                <div data-item="buy-gift" class="shop-item-card border-b-4 border-pink-500">
+                    <div class="text-5xl mb-2">🎁</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-pink-600">ขอให้ม่อนซื้อของขวัญให้</h3>
+                    <p class="text-gray-600 text-lg mb-4">ของขวัญสุดพิเศษจากม่อน!</p>
+                    <button id="buy-gift-btn" class="buy-item-btn py-2 px-6 rounded-full text-lg shadow-md">
+                        ซื้อ (1000 เหรีญ)
+                    </button>
+                </div>
+            </div>
+            <button id="shop-back-btn" class="bg-purple-500 text-white font-bold py-3 px-12 rounded-full hover:bg-purple-600 transition-colors shadow-lg mt-10">
+                กลับไปหน้าหลัก
+            </button>
         </div>
 
         <div id="game-area" class="hidden">
@@ -248,11 +345,13 @@
             </div>
         </div>
         
+        <!-- Win Modal -->
         <div id="win-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-30">
             <div class="win-modal-content bg-white text-gray-800 p-10 rounded-3xl shadow-2xl text-center w-full max-w-md border-4 border-pink-400">
                 <div class="text-8xl mb-6">💖</div>
                 <h2 class="font-handwritten text-5xl text-purple-700 mb-4 animate-bounce">สำเร็จ!</h2>
-                <p class="text-gray-700 text-lg mb-8">คุณต่อจิ๊กซอว์ของเราได้แล้ว! เก่งมาก!</p>
+                <p class="text-gray-700 text-lg mb-4">คุณต่อจิ๊กซอว์ของเราได้แล้ว! เก่งมาก!</p>
+                <p class="text-gray-700 text-md mb-8">คุณได้รับ <span id="money-earned-display" class="font-bold text-pink-600">0</span> เหรีญม่อน!</p>
                 <div class="flex flex-col gap-3">
                     <button id="next-level-btn" class="bg-pink-500 text-white font-bold py-3 rounded-full hover:bg-pink-600 transition-colors text-lg shadow-md">
                         ไปยังด่านต่อไป
@@ -263,42 +362,120 @@
                 </div>
             </div>
         </div>
+
+        <!-- Generic Message Modal -->
+        <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-40">
+            <div class="message-modal-content bg-white text-gray-800 p-8 rounded-3xl shadow-2xl text-center w-full max-w-sm border-4 border-purple-400">
+                <h3 id="message-modal-title" class="font-handwritten text-4xl text-purple-700 mb-4"></h3>
+                <p id="message-modal-text" class="text-gray-700 text-lg mb-6"></p>
+                <button id="message-modal-close-btn" class="close-modal-btn py-2 px-6 rounded-full text-lg shadow-md">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+
+        <!-- Wheel Modal -->
+        <div id="wheel-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-40">
+            <div class="wheel-modal-content bg-white text-gray-800 p-8 rounded-3xl shadow-2xl text-center w-full max-w-md border-4 border-yellow-400">
+                <h3 class="font-handwritten text-5xl text-yellow-700 mb-6">หมุนวงล้อนำโชค!</h3>
+                <div id="wheel-container" class="relative w-[200px] h-[200px] mx-auto mb-6">
+                    <div id="wheel"></div>
+                    <div id="wheel-pointer"></div>
+                </div>
+                <p id="wheel-result" class="text-gray-700 text-xl font-semibold mb-6">หมุนวงล้อเพื่อลุ้นรางวัล!</p>
+                <button id="wheel-spin-btn" class="buy-item-btn py-2 px-8 rounded-full text-lg shadow-md">
+                    หมุน!
+                </button>
+                <button id="wheel-modal-close-btn" class="close-modal-btn py-2 px-6 rounded-full text-lg shadow-md mt-4">
+                    ปิด
+                </button>
+            </div>
+        </div>
+
+        <!-- Gift Modal -->
+        <div id="gift-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-40">
+            <div class="gift-modal-content bg-white text-gray-800 p-8 rounded-3xl shadow-2xl text-center w-full max-w-sm border-4 border-pink-400">
+                <div class="text-8xl mb-6">💖🎁</div>
+                <h3 class="font-handwritten text-5xl text-pink-700 mb-4">ของขวัญจากม่อน!</h3>
+                <p class="text-gray-700 text-lg mb-6">คุณได้รับของขวัญสุดพิเศษจากม่อนแล้ว!</p>
+                <button id="gift-modal-close-btn" class="close-modal-btn py-2 px-6 rounded-full text-lg shadow-md">
+                    เยี่ยม!
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
         // --- Config ---
         const difficulties = {
-            easy: { cols: 4, rows: 4, imageUrl: '1.jpg' },
-            normal: { cols: 6, rows: 6, imageUrl: '2.jpg' },
-            hard: { cols: 8, rows: 8, imageUrl: '3.jpg' },
-            impossible: { cols: 8, rows: 16, imageUrl: '4.jpg' },
+            easy: { cols: 4, rows: 4, imageUrls: ['1.jpg', '1-1.jpg'], money: 0.5 },
+            normal: { cols: 6, rows: 6, imageUrls: ['2.jpg'], money: 1 },
+            hard: { cols: 8, rows: 8, imageUrls: ['3.jpg'], money: 2 },
+            impossible: { cols: 8, rows: 16, imageUrls: ['4.jpg'], money: 10 },
+            impossiblePlus: { cols: 32, rows: 32, imageUrls: ['5.jpg'], money: 500 }, // Reverted to 1024 pieces (32x32)
         };
-        const difficultyOrder = ['easy', 'normal', 'hard', 'impossible'];
+        const difficultyOrder = ['easy', 'normal', 'hard', 'impossible', 'impossiblePlus'];
+
+        const wheelPrizes = [
+            { name: '+50 เหรีญม่อน', type: 'money', value: 0 },
+            { name: '+100 เหรีญม่อน', type: 'money', value: 0 },
+            { name: '+1 เฉลย', type: 'hint', value: 1 },
+            { name: 'ของขวัญเล็กน้อย (+200 เหรีญม่อน)', type: 'money', value: 0 }
+        ];
         // --- End Config ---
 
+        // --- UI Element References ---
         const startScreen = document.getElementById('start-screen');
+        const shopScreen = document.getElementById('shop-screen');
         const gameArea = document.getElementById('game-area');
         const winModal = document.getElementById('win-modal');
+        const messageModal = document.getElementById('message-modal');
+        const messageModalTitle = document.getElementById('message-modal-title');
+        const messageModalText = document.getElementById('message-modal-text');
+        const messageModalCloseBtn = document.getElementById('message-modal-close-btn');
+        const wheelModal = document.getElementById('wheel-modal');
+        const wheel = document.getElementById('wheel');
+        const wheelSpinBtn = document.getElementById('wheel-spin-btn');
+        const wheelResultEl = document.getElementById('wheel-result');
+        const wheelModalCloseBtn = document.getElementById('wheel-modal-close-btn');
+        const giftModal = document.getElementById('gift-modal');
+        const giftModalCloseBtn = document.getElementById('gift-modal-close-btn');
+
         const board = document.getElementById('puzzle-board');
         const piecesContainer = document.getElementById('pieces-container');
         const piecesLeftEl = document.getElementById('pieces-left');
+        const moneyDisplayEl = document.getElementById('money-display');
+        const shopMoneyDisplayEl = document.getElementById('shop-money-display');
+        const moneyEarnedDisplayEl = document.getElementById('money-earned-display');
+
         const difficultyButtons = document.querySelectorAll('.difficulty-card');
+        const shopBtn = document.getElementById('shop-btn');
         const backBtn = document.getElementById('back-btn');
         const hintBtn = document.getElementById('hint-btn');
         const nextLevelBtn = document.getElementById('next-level-btn');
         const mainMenuBtn = document.getElementById('main-menu-btn');
+        const shopBackBtn = document.getElementById('shop-back-btn');
+        const spinWheelShopBtn = document.getElementById('spin-wheel-btn');
+        const buyGiftShopBtn = document.getElementById('buy-gift-btn');
 
+        // --- Game State Variables ---
         let correctPieces = 0;
         let totalPieces = 0;
         let gridCols = 0;
         let gridRows = 0;
-        let currentImageUrl = '';
+        let currentImageUrl = ''; // This will now hold the specific image URL for the current game
         let hintUsesLeft = 5;
         let currentDifficultyKey = '';
+        let currentMoneys = 0;
+        let giftsPurchased = new Set(); // Using a Set to store unique gift identifiers
 
-        // Local Storage Key
-        const LOCAL_STORAGE_KEY = 'jigsawPuzzleProgress';
+        // --- Local Storage Keys ---
+        const LOCAL_STORAGE_PROGRESS_PREFIX = 'jigsawPuzzleProgress_';
+        const LOCAL_STORAGE_MONEY_KEY = 'jigsawPuzzleMoneys';
+        const LOCAL_STORAGE_GIFTS_KEY = 'jigsawPuzzleGifts';
 
+        // --- Event Listeners ---
         difficultyButtons.forEach(button => {
             button.addEventListener('click', () => {
                 currentDifficultyKey = button.dataset.difficulty;
@@ -306,45 +483,173 @@
                 gridCols = difficultySetting.cols;
                 gridRows = difficultySetting.rows;
                 totalPieces = gridCols * gridRows;
-                currentImageUrl = difficultySetting.imageUrl;
-                startGame();
+                
+                startGame(); // Call startGame to handle image selection and setup
             });
         });
 
-        backBtn.addEventListener('click', () => location.reload());
-        mainMenuBtn.addEventListener('click', () => location.reload());
+        shopBtn.addEventListener('click', showShopScreen);
+        backBtn.addEventListener('click', showStartScreen);
+        mainMenuBtn.addEventListener('click', showStartScreen);
+        shopBackBtn.addEventListener('click', showStartScreen);
         hintBtn.addEventListener('click', useHint);
-        nextLevelBtn.addEventListener('click', () => {
-            winModal.classList.add('hidden');
-            const currentIndex = difficultyOrder.indexOf(currentDifficultyKey);
-            const nextDifficultyKey = difficultyOrder[currentIndex + 1];
-            
-            // ตรวจสอบว่ามีด่านต่อไปหรือไม่
-            if (nextDifficultyKey) {
-                currentDifficultyKey = nextDifficultyKey;
-                const difficultySetting = difficulties[currentDifficultyKey];
-                gridCols = difficultySetting.cols;
-                gridRows = difficultySetting.rows;
-                totalPieces = gridCols * gridRows;
-                currentImageUrl = difficultySetting.imageUrl;
-                
-                correctPieces = 0;
-                clearSavedProgress(currentDifficultyKey); // Clear progress for the new level
-                startGame();
-            } else {
-                // ถ้าไม่มีด่านต่อไป ให้กลับไปหน้าแรก
-                alert('คุณได้เล่นครบทุกด่านแล้ว! กลับสู่หน้าหลัก.');
-                location.reload();
-            }
-        });
+        nextLevelBtn.addEventListener('click', handleNextLevel);
 
-        function startGame() {
-            startScreen.style.display = 'none';
+        spinWheelShopBtn.addEventListener('click', handleSpinWheelPurchase);
+        buyGiftShopBtn.addEventListener('click', handleBuyGiftPurchase);
+        wheelSpinBtn.addEventListener('click', spinWheel);
+        wheelModalCloseBtn.addEventListener('click', () => wheelModal.classList.add('hidden'));
+        giftModalCloseBtn.addEventListener('click', () => giftModal.classList.add('hidden'));
+        messageModalCloseBtn.addEventListener('click', () => messageModal.classList.add('hidden'));
+
+        // --- Screen Management Functions ---
+        function showStartScreen() {
+            startScreen.classList.remove('hidden');
+            gameArea.classList.add('hidden');
+            shopScreen.classList.add('hidden');
+            winModal.classList.add('hidden');
+            messageModal.classList.add('hidden');
+            wheelModal.classList.add('hidden');
+            giftModal.classList.add('hidden');
+            updateMoneyDisplay(); // Update money on main screen
+        }
+
+        function showShopScreen() {
+            startScreen.classList.add('hidden');
+            gameArea.classList.add('hidden');
+            shopScreen.classList.remove('hidden');
+            winModal.classList.add('hidden');
+            messageModal.classList.add('hidden');
+            wheelModal.classList.add('hidden');
+            giftModal.classList.add('hidden');
+            updateMoneyDisplay(); // Update money on shop screen
+        }
+
+        function showGameArea() {
+            startScreen.classList.add('hidden');
+            shopScreen.classList.add('hidden');
             gameArea.classList.remove('hidden');
+            winModal.classList.add('hidden');
+            messageModal.classList.add('hidden');
+            wheelModal.classList.add('hidden');
+            giftModal.classList.add('hidden');
+        }
+
+        function showWinModal() {
+            const currentIndex = difficultyOrder.indexOf(currentDifficultyKey);
+            if (currentIndex >= difficultyOrder.length - 1) {
+                nextLevelBtn.style.display = 'none'; // Hide "Next Level" button if it's the last level
+            } else {
+                nextLevelBtn.style.display = 'block';
+            }
+            winModal.classList.remove('hidden');
+        }
+
+        function showMessageModal(title, message) {
+            messageModalTitle.textContent = title;
+            messageModalText.textContent = message;
+            messageModal.classList.remove('hidden');
+        }
+
+        // --- Money System Functions ---
+        function updateMoneyDisplay() {
+            moneyDisplayEl.textContent = currentMoneys;
+            shopMoneyDisplayEl.textContent = currentMoneys;
+            // Disable/enable shop buttons based on money
+            spinWheelShopBtn.disabled = currentMoneys < 100;
+            buyGiftShopBtn.disabled = currentMoneys < 1000 || giftsPurchased.has('special_gift');
+        }
+
+        function addMoney(amount) {
+            currentMoneys += amount;
+            saveMoney();
+            updateMoneyDisplay();
+        }
+
+        function deductMoney(amount) {
+            if (currentMoneys >= amount) {
+                currentMoneys -= amount;
+                saveMoney();
+                updateMoneyDisplay();
+                return true;
+            }
+            showMessageModal('เงินไม่พอ!', 'คุณมีเหรีญม่อนไม่พอที่จะซื้อไอเทมนี้');
+            return false;
+        }
+
+        // --- Local Storage Functions ---
+        function saveMoney() {
+            localStorage.setItem(LOCAL_STORAGE_MONEY_KEY, currentMoneys.toString());
+            console.log('Moneys saved:', currentMoneys);
+        }
+
+        function loadMoney() {
+            const savedMoneys = localStorage.getItem(LOCAL_STORAGE_MONEY_KEY);
+            return parseInt(savedMoneys || '0');
+        }
+
+        function saveGifts() {
+            localStorage.setItem(LOCAL_STORAGE_GIFTS_KEY, JSON.stringify(Array.from(giftsPurchased)));
+            console.log('Gifts saved:', Array.from(giftsPurchased));
+        }
+
+        function loadGifts() {
+            const savedGifts = localStorage.getItem(LOCAL_STORAGE_GIFTS_KEY);
+            return new Set(JSON.parse(savedGifts || '[]'));
+        }
+
+        function saveProgress() {
+            const placedPieces = Array.from(board.querySelectorAll('.puzzle-slot .puzzle-piece.placed')).map(piece => parseInt(piece.dataset.index));
+            const progress = {
+                placedPieces: placedPieces,
+                hintsLeft: hintUsesLeft,
+                difficulty: currentDifficultyKey,
+                imageUrl: currentImageUrl // Save the specific image URL
+            };
+            localStorage.setItem(`${LOCAL_STORAGE_PROGRESS_PREFIX}${currentDifficultyKey}`, JSON.stringify(progress));
+            console.log(`Progress saved for ${currentDifficultyKey}:`, progress);
+        }
+
+        function loadProgress(difficulty) {
+            const savedData = localStorage.getItem(`${LOCAL_STORAGE_PROGRESS_PREFIX}${difficulty}`);
+            if (savedData) {
+                const progress = JSON.parse(savedData);
+                console.log(`Progress loaded for ${difficulty}:`, progress);
+                return progress;
+            }
+            console.log(`No saved progress found for ${difficulty}.`);
+            return null;
+        }
+
+        function clearSavedProgress(difficulty) {
+            localStorage.removeItem(`${LOCAL_STORAGE_PROGRESS_PREFIX}${difficulty}`);
+            console.log(`Saved progress cleared for ${difficulty}.`);
+        }
+
+        // --- Game Logic ---
+        function startGame() {
+            showGameArea();
             
-            hintUsesLeft = 5; // Reset hints for new game
+            const difficultySetting = difficulties[currentDifficultyKey];
+            gridCols = difficultySetting.cols;
+            gridRows = difficultySetting.rows;
+            totalPieces = gridCols * gridRows;
+
+            const savedProgress = loadProgress(currentDifficultyKey);
+
+            if (savedProgress && savedProgress.imageUrl) {
+                currentImageUrl = savedProgress.imageUrl;
+                hintUsesLeft = savedProgress.hintsLeft !== undefined ? savedProgress.hintsLeft : 5;
+            } else {
+                // No saved progress or image, pick a random image
+                const imageUrls = difficultySetting.imageUrls;
+                currentImageUrl = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+                hintUsesLeft = 5; // Reset hints for new game
+            }
+            
             updateHintButton();
 
+            // Hide hint button for easy difficulty
             if (currentDifficultyKey === 'easy') {
                 hintBtn.style.display = 'none';
             } else {
@@ -360,21 +665,23 @@
             correctPieces = 0; // Reset correct pieces for new game
 
             const img = new Image();
-            img.src = currentImageUrl;
+            img.src = currentImageUrl; // Use the determined currentImageUrl
             await new Promise((resolve, reject) => {
                 img.onload = resolve;
                 img.onerror = () => {
-                    alert(`ไม่สามารถโหลดรูปภาพ '${currentImageUrl}' ได้ กรุณาตรวจสอบว่าไฟล์รูปอยู่ในโฟลเดอร์เดียวกับเกม`);
-                    location.reload();
-                    reject(new Error('Image load error'));
+                    showMessageModal('ข้อผิดพลาด!', `ไม่สามารถโหลดรูปภาพ '${currentImageUrl}' ได้ กรุณาตรวจสอบว่าไฟล์รูปอยู่ในโฟลเดอร์เดียวกับเกม หรือใช้ URL ที่ถูกต้อง`);
+                    // Fallback to a placeholder image if the provided URL fails
+                    img.src = `https://placehold.co/500x500/FFC0CB/4A0E4E?text=Image%20Error`;
+                    img.onload = resolve; // Try again with placeholder
+                    img.onerror = reject; // If placeholder also fails, reject
                 };
             });
             
             const aspectRatio = img.naturalWidth / img.naturalHeight;
             board.style.aspectRatio = aspectRatio;
             
-            await new Promise(requestAnimationFrame);
-            
+            await new Promise(requestAnimationFrame); // Ensure layout is stable before getting rect
+
             const finalBoardRect = board.getBoundingClientRect();
 
             board.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
@@ -411,8 +718,7 @@
 
             if (savedProgress && savedProgress.placedPieces && savedProgress.placedPieces.length > 0) {
                 placedPieceIndexes = new Set(savedProgress.placedPieces);
-                hintUsesLeft = savedProgress.hintsLeft !== undefined ? savedProgress.hintsLeft : 5;
-                updateHintButton();
+                // hintUsesLeft is already set in startGame based on savedProgress
             }
 
             // Distribute pieces
@@ -420,7 +726,12 @@
             allPieces.forEach(piece => {
                 if (placedPieceIndexes.has(parseInt(piece.dataset.index))) {
                     const targetSlot = board.querySelector(`.puzzle-slot[data-index='${piece.dataset.index}']`);
-                    placePiece(piece, targetSlot, false); // Don't save again when loading
+                    if (targetSlot) { // Ensure target slot exists
+                        placePiece(piece, targetSlot, false); // Don't save again when loading
+                    } else {
+                        // If slot not found (e.g., board size changed), treat as unplaced
+                        unplacedPieces.push(piece);
+                    }
                 } else {
                     unplacedPieces.push(piece);
                 }
@@ -441,7 +752,6 @@
             allPieces.forEach(piece => {
                 piece.removeEventListener('dragstart', handleDragStart);
                 piece.removeEventListener('dragend', handleDragEnd);
-
                 piece.addEventListener('dragstart', handleDragStart);
                 piece.addEventListener('dragend', handleDragEnd);
             });
@@ -449,9 +759,10 @@
             allSlots.forEach(slot => {
                 slot.removeEventListener('dragover', handleDragOver);
                 slot.removeEventListener('drop', handleDrop);
-
+                slot.removeEventListener('dragleave', handleDragLeave);
                 slot.addEventListener('dragover', handleDragOver);
                 slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragleave', handleDragLeave);
             });
         }
 
@@ -462,14 +773,26 @@
 
         function handleDragEnd() {
             this.classList.remove('dragging');
+            document.querySelectorAll('.puzzle-slot').forEach(slot => {
+                slot.classList.remove('shadow-lg', 'shadow-purple-400/50');
+            });
         }
 
         function handleDragOver(e) {
             e.preventDefault();
+            if (this.children.length === 0) { // Only allow dropping if slot is empty
+                e.currentTarget.classList.add('shadow-lg', 'shadow-purple-400/50'); // Highlight empty slot
+            }
+        }
+        
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('shadow-lg', 'shadow-purple-400/50'); // Remove highlight when dragging out
         }
 
         function handleDrop(e) {
             e.preventDefault();
+            e.currentTarget.classList.remove('shadow-lg', 'shadow-purple-400/50'); // Remove highlight
+
             if (this.children.length > 0) return; // Prevent dropping on an occupied slot
 
             const pieceIndex = e.dataTransfer.getData('text/plain');
@@ -495,6 +818,9 @@
         function checkWin() {
             if (correctPieces === totalPieces) {
                 hintBtn.disabled = true;
+                const earnedMoney = difficulties[currentDifficultyKey].money;
+                addMoney(earnedMoney);
+                moneyEarnedDisplayEl.textContent = earnedMoney; // Update money earned display in modal
                 setTimeout(() => {
                     showWinModal();
                     clearSavedProgress(currentDifficultyKey); // Clear progress when level is won
@@ -502,14 +828,21 @@
             }
         }
 
-        function showWinModal() {
+        function handleNextLevel() {
+            winModal.classList.add('hidden');
             const currentIndex = difficultyOrder.indexOf(currentDifficultyKey);
-            if (currentIndex >= difficultyOrder.length - 1) {
-                nextLevelBtn.style.display = 'none'; // Hide "Next Level" button if it's the last level
+            const nextDifficultyKey = difficultyOrder[currentIndex + 1];
+            
+            if (nextDifficultyKey) {
+                currentDifficultyKey = nextDifficultyKey;
+                // Game setup will now handle image selection based on saved progress or random
+                correctPieces = 0; // Reset correct pieces for new level
+                clearSavedProgress(currentDifficultyKey); // Clear progress for the new level
+                startGame();
             } else {
-                nextLevelBtn.style.display = 'block';
+                showMessageModal('ยินดีด้วย!', 'คุณได้เล่นครบทุกด่านแล้ว! กลับสู่หน้าหลัก.');
+                showStartScreen(); // Go back to start screen
             }
-            winModal.classList.remove('hidden');
         }
 
         function updateHintButton() {
@@ -542,7 +875,14 @@
 
             if (targetSlot.children.length > 0) {
                 console.log("Hint: Target slot already occupied. Trying to find another.");
-                return; 
+                // If the target slot is somehow occupied, try to find another empty slot for a hint
+                const emptySlots = Array.from(board.querySelectorAll('.puzzle-slot')).filter(slot => slot.children.length === 0);
+                if (emptySlots.length > 0) {
+                    const randomEmptySlot = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+                    // Re-assign the piece to this random empty slot for the hint
+                    placePiece(unsolvedPiece, randomEmptySlot, true);
+                }
+                return;
             }
 
             targetSlot.classList.add('hint-highlight');
@@ -550,6 +890,7 @@
                 targetSlot.classList.remove('hint-highlight');
             }, 2000);
 
+            // Animate piece to slot
             const pieceRect = unsolvedPiece.getBoundingClientRect();
             const slotRect = targetSlot.getBoundingClientRect();
             const boardRect = board.getBoundingClientRect();
@@ -569,57 +910,82 @@
                 unsolvedPiece.style.transform = '';
                 unsolvedPiece.style.zIndex = '';
                 placePiece(unsolvedPiece, targetSlot, true); // Save after hint placement
-            }, 500); 
+            }, 500);
         }
 
-        // --- Local Storage Functions ---
-
-        function saveProgress() {
-            const placedPieces = Array.from(board.querySelectorAll('.puzzle-slot .puzzle-piece.placed')).map(piece => parseInt(piece.dataset.index));
-            const progress = {
-                placedPieces: placedPieces,
-                hintsLeft: hintUsesLeft,
-                difficulty: currentDifficultyKey // Save current difficulty to load it later
-            };
-            localStorage.setItem(`${LOCAL_STORAGE_KEY}_${currentDifficultyKey}`, JSON.stringify(progress));
-            console.log(`Progress saved for ${currentDifficultyKey}:`, progress);
-        }
-
-        function loadProgress(difficulty) {
-            const savedData = localStorage.getItem(`${LOCAL_STORAGE_KEY}_${difficulty}`);
-            if (savedData) {
-                const progress = JSON.parse(savedData);
-                console.log(`Progress loaded for ${difficulty}:`, progress);
-                return progress;
+        // --- Shop Item Handlers ---
+        function handleSpinWheelPurchase() {
+            if (deductMoney(100)) {
+                wheelModal.classList.remove('hidden');
+                wheelResultEl.textContent = 'หมุนวงล้อเพื่อลุ้นรางวัล!';
+                wheelSpinBtn.disabled = false;
+                wheel.style.transform = 'rotate(0deg)'; // Reset wheel position
             }
-            console.log(`No saved progress found for ${difficulty}.`);
-            return null;
         }
 
-        function clearSavedProgress(difficulty) {
-            localStorage.removeItem(`${LOCAL_STORAGE_KEY}_${difficulty}`);
-            console.log(`Saved progress cleared for ${difficulty}.`);
+        function spinWheel() {
+            wheelSpinBtn.disabled = true;
+            wheelResultEl.textContent = 'กำลังหมุน...';
+
+            const randomIndex = Math.floor(Math.random() * wheelPrizes.length);
+            const selectedPrize = wheelPrizes[randomIndex];
+
+            // Calculate rotation for the selected prize
+            // Assuming 4 segments for simplicity, each 90 degrees.
+            // Adjust this if wheel design changes.
+            const segmentAngle = 360 / wheelPrizes.length;
+            const targetRotation = (360 * 5) + (randomIndex * segmentAngle) + (segmentAngle / 2); // Spin 5 full times + target segment center
+
+            wheel.style.transform = `rotate(${targetRotation}deg)`;
+            wheel.classList.add('spinning');
+
+            setTimeout(() => {
+                wheel.classList.remove('spinning');
+                let prizeMessage = `คุณได้รับ: ${selectedPrize.name}!`;
+                if (selectedPrize.type === 'money') {
+                    addMoney(selectedPrize.value);
+                } else if (selectedPrize.type === 'hint') {
+                    hintUsesLeft += selectedPrize.value;
+                    updateHintButton();
+                    saveProgress(); // Save hint count after adding
+                }
+                wheelResultEl.textContent = prizeMessage;
+                wheelSpinBtn.disabled = false;
+            }, 4000); // Match this with the CSS transition duration
         }
 
-        // --- Initial Load on Start Screen ---
+        function handleBuyGiftPurchase() {
+            if (giftsPurchased.has('special_gift')) {
+                showMessageModal('ซื้อแล้ว!', 'คุณได้ซื้อของขวัญชิ้นนี้ไปแล้ว');
+                return;
+            }
+
+            if (deductMoney(1000)) {
+                giftsPurchased.add('special_gift');
+                saveGifts();
+                giftModal.classList.remove('hidden');
+                updateMoneyDisplay(); // Update button state
+            }
+        }
+
+        // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Check for any saved progress across all difficulties
-            let hasSavedGame = false;
-            for (const key of difficultyOrder) {
-                if (localStorage.getItem(`${LOCAL_STORAGE_KEY}_${key}`)) {
-                    hasSavedGame = true;
-                    // You could highlight difficulties with saved progress here if desired
+            currentMoneys = loadMoney();
+            giftsPurchased = loadGifts();
+            updateMoneyDisplay(); // Initial update of money on start screen
+
+            // Add "มีบันทึก" (has saved) indicator to difficulty cards
+            difficultyOrder.forEach(key => {
+                if (localStorage.getItem(`${LOCAL_STORAGE_PROGRESS_PREFIX}${key}`)) {
                     const card = document.querySelector(`.difficulty-card[data-difficulty="${key}"]`);
                     if (card) {
                         const savedIndicator = document.createElement('span');
                         savedIndicator.textContent = ' (มีบันทึก)';
-                        savedIndicator.classList.add('text-sm', 'text-purple-500', 'font-medium');
+                        savedIndicator.classList.add('text-sm', 'text-purple-500', 'font-medium', 'block', 'mt-1');
                         card.querySelector('h3').appendChild(savedIndicator);
                     }
                 }
-            }
-            // If you want to automatically load the last played difficulty, you could do it here
-            // For now, it just shows which levels have saved data.
+            });
         });
     </script>
 </body>
