@@ -144,20 +144,16 @@
         // ✨✨✨  ส่วนที่ต้องแก้ไข (EDIT THIS SECTION) ✨✨✨
         // =================================================================
         const CONFIG = {
-            // --- ใส่ชื่อไฟล์เพลงของคุณที่อยู่ในโฟลเดอร์ audio ---
-            musicUrl: "audio/yellow.mp3", // <--- แก้ "our-song.mp3" เป็นชื่อไฟล์เพลงของคุณ
+            musicUrl: "audio/yellow.mp3", 
 
-            // --- แก้ไขข้อมูลความทรงจำและชื่อไฟล์รูปภาพ ---
-            // *** ตำแหน่งของดาวถูกจัดเรียงเป็นรูปหัวใจแล้ว ***
             stars: [
-                // The order here defines the heart outline
-                { x: 50, y: 90, title: "วันแรกที่พบกัน", desc: "จุดเริ่มต้นของจักรวาลของเรา...", img: "images/first-day.jpg" },
-                { x: 25, y: 70, title: "เดทแรก", desc: "ยังจำความตื่นเต้นในวันนั้นได้เสมอ", img: "images/first-date.jpg" },
-                { x: 15, y: 40, title: "อาหารมื้อแรก", desc: "การที่ได้นั้งตรงข้ามกันแล้วมองหน้ากัน", img: "images/first-trip.jpg" },
-                { x: 35, y: 20, title: "วันที่ทะเลาะกัน", desc: "แต่ก็ผ่านมันมาได้ และรักกันมากกว่าเดิม", img: "images/our-fight.jpg" },
-                { x: 65, y: 20, title: "ของขวัญชิ้นพิเศษ", desc: "ขอบคุณสำหรับของขวัญที่แทนใจนะ", img: "images/special-gift.jpg" },
-                { x: 85, y: 40, title: "วันธรรมดาที่แสนสุข", desc: "แค่มีเธออยู่ข้างๆ ก็พอแล้ว", img: "images/simple-day.jpg" },
-                { x: 75, y: 70, title: "คำสัญญา", desc: "จะจับมือเธอไว้แบบนี้ตลอดไปนะ", img: "images/our-promise.jpg" },
+                { title: "วันแรกที่พบกัน", desc: "จุดเริ่มต้นของจักรวาลของเรา...", img: "images/first-day.jpg", radius: 45, angle: 0, speed: 0.0005, twinkleFactor: Math.random() * 10 },
+                { title: "เดทแรก", desc: "ยังจำความตื่นเต้นในวันนั้นได้เสมอ", img: "images/first-date.jpg", radius: 65, angle: 1, speed: 0.0004, twinkleFactor: Math.random() * 10 },
+                { title: "อาหารมื้อแรก", desc: "การที่ได้นั้งตรงข้ามกันแล้วมองหน้ากัน", img: "images/first-trip.jpg", radius: 85, angle: 2, speed: 0.0003, twinkleFactor: Math.random() * 10 },
+                { title: "วันที่ทะเลาะกัน", desc: "แต่ก็ผ่านมันมาได้ และรักกันมากกว่าเดิม", img: "images/our-fight.jpg", radius: 90, angle: 3, speed: 0.0002, twinkleFactor: Math.random() * 10 },
+                { title: "ของขวัญชิ้นพิเศษ", desc: "ขอบคุณสำหรับของขวัญที่แทนใจนะ", img: "images/special-gift.jpg", radius: 85, angle: 4, speed: 0.0003, twinkleFactor: Math.random() * 10 },
+                { title: "วันธรรมดาที่แสนสุข", desc: "แค่มีเธออยู่ข้างๆ ก็พอแล้ว", img: "images/simple-day.jpg", radius: 65, angle: 5, speed: 0.0004, twinkleFactor: Math.random() * 10 },
+                { title: "คำสัญญา", desc: "จะจับมือเธอไว้แบบนี้ตลอดไปนะ", img: "images/our-promise.jpg", radius: 45, angle: 6, speed: 0.0005, twinkleFactor: Math.random() * 10 },
             ],
             finalRevealMessage: "และนี่คือ... 'กลุ่มดาวแห่งรัก' ของเรา"
         };
@@ -177,7 +173,6 @@
         const modal = document.getElementById('memory-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
 
-        // --- Music ---
         let music;
         function setupMusic(callback) {
             music = new Tone.Player({
@@ -220,8 +215,34 @@
             });
         }
 
+        function drawStarShape(cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             stars.forEach(star => {
                 star.x += star.vx;
@@ -250,18 +271,21 @@
 
             ctx.globalAlpha = 1;
             CONFIG.stars.forEach((star, index) => {
-                const x = star.x / 100 * canvas.width;
-                const y = star.y / 100 * canvas.height;
-                
-                if (visitedStars.has(index)) {
-                     // Optionally draw faint lines between visited stars before reveal
-                }
+                star.angle += star.speed;
+                const orbitRadiusX = star.radius / 100 * (canvas.width / 2.2);
+                const orbitRadiusY = star.radius / 100 * (canvas.height / 3);
+                const x = centerX + orbitRadiusX * Math.cos(star.angle);
+                const y = centerY + orbitRadiusY * Math.sin(star.angle);
 
-                ctx.beginPath();
-                ctx.arc(x, y, 8, 0, Math.PI * 2);
-                ctx.fillStyle = visitedStars.has(index) ? '#ff69b4' : 'white';
+                star.twinkleFactor += 0.05;
+                const glowSize = 15 + Math.sin(star.twinkleFactor) * 5;
+                const starSize = 12 + Math.sin(star.twinkleFactor * 0.7) * 4;
+
                 ctx.shadowColor = visitedStars.has(index) ? '#ff69b4' : 'white';
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = glowSize;
+                ctx.fillStyle = visitedStars.has(index) ? '#ff69b4' : 'white';
+                
+                drawStarShape(x, y, 5, starSize, starSize / 2.5);
                 ctx.fill();
                 ctx.shadowBlur = 0;
             });
@@ -270,12 +294,16 @@
         }
 
         function getClickedStar(clickX, clickY) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
             for (let i = 0; i < CONFIG.stars.length; i++) {
                 const star = CONFIG.stars[i];
-                const x = star.x / 100 * canvas.width;
-                const y = star.y / 100 * canvas.height;
+                const orbitRadiusX = star.radius / 100 * (canvas.width / 2.2);
+                const orbitRadiusY = star.radius / 100 * (canvas.height / 3);
+                const x = centerX + orbitRadiusX * Math.cos(star.angle);
+                const y = centerY + orbitRadiusY * Math.sin(star.angle);
                 const distance = Math.sqrt(Math.pow(clickX - x, 2) + Math.pow(clickY - y, 2));
-                if (distance < 15) {
+                if (distance < 25) {
                     return i;
                 }
             }
@@ -324,34 +352,38 @@
             journeySubtitle.textContent = CONFIG.finalRevealMessage;
             revealBtn.style.display = 'none';
             
-            // Animate drawing the heart constellation outline
             let alpha = 0;
             function animateConstellation() {
-                if (alpha >= 1) return; // Stop animation when done
-                
+                if (alpha >= 1) return;
                 alpha += 0.02;
                 ctx.lineWidth = 3;
                 ctx.strokeStyle = `rgba(255, 105, 180, ${alpha})`;
                 ctx.shadowColor = '#ff69b4';
                 ctx.shadowBlur = 10;
                 
-                // Draw lines between stars in sequence to form a heart outline
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
                 for (let i = 0; i < CONFIG.stars.length; i++) {
                     const s1 = CONFIG.stars[i];
-                    // Connect to the next star, and wrap around from the last to the first
                     const s2 = CONFIG.stars[(i + 1) % CONFIG.stars.length]; 
                     
-                    const x1 = s1.x / 100 * canvas.width;
-                    const y1 = s1.y / 100 * canvas.height;
-                    const x2 = s2.x / 100 * canvas.width;
-                    const y2 = s2.y / 100 * canvas.height;
+                    const orbitRadius1X = s1.radius / 100 * (canvas.width / 2.2);
+                    const orbitRadius1Y = s1.radius / 100 * (canvas.height / 3);
+                    const x1 = centerX + orbitRadius1X * Math.cos(s1.angle);
+                    const y1 = centerY + orbitRadius1Y * Math.sin(s1.angle);
+
+                    const orbitRadius2X = s2.radius / 100 * (canvas.width / 2.2);
+                    const orbitRadius2Y = s2.radius / 100 * (canvas.height / 3);
+                    const x2 = centerX + orbitRadius2X * Math.cos(s2.angle);
+                    const y2 = centerY + orbitRadius2Y * Math.sin(s2.angle);
                     
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
                     ctx.lineTo(x2, y2);
                     ctx.stroke();
                 }
-                ctx.shadowBlur = 0; // Reset shadow blur after drawing each frame
+                ctx.shadowBlur = 0;
                 
                 requestAnimationFrame(animateConstellation);
             }
