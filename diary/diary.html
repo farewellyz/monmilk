@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ไดอารี่ครบรอบของเรา 💖</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;500;600&family=Mitr:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Krub', sans-serif;
+            background-color: #fdf2f8; /* Very light pink */
+            /* พื้นหลังลายหัวใจ */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fbcfe8' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-20v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM12 34v-4h-2v4H6v2h4v4h2v-4h4v-2h-4zm0-20v-4h-2v4H6v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-size: 60px 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-y: auto; /* Allow body to scroll if content is long */
+        }
+
+        /* Container สำหรับแสดงผลหน้าเดียว */
+        #page-display-container {
+            position: relative;
+            width: 90%;
+            max-width: 1200px; /* ขยายขนาดสูงสุดสำหรับหน้าเดียว */
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            padding: 1rem; /* Padding รอบหน้า */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* ให้หน้าเดียวสามารถเลื่อนได้ถ้าเนื้อหาเยอะ */
+            margin: 2rem 0; /* เพิ่ม margin บนล่างเผื่อพื้นที่ */
+        }
+
+        /* Page content styling - เพิ่ม transition สำหรับอนิเมชั่น */
+        .page-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-grow: 1;
+            
+            /* CSS สำหรับอนิเมชั่น Fade-in และ Slide-up */
+            opacity: 0; /* เริ่มต้นที่ซ่อนอยู่ */
+            transform: translateY(10px); /* เลื่อนขึ้น 10px */
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out; /* กำหนดการเปลี่ยนผ่าน */
+        }
+
+        /* Class ที่จะเพิ่มเมื่อต้องการให้ Page แสดงผลแบบมีอนิเมชั่น */
+        .page-content.is-active {
+            opacity: 1; /* ทำให้ปรากฏ */
+            transform: translateY(0); /* กลับสู่ตำแหน่งปกติ */
+        }
+
+        .cover-content {
+            background-color: #fbcfe8; /* Pink cover color */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 1rem;
+            width: 100%;  
+            height: 100%; /* ให้หน้าปกสูงเต็ม Container */
+            color: #880e4f; /* Darker pink for text */
+            border-radius: 1rem; /* Rounded corners for cover */
+            padding: 2rem; /* Padding ภายในหน้าปก */
+            box-sizing: border-box;
+        }
+        .cover-content h1, .cover-content h2 {
+            font-family: 'Mitr', sans-serif;
+            color: #880e4f;
+        }
+        .cover-content p {
+            color: #ad1457;
+        }
+        
+        /* Styles for images within pages (general) */
+        .page-content img {
+            max-width: 100%;
+            height: auto;
+            display: block; 
+            margin: 0 auto; 
+            border-radius: 0.5rem; 
+        }
+
+        /* Styles for images in a horizontal row */
+        .month-images-row {
+            display: flex;
+            flex-direction: row; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            width: 100%;
+            height: 100%; 
+            gap: 0px; 
+            box-sizing: border-box;
+        }
+
+        .month-images-row img {
+            width: 50%; 
+            max-width: 50%; 
+            height: auto; 
+            object-fit: contain; 
+            margin: 0; 
+            border-radius: 0.5rem; 
+        }
+
+        .month-title {
+            font-family: 'Mitr', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #f472b6;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* --- Navigation Buttons --- */
+        .nav-button {
+            position: fixed;
+            bottom: 3vh;
+            background-color: #f472b6;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+        }
+        .nav-button:hover {
+            background-color: #ec4899;
+            transform: translateY(-3px);
+        }
+        #prev-btn { left: 5vw; }
+        #next-btn { right: 5vw; }
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <div id="page-display-container">
+        </div>
+
+    <button id="prev-btn" class="nav-button">‹</button>
+    <button id="next-btn" class="nav-button">›</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pageDisplayContainer = document.getElementById('page-display-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            let currentPageIndex = 0; 
+
+            let allContentPages = [];
+
+            // 0: Front Cover (Text-based)
+            const coverFront = document.createElement('div');
+            coverFront.classList.add('page-content', 'cover-content');
+            coverFront.innerHTML = `
+                <h1 class="text-4xl font-bold text-pink-800" style="font-family: 'Mitr', sans-serif;">Our Anniversary Diary</h1>
+                <p class="text-pink-700">บันทึกครบรอบ 12 เดือนของเรา</p>
+                <div class="text-5xl mt-4">💖</div>
+            `;
+            allContentPages.push(coverFront);
+
+            // 1-12: Month Pages (each month has 2 images)
+            for (let i = 1; i <= 12; i++) {
+                const monthPage = document.createElement('div');
+                monthPage.classList.add('page-content');
+                monthPage.innerHTML = `
+                    <div class="month-images-row">
+                        <img src="images/month${i}-1.jpg" alt="รูปภาพเดือนที่ ${i} รูปที่ 1">  
+                        <img src="images/month${i}-2.jpg" alt="รูปภาพเดือนที่ ${i} รูปที่ 2">  
+                    </div>
+                `;
+                allContentPages.push(monthPage);
+            }
+
+            // --- Function to update the displayed page ---
+            function updatePageView() {
+                // Clear existing content immediately
+                pageDisplayContainer.innerHTML = '';  
+                
+                const currentPageContent = allContentPages[currentPageIndex];
+                const clonedPage = currentPageContent.cloneNode(true);
+                
+                // เพิ่ม page content ที่สร้างขึ้นใหม่เข้าไปใน container
+                pageDisplayContainer.appendChild(clonedPage);
+
+                // ใช้ requestAnimationFrame เพื่อให้แน่ใจว่าเบราว์เซอร์ได้เรนเดอร์สถานะเริ่มต้น (opacity: 0)
+                // ก่อนที่จะเพิ่มคลาส 'is-active' เพื่อทริกเกอร์อนิเมชั่น
+                requestAnimationFrame(() => {
+                    clonedPage.classList.add('is-active'); 
+                });
+                
+                prevBtn.classList.toggle('hidden', currentPageIndex === 0);
+                nextBtn.classList.toggle('hidden', currentPageIndex === allContentPages.length - 1);
+
+                pageDisplayContainer.scrollTop = 0;
+            }
+
+            // --- Navigation Button Event Listeners ---
+            nextBtn.addEventListener('click', () => {
+                if (currentPageIndex < allContentPages.length - 1) {
+                    currentPageIndex++;
+                    updatePageView();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentPageIndex > 0) {
+                    currentPageIndex--;
+                    updatePageView();
+                }
+            });
+
+            // แสดงหน้าแรกเมื่อโหลดครั้งแรก
+            updatePageView();
+        });
+    </script>
+</body>
+</html>
