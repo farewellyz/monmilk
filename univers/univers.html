@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จักรวาล...สำหรับเธอ</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Mitr:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Tone.js for music -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+
+    <style>
+        body {
+            font-family: 'Mitr', sans-serif;
+            background: #000000;
+            color: #f0f0f0;
+            overflow: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size: 24px;"><text y="24" fill="white">✨</text></svg>') 16 16, auto;
+        }
+        .heading-font { font-family: 'Cinzel Decorative', cursive; }
+        #universe-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+        }
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            pointer-events: none; /* Allow clicks to pass through to the canvas */
+        }
+        #intro-screen, #journey-screen {
+            pointer-events: auto;
+        }
+        /* Modal Styling */
+        #memory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        #memory-modal.visible { 
+            display: flex; 
+            opacity: 1; 
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: rgba(27, 39, 53, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px #ff69b4; } 50% { transform: scale(1.05); box-shadow: 0 0 35px #ff69b4; } }
+        .fade-in { animation: fadeIn 2s ease forwards; }
+        .fade-in-up { animation: fadeInUp 1.5s ease forwards; opacity: 0; }
+        .magic-button {
+            border: 2px solid #ff69b4;
+            background: transparent;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+        .magic-button:hover { background: #ff69b4; color: #000; }
+        .magic-button:disabled {
+            cursor: not-allowed;
+            animation: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="universe-canvas"></canvas>
+
+    <div id="ui-container" class="ui-layer">
+        <!-- Intro Screen -->
+        <div id="intro-screen">
+            <h1 class="heading-font text-4xl md:text-6xl mb-4 fade-in">Our Private Universe</h1>
+            <p class="text-xl md:text-2xl mb-8 fade-in" style="animation-delay: 0.5s;">ในจักรวาลอันกว้างใหญ่นี้... มีบางสิ่งก่อตัวขึ้นเพื่อเธอ</p>
+            <button id="start-btn" class="magic-button fade-in" style="animation-delay: 1s;">ออกเดินทาง</button>
+        </div>
+        
+        <!-- Journey Screen -->
+        <div id="journey-screen" class="hidden">
+            <h2 class="heading-font text-3xl md:text-5xl mb-2 fade-in-up">ค้นพบดวงดาวของเรา</h2>
+            <p id="journey-subtitle" class="text-lg md:text-xl mb-8 fade-in-up" style="animation-delay: 0.5s;">คลิกที่ดวงดาวที่ส่องสว่าง เพื่อเผยความทรงจำ</p>
+            <button id="reveal-btn" class="magic-button hidden">เผยกลุ่มดาวของเรา</button>
+        </div>
+    </div>
+
+    <!-- Memory Modal -->
+    <div id="memory-modal">
+        <div class="modal-content">
+            <img id="modal-image" src="" class="w-full h-auto object-cover rounded-lg mb-4" alt="Memory Image">
+            <h3 id="modal-title" class="heading-font text-3xl text-pink-400 mb-2"></h3>
+            <p id="modal-description" class="text-lg"></p>
+            <button id="close-modal-btn" class="mt-6 bg-pink-500 text-white px-4 py-2 rounded-full">ปิด</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =================================================================
+        // ✨✨✨  ส่วนที่ต้องแก้ไข (EDIT THIS SECTION) ✨✨✨
+        // =================================================================
+        const CONFIG = {
+            // --- ใส่ชื่อไฟล์เพลงของคุณที่อยู่ในโฟลเดอร์ audio ---
+            // โค้ดนี้จะอ้างอิงจากไฟล์ที่อยู่ในโปรเจกต์เดียวกัน
+            musicUrl: "audio/yellow.mp3", // <--- แก้ "our-song.mp3" เป็นชื่อไฟล์เพลงของคุณ
+
+            // กำหนดตำแหน่งดวงดาว (ความทรงจำ) บนหน้าจอ
+            stars: [
+                { x: 50, y: 20, title: "วันแรกที่พบกัน", desc: "จุดเริ่มต้นของจักรวาลของเรา...", img: "https://placehold.co/600x400/E892A4/FFFFFF?text=First+Day" },
+                { x: 30, y: 35, title: "เดทแรก", desc: "ยังจำความตื่นเต้นในวันนั้นได้เสมอ", img: "https://placehold.co/600x400/C780B9/FFFFFF?text=First+Date" },
+                { x: 70, y: 35, title: "ทริปแรกของเรา", desc: "การเดินทางที่ทำให้เรารู้จักกันมากขึ้น", img: "https://placehold.co/600x400/A56EB2/FFFFFF?text=First+Trip" },
+                { x: 25, y: 60, title: "วันที่ทะเลาะกัน", desc: "แต่ก็ผ่านมันมาได้ และรักกันมากกว่าเดิม", img: "https://placehold.co/600x400/835CAE/FFFFFF?text=Our+Fight" },
+                { x: 75, y: 60, title: "ของขวัญชิ้นพิเศษ", desc: "ขอบคุณสำหรับของขวัญที่แทนใจนะ", img: "https://placehold.co/600x400/624B9E/FFFFFF?text=Special+Gift" },
+                { x: 40, y: 80, title: "วันธรรมดาที่แสนสุข", desc: "แค่มีเธออยู่ข้างๆ ก็พอแล้ว", img: "https://placehold.co/600x400/403A8F/FFFFFF?text=Simple+Day" },
+                { x: 60, y: 80, title: "คำสัญญา", desc: "จะจับมือเธอไว้แบบนี้ตลอดไปนะ", img: "https://placehold.co/600x400/1E297F/FFFFFF?text=Our+Promise" },
+            ],
+            finalRevealMessage: "และนี่คือ... 'กลุ่มดาวแห่งรัก' ของเรา"
+        };
+        // =================================================================
+        // ✨✨✨  (END OF EDIT SECTION) ✨✨✨
+        // =================================================================
+
+        const canvas = document.getElementById('universe-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [], shootingStars = [], visitedStars = new Set();
+        
+        const startBtn = document.getElementById('start-btn');
+        const introScreen = document.getElementById('intro-screen');
+        const journeyScreen = document.getElementById('journey-screen');
+        const journeySubtitle = document.getElementById('journey-subtitle');
+        const revealBtn = document.getElementById('reveal-btn');
+        const modal = document.getElementById('memory-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        // --- Music ---
+        let music;
+        function setupMusic(callback) {
+            music = new Tone.Player({
+                url: CONFIG.musicUrl,
+                loop: true,
+                fadeOut: 1,
+                onload: () => {
+                    console.log("Music has loaded successfully.");
+                    if (callback) callback();
+                }
+            }).toDestination();
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        function createStars(count) {
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    alpha: Math.random() * 0.5 + 0.5,
+                    vx: Math.random() * 0.1 - 0.05,
+                    vy: Math.random() * 0.1 - 0.05
+                });
+            }
+        }
+
+        function createShootingStar() {
+            shootingStars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * 50,
+                len: Math.random() * 80 + 10,
+                speed: Math.random() * 10 + 6,
+                size: Math.random() * 1 + 0.5,
+                alpha: 1,
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            stars.forEach(star => {
+                star.x += star.vx;
+                star.y += star.vy;
+                if (star.x < 0 || star.x > canvas.width) star.vx = -star.vx;
+                if (star.y < 0 || star.y > canvas.height) star.vy = -star.vy;
+                ctx.globalAlpha = star.alpha;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            shootingStars.forEach((s, i) => {
+                s.x += s.speed;
+                s.y += s.speed * 0.5;
+                s.alpha -= 0.015;
+                if (s.alpha <= 0) shootingStars.splice(i, 1);
+                
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s.x - s.len, s.y - s.len * 0.5);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                ctx.lineWidth = s.size;
+                ctx.stroke();
+            });
+
+            ctx.globalAlpha = 1;
+            CONFIG.stars.forEach((star, index) => {
+                const x = star.x / 100 * canvas.width;
+                const y = star.y / 100 * canvas.height;
+                
+                if (visitedStars.has(index)) {
+                    visitedStars.forEach(visitedIndex => {
+                        if (index !== visitedIndex) {
+                            const otherStar = CONFIG.stars[visitedIndex];
+                            const otherX = otherStar.x / 100 * canvas.width;
+                            const otherY = otherStar.y / 100 * canvas.height;
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(otherX, otherY);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                            ctx.stroke();
+                        }
+                    });
+                }
+
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = visitedStars.has(index) ? '#ff69b4' : 'white';
+                ctx.shadowColor = visitedStars.has(index) ? '#ff69b4' : 'white';
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        function getClickedStar(clickX, clickY) {
+            for (let i = 0; i < CONFIG.stars.length; i++) {
+                const star = CONFIG.stars[i];
+                const x = star.x / 100 * canvas.width;
+                const y = star.y / 100 * canvas.height;
+                const distance = Math.sqrt(Math.pow(clickX - x, 2) + Math.pow(clickY - y, 2));
+                if (distance < 15) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        function showModal(starIndex) {
+            const star = CONFIG.stars[starIndex];
+            document.getElementById('modal-image').src = star.img;
+            document.getElementById('modal-title').textContent = star.title;
+            document.getElementById('modal-description').textContent = star.desc;
+            modal.classList.add('visible');
+        }
+
+        startBtn.addEventListener('click', () => {
+            introScreen.style.display = 'none';
+            journeyScreen.style.display = 'block';
+
+            Tone.start().then(() => {
+                console.log("Audio context started. Setting up music...");
+                setupMusic(() => {
+                    if (music && music.loaded) {
+                        music.start();
+                    }
+                });
+            }).catch(e => {
+                console.error("Could not start audio context:", e);
+            });
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (journeyScreen.style.display !== 'block') return;
+            const starIndex = getClickedStar(e.clientX, e.clientY);
+            if (starIndex !== -1) {
+                visitedStars.add(starIndex);
+                showModal(starIndex);
+                if (visitedStars.size === CONFIG.stars.length) {
+                    revealBtn.classList.remove('hidden');
+                }
+            }
+        });
+
+        closeModalBtn.addEventListener('click', () => modal.classList.remove('visible'));
+
+        revealBtn.addEventListener('click', () => {
+            journeySubtitle.textContent = CONFIG.finalRevealMessage;
+            revealBtn.style.display = 'none';
+            const lines = [];
+            CONFIG.stars.forEach((s1, i) => {
+                CONFIG.stars.forEach((s2, j) => {
+                    if (i < j) lines.push([s1, s2]);
+                });
+            });
+
+            let alpha = 0;
+            function animateConstellation() {
+                if (alpha < 1) {
+                    alpha += 0.02;
+                    ctx.lineWidth = 3;
+                    lines.forEach(line => {
+                        const [s1, s2] = line;
+                        const x1 = s1.x / 100 * canvas.width;
+                        const y1 = s1.y / 100 * canvas.height;
+                        const x2 = s2.x / 100 * canvas.width;
+                        const y2 = s2.y / 100 * canvas.height;
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.strokeStyle = `rgba(255, 105, 180, ${alpha})`;
+                        ctx.shadowColor = '#ff69b4';
+                        ctx.shadowBlur = 10;
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    });
+                    requestAnimationFrame(animateConstellation);
+                }
+            }
+            animateConstellation();
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        createStars(200);
+        setInterval(createShootingStar, 2000);
+        draw();
+    });
+    </script>
+</body>
+</html>
