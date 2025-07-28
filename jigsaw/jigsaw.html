@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จิ๊กซอว์สื่อรัก</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Pacifico&display=swap" rel="stylesheet">
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: 'Mitr', sans-serif;
+            background: linear-gradient(to bottom right, #FFC0CB, #ADD8E6); /* Soft pink to light blue gradient */
+            background-attachment: fixed;
+            color: #4A0E4E; /* Dark purple text for contrast */
+        }
+        .font-handwritten {
+            font-family: 'Pacifico', cursive;
+        }
+        #puzzle-board {
+            display: grid;
+            background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for the board */
+            border: 2px dashed #C084FC; /* Purple-400 */
+            position: relative;
+            max-height: calc(100vh - 120px);
+            overflow: auto;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Soft shadow */
+        }
+        .puzzle-slot {
+            background-color: rgba(255,255,255,0.3); /* Lighter transparent for slots */
+            border: 1px solid rgba(192, 132, 252, 0.4);
+            position: relative;
+            transition: box-shadow 0.5s;
+        }
+        #pieces-container {
+            background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for pieces container */
+            border: 2px dashed #C084FC;
+            min-height: 150px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Soft shadow */
+        }
+        .puzzle-piece {
+            position: relative;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            border: 2px solid white; /* Slightly thicker white border */
+            border-radius: 0.5rem; /* Slightly rounded piece corners */
+            overflow: hidden; /* Ensures background image stays within border-radius */
+        }
+        .puzzle-piece:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(255,255,255,0.8); /* Glow when active */
+        }
+        .puzzle-piece.placed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            filter: none;
+            border: none;
+            border-radius: 0; /* Remove border-radius when placed for seamless fit */
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .win-modal-content {
+            animation: fadeIn 0.5s ease-out forwards;
+            background: linear-gradient(to bottom, #FFF3F8, #FFE9F3); /* Light pink gradient for modal */
+            border: 3px solid #FF69B4; /* Hot pink border */
+        }
+        .hint-highlight {
+            box-shadow: 0 0 20px 5px #fde047; /* Yellow glow */
+            z-index: 50;
+        }
+        .difficulty-card {
+            background: white;
+            border-radius: 1.5rem; /* More rounded corners */
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            position: relative; /* Needed for pseudo-elements */
+            overflow: hidden; /* Hide overflow for background effects */
+        }
+        .difficulty-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s ease-out;
+            opacity: 0;
+        }
+        .difficulty-card:hover::before {
+            top: -10%;
+            left: -10%;
+            opacity: 1;
+        }
+        .difficulty-card:hover {
+            transform: translateY(-8px) scale(1.02); /* More pronounced lift and slight scale */
+            box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.15), 0 8px 12px -6px rgba(0, 0, 0, 0.1);
+        }
+        .difficulty-card .text-2xl {
+            margin-bottom: 0.5rem;
+        }
+        .difficulty-card h3 {
+            font-weight: 700; /* Bold */
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow */
+        }
+        .difficulty-card p {
+            color: #6B7280;
+        }
+        .difficulty-card[data-difficulty="easy"] { border-top-color: #6EE7B7; } /* Green */
+        .difficulty-card[data-difficulty="normal"] { border-top-color: #60A5FA; } /* Blue */
+        .difficulty-card[data-difficulty="hard"] { border-top-color: #FB923C; } /* Orange */
+        .difficulty-card[data-difficulty="impossible"] { border-top-color: #EF4444; } /* Red */
+
+        /* Button styles */
+        button {
+            font-weight: 600; /* Semi-bold */
+            transition: all 0.2s ease-in-out;
+            letter-spacing: 0.025em; /* Slightly more space */
+        }
+        #back-btn, #main-menu-btn {
+            background-color: #A78BFA; /* Purple-400 */
+            color: white;
+        }
+        #back-btn:hover, #main-menu-btn:hover {
+            background-color: #8B5CF6; /* Purple-500 */
+            transform: translateY(-2px);
+        }
+        #hint-btn {
+            background-color: #FACC15; /* Yellow-400 */
+            color: #6B7280; /* Dark gray */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #hint-btn:hover:not(:disabled) {
+            background-color: #FDE047; /* Yellow-300 */
+            transform: translateY(-2px);
+        }
+        #hint-btn:disabled {
+            background-color: #D1D5DB; /* Gray-300 */
+            cursor: not-allowed;
+            color: #9CA3AF; /* Gray-400 */
+            box-shadow: none;
+        }
+        #next-level-btn {
+            background-color: #34D399; /* Green-400 */
+            color: white;
+        }
+        #next-level-btn:hover {
+            background-color: #10B981; /* Green-500 */
+            transform: translateY(-2px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .flex-col.lg\\:flex-row {
+                flex-direction: column;
+            }
+            .w-full.lg\\:w-\\[45\\%\\] {
+                width: 100%;
+            }
+            .w-full.lg\\:w-\\[55\\%\\] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    
+    <div id="game-container" class="w-full max-w-7xl mx-auto text-center relative z-10">
+        
+        <div id="start-screen" class="bg-white bg-opacity-80 p-8 rounded-3xl shadow-xl backdrop-blur-sm">
+            <h1 class="font-handwritten text-7xl text-purple-700 mb-6 drop-shadow-lg">จิ๊กซอว์สื่อรัก</h1>
+            <p class="text-gray-700 text-xl mb-10 font-medium">เลือกความยากเพื่อเริ่มต่อภาพแห่งความทรงจำของเรา</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-5xl mx-auto">
+                <div data-difficulty="easy" class="difficulty-card border-b-4 border-green-400">
+                    <div class="text-3xl text-yellow-500 mb-2">⭐</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-green-600">Easy</h3>
+                    <p class="text-gray-600 text-lg">16 ชิ้น</p>
+                </div>
+                <div data-difficulty="normal" class="difficulty-card border-b-4 border-blue-400">
+                    <div class="text-3xl text-yellow-500 mb-2">⭐⭐</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-blue-600">Normal</h3>
+                    <p class="text-gray-600 text-lg">36 ชิ้น</p>
+                </div>
+                <div data-difficulty="hard" class="difficulty-card border-b-4 border-orange-400">
+                    <div class="text-3xl text-yellow-500 mb-2">⭐⭐⭐</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-orange-600">Hard</h3>
+                    <p class="text-gray-600 text-lg">64 ชิ้น</p>
+                </div>
+                <div data-difficulty="impossible" class="difficulty-card border-b-4 border-red-500">
+                    <div class="text-3xl text-yellow-500 mb-2">⭐⭐⭐⭐</div>
+                    <h3 class="text-3xl font-extrabold mt-2 text-red-700">Impossible</h3>
+                    <p class="text-gray-600 text-lg">128 ชิ้น</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-area" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-4 h-[calc(100vh-120px)]">
+                <div class="w-full lg:w-[45%] flex justify-center items-center">
+                    <div id="puzzle-board" class="w-full max-w-[500px] mx-auto rounded-xl p-0">
+                    </div>
+                </div>
+                <div class="w-full lg:w-[55%] flex flex-col">
+                    <p class="text-purple-800 font-semibold mb-2 text-lg">ชิ้นส่วนทั้งหมด</p>
+                    <div id="pieces-container" class="w-full mx-auto rounded-xl p-2 flex-grow">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center items-center gap-6 mt-6">
+                <button id="back-btn" class="bg-purple-500 text-white font-bold py-2 px-8 rounded-full hover:bg-purple-600 transition-colors shadow-lg">
+                    กลับไปหน้าแรก
+                </button>
+                <p class="text-purple-800 text-xl font-semibold">เหลืออีก <span id="pieces-left" class="font-extrabold text-pink-600">0</span> ชิ้น</p>
+                <button id="hint-btn" class="bg-yellow-400 text-gray-800 font-bold py-2 px-8 rounded-full hover:bg-yellow-500 transition-colors shadow-lg">
+                    ดูเฉลย (5)
+                </button>
+            </div>
+        </div>
+        
+        <div id="win-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-30">
+            <div class="win-modal-content bg-white text-gray-800 p-10 rounded-3xl shadow-2xl text-center w-full max-w-md border-4 border-pink-400">
+                <div class="text-8xl mb-6">💖</div>
+                <h2 class="font-handwritten text-5xl text-purple-700 mb-4 animate-bounce">สำเร็จ!</h2>
+                <p class="text-gray-700 text-lg mb-8">คุณต่อจิ๊กซอว์ของเราได้แล้ว! เก่งมาก!</p>
+                <div class="flex flex-col gap-3">
+                    <button id="next-level-btn" class="bg-pink-500 text-white font-bold py-3 rounded-full hover:bg-pink-600 transition-colors text-lg shadow-md">
+                        ไปยังด่านต่อไป
+                    </button>
+                    <button id="main-menu-btn" class="bg-gray-400 text-white font-bold py-2 rounded-full hover:bg-gray-500 transition-colors shadow-md">
+                        กลับไปหน้าแรก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Config ---
+        const difficulties = {
+            easy: { cols: 4, rows: 4, imageUrl: '1.jpg' },
+            normal: { cols: 6, rows: 6, imageUrl: '2.jpg' },
+            hard: { cols: 8, rows: 8, imageUrl: '3.jpg' },
+            impossible: { cols: 8, rows: 16, imageUrl: '4.jpg' },
+        };
+        const difficultyOrder = ['easy', 'normal', 'hard', 'impossible'];
+        // --- End Config ---
+
+        const startScreen = document.getElementById('start-screen');
+        const gameArea = document.getElementById('game-area');
+        const winModal = document.getElementById('win-modal');
+        const board = document.getElementById('puzzle-board');
+        const piecesContainer = document.getElementById('pieces-container');
+        const piecesLeftEl = document.getElementById('pieces-left');
+        const difficultyButtons = document.querySelectorAll('.difficulty-card');
+        const backBtn = document.getElementById('back-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
+
+        let correctPieces = 0;
+        let totalPieces = 0;
+        let gridCols = 0;
+        let gridRows = 0;
+        let currentImageUrl = '';
+        let hintUsesLeft = 5;
+        let currentDifficultyKey = '';
+
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                currentDifficultyKey = button.dataset.difficulty;
+                const difficultySetting = difficulties[currentDifficultyKey];
+                gridCols = difficultySetting.cols;
+                gridRows = difficultySetting.rows;
+                totalPieces = gridCols * gridRows;
+                currentImageUrl = difficultySetting.imageUrl;
+                startGame();
+            });
+        });
+
+        backBtn.addEventListener('click', () => location.reload());
+        mainMenuBtn.addEventListener('click', () => location.reload());
+        hintBtn.addEventListener('click', useHint);
+        nextLevelBtn.addEventListener('click', () => {
+            winModal.classList.add('hidden');
+            const currentIndex = difficultyOrder.indexOf(currentDifficultyKey);
+            const nextDifficultyKey = difficultyOrder[currentIndex + 1];
+            
+            // ตรวจสอบว่ามีด่านต่อไปหรือไม่
+            if (nextDifficultyKey) {
+                currentDifficultyKey = nextDifficultyKey;
+                const difficultySetting = difficulties[currentDifficultyKey];
+                gridCols = difficultySetting.cols;
+                gridRows = difficultySetting.rows;
+                totalPieces = gridCols * gridRows;
+                currentImageUrl = difficultySetting.imageUrl;
+                
+                correctPieces = 0;
+                startGame();
+            } else {
+                // ถ้าไม่มีด่านต่อไป ให้กลับไปหน้าแรก
+                alert('คุณได้เล่นครบทุกด่านแล้ว! กลับสู่หน้าหลัก.');
+                location.reload();
+            }
+        });
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameArea.classList.remove('hidden');
+            
+            hintUsesLeft = 5;
+            updateHintButton();
+
+            if (currentDifficultyKey === 'easy') {
+                hintBtn.style.display = 'none';
+            } else {
+                hintBtn.style.display = 'block';
+            }
+            
+            setupGame();
+        }
+
+        async function setupGame() {
+            board.innerHTML = '';
+            piecesContainer.innerHTML = '';
+            correctPieces = 0; // Reset correct pieces for new game
+            
+            const img = new Image();
+            img.src = currentImageUrl;
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = () => {
+                    alert(`ไม่สามารถโหลดรูปภาพ '${currentImageUrl}' ได้ กรุณาตรวจสอบว่าไฟล์รูปอยู่ในโฟลเดอร์เดียวกับเกม`);
+                    location.reload();
+                    reject(new Error('Image load error'));
+                };
+            });
+            
+            const aspectRatio = img.naturalWidth / img.naturalHeight;
+            board.style.aspectRatio = aspectRatio;
+            
+            await new Promise(requestAnimationFrame);
+            
+            const finalBoardRect = board.getBoundingClientRect();
+
+            board.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${gridRows}, 1fr)`;
+
+            const pieceWidth = finalBoardRect.width / gridCols;
+            const pieceHeight = finalBoardRect.height / gridRows;
+
+            let pieces = [];
+            for (let i = 0; i < totalPieces; i++) {
+                const col = i % gridCols;
+                const row = Math.floor(i / gridCols);
+
+                const slot = document.createElement('div');
+                slot.classList.add('puzzle-slot');
+                slot.dataset.index = i;
+                board.appendChild(slot);
+
+                const piece = document.createElement('div');
+                piece.classList.add('puzzle-piece');
+                piece.style.backgroundImage = `url(${currentImageUrl})`;
+                piece.style.backgroundPosition = `-${col * pieceWidth}px -${row * pieceHeight}px`;
+                piece.style.backgroundSize = `${finalBoardRect.width}px ${finalBoardRect.height}px`;
+                piece.style.width = `${pieceWidth}px`;
+                piece.style.height = `${pieceHeight}px`;
+                piece.draggable = true;
+                piece.dataset.index = i;
+                pieces.push(piece);
+            }
+            
+            pieces.sort(() => Math.random() - 0.5);
+            pieces.forEach(p => piecesContainer.appendChild(p));
+            
+            piecesLeftEl.textContent = totalPieces;
+            addDragAndDropListeners();
+        }
+
+        function addDragAndDropListeners() {
+            const allPieces = document.querySelectorAll('.puzzle-piece:not(.placed)');
+            const allSlots = document.querySelectorAll('.puzzle-slot');
+
+            allPieces.forEach(piece => {
+                piece.removeEventListener('dragstart', handleDragStart);
+                piece.removeEventListener('dragend', handleDragEnd);
+
+                piece.addEventListener('dragstart', handleDragStart);
+                piece.addEventListener('dragend', handleDragEnd);
+            });
+
+            allSlots.forEach(slot => {
+                slot.removeEventListener('dragover', handleDragOver);
+                slot.removeEventListener('drop', handleDrop);
+
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.index);
+            setTimeout(() => this.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (this.children.length > 0) return; // Prevent dropping on an occupied slot
+
+            const pieceIndex = e.dataTransfer.getData('text/plain');
+            const slotIndex = this.dataset.index;
+
+            if (pieceIndex === slotIndex) {
+                const piece = document.querySelector(`.puzzle-piece[data-index='${pieceIndex}']`);
+                placePiece(piece, this);
+            }
+        }
+        
+        function placePiece(piece, slot) {
+            slot.appendChild(piece);
+            piece.classList.add('placed');
+            correctPieces++;
+            piecesLeftEl.textContent = totalPieces - correctPieces;
+            checkWin();
+        }
+        
+        function checkWin() {
+            if (correctPieces === totalPieces) {
+                hintBtn.disabled = true;
+                setTimeout(() => {
+                    showWinModal();
+                }, 500);
+            }
+        }
+
+        function showWinModal() {
+            const currentIndex = difficultyOrder.indexOf(currentDifficultyKey);
+            if (currentIndex >= difficultyOrder.length - 1) {
+                nextLevelBtn.style.display = 'none'; // Hide "Next Level" button if it's the last level
+            } else {
+                nextLevelBtn.style.display = 'block';
+            }
+            winModal.classList.remove('hidden');
+        }
+
+        function updateHintButton() {
+            hintBtn.textContent = `ดูเฉลย (${hintUsesLeft})`;
+            if (hintUsesLeft <= 0) {
+                hintBtn.disabled = true;
+                hintBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+                hintBtn.classList.remove('bg-yellow-400', 'hover:bg-yellow-500');
+            } else {
+                hintBtn.disabled = false;
+                hintBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                hintBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-500');
+            }
+        }
+
+        function useHint() {
+            if (hintUsesLeft <= 0 || correctPieces === totalPieces) return;
+
+            const unsolvedPiecesInContainer = Array.from(piecesContainer.querySelectorAll('.puzzle-piece:not(.placed)'));
+            if (unsolvedPiecesInContainer.length === 0) return;
+
+            const unsolvedPiece = unsolvedPiecesInContainer[Math.floor(Math.random() * unsolvedPiecesInContainer.length)];
+
+            hintUsesLeft--;
+            updateHintButton();
+            
+            const pieceIndex = unsolvedPiece.dataset.index;
+            const targetSlot = board.querySelector(`.puzzle-slot[data-index='${pieceIndex}']`);
+
+            if (targetSlot.children.length > 0) {
+                console.log("Hint: Target slot already occupied. Trying to find another.");
+                // This means the piece was already placed by a previous hint or manually.
+                // In a real game, you might want to pick another random piece or simply return.
+                // For simplicity, we just return here.
+                return; 
+            }
+
+            targetSlot.classList.add('hint-highlight');
+            // Remove highlight after a short delay
+            setTimeout(() => {
+                targetSlot.classList.remove('hint-highlight');
+            }, 2000);
+
+            // Animate piece movement
+            const pieceRect = unsolvedPiece.getBoundingClientRect();
+            const slotRect = targetSlot.getBoundingClientRect();
+            const boardRect = board.getBoundingClientRect();
+
+            // Calculate current position relative to the board
+            const currentLeft = pieceRect.left - boardRect.left;
+            const currentTop = pieceRect.top - boardRect.top;
+
+            // Calculate target position relative to the board
+            const targetLeft = slotRect.left - boardRect.left;
+            const targetTop = slotRect.top - boardRect.top;
+
+            // Apply transform to move the piece
+            unsolvedPiece.style.transition = 'transform 0.5s ease-out';
+            unsolvedPiece.style.transform = `translate(${targetLeft - currentLeft}px, ${targetTop - currentTop}px)`;
+            unsolvedPiece.style.zIndex = 1000; // Bring to front during animation
+
+            // After animation, place the piece officially
+            setTimeout(() => {
+                unsolvedPiece.style.transition = ''; // Remove transition for instant placement next time
+                unsolvedPiece.style.transform = ''; // Reset transform
+                unsolvedPiece.style.zIndex = ''; // Reset z-index
+                placePiece(unsolvedPiece, targetSlot);
+            }, 500); // Duration of the CSS transition
+        }
+    </script>
+</body>
+</html>
