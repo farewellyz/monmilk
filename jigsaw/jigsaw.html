@@ -204,22 +204,22 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-5xl mx-auto">
                 <div data-difficulty="easy" class="difficulty-card border-b-4 border-green-400">
                     <div class="text-3xl text-yellow-500 mb-2">⭐</div>
-                    <h3 class="text-3xl font-extrabold mt-2 text-green-600">Easy</h3>
+                    <h3 class="text-3xl font-extrabold mt-2 text-green-600">ง่าย</h3>
                     <p class="text-gray-600 text-lg">16 ชิ้น</p>
                 </div>
                 <div data-difficulty="normal" class="difficulty-card border-b-4 border-blue-400">
                     <div class="text-3xl text-yellow-500 mb-2">⭐⭐</div>
-                    <h3 class="text-3xl font-extrabold mt-2 text-blue-600">Normal</h3>
+                    <h3 class="text-3xl font-extrabold mt-2 text-blue-600">ปานกลาง</h3>
                     <p class="text-gray-600 text-lg">36 ชิ้น</p>
                 </div>
                 <div data-difficulty="hard" class="difficulty-card border-b-4 border-orange-400">
                     <div class="text-3xl text-yellow-500 mb-2">⭐⭐⭐</div>
-                    <h3 class="text-3xl font-extrabold mt-2 text-orange-600">Hard</h3>
+                    <h3 class="text-3xl font-extrabold mt-2 text-orange-600">ยาก</h3>
                     <p class="text-gray-600 text-lg">64 ชิ้น</p>
                 </div>
                 <div data-difficulty="impossible" class="difficulty-card border-b-4 border-red-500">
                     <div class="text-3xl text-yellow-500 mb-2">⭐⭐⭐⭐</div>
-                    <h3 class="text-3xl font-extrabold mt-2 text-red-700">Impossible</h3>
+                    <h3 class="text-3xl font-extrabold mt-2 text-red-700">สุดยอด</h3>
                     <p class="text-gray-600 text-lg">128 ชิ้น</p>
                 </div>
             </div>
@@ -296,6 +296,9 @@
         let hintUsesLeft = 5;
         let currentDifficultyKey = '';
 
+        // Local Storage Key
+        const LOCAL_STORAGE_KEY = 'jigsawPuzzleProgress';
+
         difficultyButtons.forEach(button => {
             button.addEventListener('click', () => {
                 currentDifficultyKey = button.dataset.difficulty;
@@ -326,6 +329,7 @@
                 currentImageUrl = difficultySetting.imageUrl;
                 
                 correctPieces = 0;
+                clearSavedProgress(currentDifficultyKey); // Clear progress for the new level
                 startGame();
             } else {
                 // ถ้าไม่มีด่านต่อไป ให้กลับไปหน้าแรก
@@ -338,7 +342,7 @@
             startScreen.style.display = 'none';
             gameArea.classList.remove('hidden');
             
-            hintUsesLeft = 5;
+            hintUsesLeft = 5; // Reset hints for new game
             updateHintButton();
 
             if (currentDifficultyKey === 'easy') {
@@ -354,7 +358,7 @@
             board.innerHTML = '';
             piecesContainer.innerHTML = '';
             correctPieces = 0; // Reset correct pieces for new game
-            
+
             const img = new Image();
             img.src = currentImageUrl;
             await new Promise((resolve, reject) => {
@@ -379,7 +383,7 @@
             const pieceWidth = finalBoardRect.width / gridCols;
             const pieceHeight = finalBoardRect.height / gridRows;
 
-            let pieces = [];
+            let allPieces = [];
             for (let i = 0; i < totalPieces; i++) {
                 const col = i % gridCols;
                 const row = Math.floor(i / gridCols);
@@ -398,13 +402,35 @@
                 piece.style.height = `${pieceHeight}px`;
                 piece.draggable = true;
                 piece.dataset.index = i;
-                pieces.push(piece);
+                allPieces.push(piece);
             }
             
-            pieces.sort(() => Math.random() - 0.5);
-            pieces.forEach(p => piecesContainer.appendChild(p));
+            // Try to load saved progress
+            const savedProgress = loadProgress(currentDifficultyKey);
+            let placedPieceIndexes = new Set();
+
+            if (savedProgress && savedProgress.placedPieces && savedProgress.placedPieces.length > 0) {
+                placedPieceIndexes = new Set(savedProgress.placedPieces);
+                hintUsesLeft = savedProgress.hintsLeft !== undefined ? savedProgress.hintsLeft : 5;
+                updateHintButton();
+            }
+
+            // Distribute pieces
+            let unplacedPieces = [];
+            allPieces.forEach(piece => {
+                if (placedPieceIndexes.has(parseInt(piece.dataset.index))) {
+                    const targetSlot = board.querySelector(`.puzzle-slot[data-index='${piece.dataset.index}']`);
+                    placePiece(piece, targetSlot, false); // Don't save again when loading
+                } else {
+                    unplacedPieces.push(piece);
+                }
+            });
+
+            // Shuffle and append unplaced pieces
+            unplacedPieces.sort(() => Math.random() - 0.5);
+            unplacedPieces.forEach(p => piecesContainer.appendChild(p));
             
-            piecesLeftEl.textContent = totalPieces;
+            piecesLeftEl.textContent = totalPieces - correctPieces;
             addDragAndDropListeners();
         }
 
@@ -451,15 +477,18 @@
 
             if (pieceIndex === slotIndex) {
                 const piece = document.querySelector(`.puzzle-piece[data-index='${pieceIndex}']`);
-                placePiece(piece, this);
+                placePiece(piece, this, true); // Save progress after placing
             }
         }
         
-        function placePiece(piece, slot) {
+        function placePiece(piece, slot, save = true) {
             slot.appendChild(piece);
             piece.classList.add('placed');
             correctPieces++;
             piecesLeftEl.textContent = totalPieces - correctPieces;
+            if (save) {
+                saveProgress();
+            }
             checkWin();
         }
         
@@ -468,6 +497,7 @@
                 hintBtn.disabled = true;
                 setTimeout(() => {
                     showWinModal();
+                    clearSavedProgress(currentDifficultyKey); // Clear progress when level is won
                 }, 500);
             }
         }
@@ -505,50 +535,92 @@
 
             hintUsesLeft--;
             updateHintButton();
-            
+            saveProgress(); // Save hint count
+
             const pieceIndex = unsolvedPiece.dataset.index;
             const targetSlot = board.querySelector(`.puzzle-slot[data-index='${pieceIndex}']`);
 
             if (targetSlot.children.length > 0) {
                 console.log("Hint: Target slot already occupied. Trying to find another.");
-                // This means the piece was already placed by a previous hint or manually.
-                // In a real game, you might want to pick another random piece or simply return.
-                // For simplicity, we just return here.
                 return; 
             }
 
             targetSlot.classList.add('hint-highlight');
-            // Remove highlight after a short delay
             setTimeout(() => {
                 targetSlot.classList.remove('hint-highlight');
             }, 2000);
 
-            // Animate piece movement
             const pieceRect = unsolvedPiece.getBoundingClientRect();
             const slotRect = targetSlot.getBoundingClientRect();
             const boardRect = board.getBoundingClientRect();
 
-            // Calculate current position relative to the board
             const currentLeft = pieceRect.left - boardRect.left;
             const currentTop = pieceRect.top - boardRect.top;
 
-            // Calculate target position relative to the board
             const targetLeft = slotRect.left - boardRect.left;
             const targetTop = slotRect.top - boardRect.top;
 
-            // Apply transform to move the piece
             unsolvedPiece.style.transition = 'transform 0.5s ease-out';
             unsolvedPiece.style.transform = `translate(${targetLeft - currentLeft}px, ${targetTop - currentTop}px)`;
-            unsolvedPiece.style.zIndex = 1000; // Bring to front during animation
+            unsolvedPiece.style.zIndex = 1000;
 
-            // After animation, place the piece officially
             setTimeout(() => {
-                unsolvedPiece.style.transition = ''; // Remove transition for instant placement next time
-                unsolvedPiece.style.transform = ''; // Reset transform
-                unsolvedPiece.style.zIndex = ''; // Reset z-index
-                placePiece(unsolvedPiece, targetSlot);
-            }, 500); // Duration of the CSS transition
+                unsolvedPiece.style.transition = '';
+                unsolvedPiece.style.transform = '';
+                unsolvedPiece.style.zIndex = '';
+                placePiece(unsolvedPiece, targetSlot, true); // Save after hint placement
+            }, 500); 
         }
+
+        // --- Local Storage Functions ---
+
+        function saveProgress() {
+            const placedPieces = Array.from(board.querySelectorAll('.puzzle-slot .puzzle-piece.placed')).map(piece => parseInt(piece.dataset.index));
+            const progress = {
+                placedPieces: placedPieces,
+                hintsLeft: hintUsesLeft,
+                difficulty: currentDifficultyKey // Save current difficulty to load it later
+            };
+            localStorage.setItem(`${LOCAL_STORAGE_KEY}_${currentDifficultyKey}`, JSON.stringify(progress));
+            console.log(`Progress saved for ${currentDifficultyKey}:`, progress);
+        }
+
+        function loadProgress(difficulty) {
+            const savedData = localStorage.getItem(`${LOCAL_STORAGE_KEY}_${difficulty}`);
+            if (savedData) {
+                const progress = JSON.parse(savedData);
+                console.log(`Progress loaded for ${difficulty}:`, progress);
+                return progress;
+            }
+            console.log(`No saved progress found for ${difficulty}.`);
+            return null;
+        }
+
+        function clearSavedProgress(difficulty) {
+            localStorage.removeItem(`${LOCAL_STORAGE_KEY}_${difficulty}`);
+            console.log(`Saved progress cleared for ${difficulty}.`);
+        }
+
+        // --- Initial Load on Start Screen ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for any saved progress across all difficulties
+            let hasSavedGame = false;
+            for (const key of difficultyOrder) {
+                if (localStorage.getItem(`${LOCAL_STORAGE_KEY}_${key}`)) {
+                    hasSavedGame = true;
+                    // You could highlight difficulties with saved progress here if desired
+                    const card = document.querySelector(`.difficulty-card[data-difficulty="${key}"]`);
+                    if (card) {
+                        const savedIndicator = document.createElement('span');
+                        savedIndicator.textContent = ' (มีบันทึก)';
+                        savedIndicator.classList.add('text-sm', 'text-purple-500', 'font-medium');
+                        card.querySelector('h3').appendChild(savedIndicator);
+                    }
+                }
+            }
+            // If you want to automatically load the last played difficulty, you could do it here
+            // For now, it just shows which levels have saved data.
+        });
     </script>
 </body>
 </html>
