@@ -148,14 +148,16 @@
             musicUrl: "audio/yellow.mp3", // <--- แก้ "our-song.mp3" เป็นชื่อไฟล์เพลงของคุณ
 
             // --- แก้ไขข้อมูลความทรงจำและชื่อไฟล์รูปภาพ ---
+            // *** ตำแหน่งของดาวถูกจัดเรียงเป็นรูปหัวใจแล้ว ***
             stars: [
-                { x: 50, y: 20, title: "วันแรกที่พบกัน", desc: "จุดเริ่มต้นของจักรวาลของเรา...", img: "images/first-day.jpg" },
-                { x: 30, y: 35, title: "เดทแรก", desc: "ยังจำความตื่นเต้นในวันนั้นได้เสมอ", img: "images/first-date.jpg" },
-                { x: 70, y: 35, title: "อาหารมื้อแรก", desc: "การที่ได้นั้งตรงข้ามกันแล้วมองหน้ากัน", img: "images/first-trip.jpg" },
-                { x: 25, y: 60, title: "วันที่ทะเลาะกัน", desc: "แต่ก็ผ่านมันมาได้ และรักกันมากกว่าเดิม", img: "images/our-fight.jpg" },
-                { x: 75, y: 60, title: "ของขวัญชิ้นพิเศษ", desc: "ขอบคุณสำหรับของขวัญที่แทนใจนะ", img: "images/special-gift.jpg" },
-                { x: 40, y: 80, title: "วันธรรมดาที่แสนสุข", desc: "แค่มีเธออยู่ข้างๆ ก็พอแล้ว", img: "images/simple-day.jpg" },
-                { x: 60, y: 80, title: "คำสัญญา", desc: "จะจับมือเธอไว้แบบนี้ตลอดไปนะ", img: "images/our-promise.jpg" },
+                // The order here defines the heart outline
+                { x: 50, y: 90, title: "วันแรกที่พบกัน", desc: "จุดเริ่มต้นของจักรวาลของเรา...", img: "images/first-day.jpg" },
+                { x: 25, y: 70, title: "เดทแรก", desc: "ยังจำความตื่นเต้นในวันนั้นได้เสมอ", img: "images/first-date.jpg" },
+                { x: 15, y: 40, title: "อาหารมื้อแรก", desc: "การที่ได้นั้งตรงข้ามกันแล้วมองหน้ากัน", img: "images/first-trip.jpg" },
+                { x: 35, y: 20, title: "วันที่ทะเลาะกัน", desc: "แต่ก็ผ่านมันมาได้ และรักกันมากกว่าเดิม", img: "images/our-fight.jpg" },
+                { x: 65, y: 20, title: "ของขวัญชิ้นพิเศษ", desc: "ขอบคุณสำหรับของขวัญที่แทนใจนะ", img: "images/special-gift.jpg" },
+                { x: 85, y: 40, title: "วันธรรมดาที่แสนสุข", desc: "แค่มีเธออยู่ข้างๆ ก็พอแล้ว", img: "images/simple-day.jpg" },
+                { x: 75, y: 70, title: "คำสัญญา", desc: "จะจับมือเธอไว้แบบนี้ตลอดไปนะ", img: "images/our-promise.jpg" },
             ],
             finalRevealMessage: "และนี่คือ... 'กลุ่มดาวแห่งรัก' ของเรา"
         };
@@ -252,18 +254,7 @@
                 const y = star.y / 100 * canvas.height;
                 
                 if (visitedStars.has(index)) {
-                    visitedStars.forEach(visitedIndex => {
-                        if (index !== visitedIndex) {
-                            const otherStar = CONFIG.stars[visitedIndex];
-                            const otherX = otherStar.x / 100 * canvas.width;
-                            const otherY = otherStar.y / 100 * canvas.height;
-                            ctx.beginPath();
-                            ctx.moveTo(x, y);
-                            ctx.lineTo(otherX, otherY);
-                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                            ctx.stroke();
-                        }
-                    });
+                     // Optionally draw faint lines between visited stars before reveal
                 }
 
                 ctx.beginPath();
@@ -332,35 +323,37 @@
         revealBtn.addEventListener('click', () => {
             journeySubtitle.textContent = CONFIG.finalRevealMessage;
             revealBtn.style.display = 'none';
-            const lines = [];
-            CONFIG.stars.forEach((s1, i) => {
-                CONFIG.stars.forEach((s2, j) => {
-                    if (i < j) lines.push([s1, s2]);
-                });
-            });
-
+            
+            // Animate drawing the heart constellation outline
             let alpha = 0;
             function animateConstellation() {
-                if (alpha < 1) {
-                    alpha += 0.02;
-                    ctx.lineWidth = 3;
-                    lines.forEach(line => {
-                        const [s1, s2] = line;
-                        const x1 = s1.x / 100 * canvas.width;
-                        const y1 = s1.y / 100 * canvas.height;
-                        const x2 = s2.x / 100 * canvas.width;
-                        const y2 = s2.y / 100 * canvas.height;
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.strokeStyle = `rgba(255, 105, 180, ${alpha})`;
-                        ctx.shadowColor = '#ff69b4';
-                        ctx.shadowBlur = 10;
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-                    });
-                    requestAnimationFrame(animateConstellation);
+                if (alpha >= 1) return; // Stop animation when done
+                
+                alpha += 0.02;
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = `rgba(255, 105, 180, ${alpha})`;
+                ctx.shadowColor = '#ff69b4';
+                ctx.shadowBlur = 10;
+                
+                // Draw lines between stars in sequence to form a heart outline
+                for (let i = 0; i < CONFIG.stars.length; i++) {
+                    const s1 = CONFIG.stars[i];
+                    // Connect to the next star, and wrap around from the last to the first
+                    const s2 = CONFIG.stars[(i + 1) % CONFIG.stars.length]; 
+                    
+                    const x1 = s1.x / 100 * canvas.width;
+                    const y1 = s1.y / 100 * canvas.height;
+                    const x2 = s2.x / 100 * canvas.width;
+                    const y2 = s2.y / 100 * canvas.height;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
                 }
+                ctx.shadowBlur = 0; // Reset shadow blur after drawing each frame
+                
+                requestAnimationFrame(animateConstellation);
             }
             animateConstellation();
         });
