@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-M>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whac-A-Mole - เกมของม่อน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #fdf2f8; /* bg-pink-50 */
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 15px 15px;
+            color: #4a5568; /* text-gray-700 */
+        }
+        .hidden {
+            display: none;
+        }
+        .app-container {
+            background-color: #fff0f5; /* Lavender Blush */
+            box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
+        }
+        .card {
+            @apply bg-white p-8 rounded-3xl shadow-xl border-4 border-pink-200;
+            text-align: center;
+        }
+
+        /* Whac-A-Mole Specific Styles */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns */
+            grid-gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #8B4513; /* SaddleBrown - ground color */
+            border-radius: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .hole {
+            width: 100px;
+            height: 100px;
+            background-color: #6B3E19; /* Darker brown for hole */
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden; /* Hide mole when it's down */
+            border: 3px solid #5A3315;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .mole {
+            width: 90%;
+            height: 90%;
+            background-color: #A0522D; /* Sienna - mole color */
+            border-radius: 50%;
+            position: absolute;
+            bottom: -100%; /* Start hidden below the hole */
+            left: 5%;
+            transform: translateY(0);
+            transition: transform 0.2s ease-out; /* Smooth pop up/down */
+            cursor: url('hammer.png'), auto; /* Custom cursor for hitting */
+            border: 2px solid #8B4513;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            background-image: url('mole.png'); /* Replace with your mole image */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .mole.up {
+            transform: translateY(-100%); /* Move up to be visible */
+        }
+
+        .mole.hit {
+            background-color: #FF6347; /* Tomato - visual feedback for hit */
+            transform: translateY(-50%) scale(0.8); /* Shrink slightly when hit */
+            transition: transform 0.1s ease-out, background-color 0.1s ease-out;
+        }
+
+        /* NEW: Boom Mole Specific Styles */
+        .boom-mole {
+            background-image: url('boom_mole.png'); /* Replace with your boom mole image */
+            background-color: transparent; /* Remove background color if using image */
+            border-color: #B22222; /* FireBrick - red border for boom mole */
+            box-shadow: 0 5px 15px rgba(178, 34, 34, 0.5); /* Red glow for boom mole */
+        }
+
+        .info-panel {
+            @apply text-lg font-semibold text-gray-700 mt-4;
+        }
+        .start-btn {
+            @apply bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors;
+            margin-top: 20px;
+        }
+        .start-btn:disabled {
+            @apply bg-gray-400 cursor-not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
+        
+<div id="whac-a-mole-game-screen">
+            <header class="flex items-center mb-4">
+                <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
+                <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">Whac-A-Mole!</h1>
+            </header>
+            <div class="card">
+                <div class="info-panel mb-4">
+                    คะแนน: <span id="score-display">0</span><br>
+                    เวลา: <span id="time-display">60</span> วินาที
+                </div>
+                <div class="game-board" id="game-board">
+                    
+</div>
+                <button id="start-game-btn" class="start-btn">เริ่มเกม</button>
+                <p id="game-message" class="text-red-500 mt-4 hidden">คุณมีเหรียญไม่พอเล่นเกมนี้!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT (Simplified for game file, relies on main state) ---
+            let state = {};
+
+            // --- DOM ELEMENTS ---
+            const gameBoard = document.getElementById('game-board');
+            const scoreDisplay = document.getElementById('score-display');
+            const timeDisplay = document.getElementById('time-display');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const gameMessage = document.getElementById('game-message');
+
+            // --- GAME VARIABLES ---
+            let score = 0;
+            let time = 60; // Game duration in seconds: 1 minute
+            let gameActive = false;
+            let moleInterval; // Interval for moles popping up
+            let timerInterval; // Interval for game timer
+            let lastHole; // To prevent mole from popping in the same hole twice in a row
+            const numHoles = 9; // 3x3 grid
+            let moles = []; // Array to store mole elements
+            const boomMoleChance = 0.2; // 20% chance for a boom mole to appear
+
+            // --- LOCAL STORAGE (Only for this game's state and global coins) ---
+            function saveState() {
+                localStorage.setItem('monGameDataV14', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedData = localStorage.getItem('monGameDataV14');
+                if (savedData) {
+                    state = JSON.parse(savedData);
+                } else {
+                    state = { monCoins: 0, playCoins: 0 }; 
+                }
+            }
+
+            // --- GAME SETUP ---
+            function createHoles() {
+                for (let i = 0; i < numHoles; i++) {
+                    const hole = document.createElement('div');
+                    hole.classList.add('hole');
+                    const mole = document.createElement('div');
+                    mole.classList.add('mole'); // Default mole class
+                    mole.addEventListener('click', whack); // Add click listener to mole
+                    hole.appendChild(mole);
+                    gameBoard.appendChild(hole);
+                    moles.push(mole); // Store mole elements
+                }
+            }
+
+            function randomTime(min, max) {
+                return Math.round(Math.random() * (max - min) + min);
+            }
+
+            function randomHole(molesArray) {
+                const idx = Math.floor(Math.random() * molesArray.length);
+                const hole = molesArray[idx];
+                if (hole === lastHole) {
+                    return randomHole(molesArray); // Try again if it's the same hole
+                }
+                lastHole = hole;
+                return hole;
+            }
+
+            function popUpMole() {
+                if (!gameActive) return; // Stop popping moles if game is not active
+
+                const time = randomTime(700, 1500); // How long mole stays up
+                const mole = randomHole(moles);
+
+                // Determine mole type
+                mole.classList.remove('boom-mole'); // Clean previous type
+                const isBoomMole = Math.random() < boomMoleChance; // 20% chance for boom mole
+                if (isBoomMole) {
+                    mole.classList.add('boom-mole');
+                    mole.dataset.type = 'boom';
+                } else {
+                    mole.dataset.type = 'normal';
+                }
+
+                mole.classList.add('up');
+                
+                // Set a timeout for the mole to go down automatically if not hit
+                const popUpTimeout = setTimeout(() => {
+                    mole.classList.remove('up');
+                    mole.classList.remove('hit'); // Ensure hit class is removed
+                    mole.classList.remove('boom-mole'); // Ensure boom-mole class is removed
+                    if (gameActive) { // Only pop up new moles if game is still active
+                        popUpMole();
+                    }
+                }, time);
+
+                mole.dataset.timeoutId = popUpTimeout; // Store the timeout ID on the mole element
+            }
+
+            function whack(event) {
+                if (!gameActive) return; // Only allow whacking if game is active
+                if (!event.target.classList.contains('up')) return; // Only whack if mole is up
+
+                clearTimeout(event.target.dataset.timeoutId); // Clear mole's auto-down timeout
+
+                const moleType = event.target.dataset.type;
+
+                if (moleType === 'boom') {
+                    score = Math.floor(score / 2); // Halve the score
+                    endGame('คุณตีโดนตุ่นระเบิด! คะแนนของคุณถูกหารสอง'); // Reason for ending game
+                    return; // Stop processing this hit as game ends
+                } else { // Normal mole
+                    score++;
+                    scoreDisplay.textContent = score;
+                    event.target.classList.remove('up');
+                    event.target.classList.add('hit'); // Add hit class for visual feedback
+                    
+                    // Remove hit class after a short delay and pop up new mole
+                    setTimeout(() => {
+                        event.target.classList.remove('hit');
+                        event.target.classList.remove('boom-mole'); // Ensure boom-mole is removed after hit
+                        if (gameActive) { // Only pop up new moles if game is still active
+                            popUpMole();
+                        }
+                    }, 100);
+                }
+            }
+
+            function startGame() {
+                loadState(); // Load global state
+                if (state.playCoins > 0) {
+                    state.playCoins -= 1;
+                    saveState(); // Save updated playCoins
+                    gameMessage.classList.add('hidden'); // Hide coin message
+
+                    score = 0;
+                    time = 60; // Reset time to 60 seconds
+                    scoreDisplay.textContent = score;
+                    timeDisplay.textContent = time;
+                    startGameBtn.disabled = true;
+                    gameActive = true;
+
+                    // Clear any existing intervals
+                    clearInterval(moleInterval);
+                    clearInterval(timerInterval);
+
+                    // Ensure all moles are down at the start
+                    moles.forEach(mole => {
+                        mole.classList.remove('up');
+                        mole.classList.remove('hit');
+                        mole.classList.remove('boom-mole');
+                        clearTimeout(mole.dataset.timeoutId);
+                    });
+
+                    // Start popping moles
+                    moleInterval = setInterval(popUpMole, randomTime(700, 1000)); // Moles pop every 0.7 to 1 seconds
+
+                    // Start game timer
+                    timerInterval = setInterval(() => {
+                        time--;
+                        timeDisplay.textContent = time;
+                        if (time <= 0) {
+                            endGame('หมดเวลา!'); // End game with "หมดเวลา!" reason
+                        }
+                    }, 1000);
+
+                    popUpMole(); // Pop up the first mole immediately
+                } else {
+                    gameMessage.classList.remove('hidden'); // Show coin message
+                    startGameBtn.disabled = false;
+                }
+            }
+
+            function endGame(reason = 'เกมจบแล้ว!') { // Default reason for ending game
+                gameActive = false;
+                clearInterval(moleInterval);
+                clearInterval(timerInterval);
+                startGameBtn.disabled = false;
+
+                moles.forEach(mole => {
+                    mole.classList.remove('up');
+                    mole.classList.remove('hit');
+                    mole.classList.remove('boom-mole');
+                    clearTimeout(mole.dataset.timeoutId);
+                });
+
+                // REWARD CALCULATION: 1 Mon Coin for every 10 points
+                const baseRewardPerScore = 10; 
+                const finalReward = Math.floor(score / baseRewardPerScore); 
+
+                let alertMessage = `${reason}\n\nคุณทำคะแนนได้ ${score}`;
+
+                if (finalReward > 0) {
+                    state.monCoins += finalReward;
+                    saveState();
+                    alertMessage += ` และได้รับ ${finalReward} เหรียญม่อน!`;
+                } else {
+                    alertMessage += ` ลองใหม่นะ!`;
+                }
+                alert(alertMessage);
+                window.location.href = 'index.html'; // Go back to main menu
+            }
+
+            // --- INITIALIZATION ---
+            createHoles(); // Create holes when the page loads
+            startGameBtn.addEventListener('click', startGame);
+            loadState(); // Load initial state to check play coins
+        });
+    </script>
+</body>
+</html>
