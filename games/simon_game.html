@@ -47,18 +47,41 @@
             transition: opacity 0.2s, transform 0.1s;
             opacity: 0.7; /* Default dim state */
             transform: scale(1);
+            /* NEW: Image properties */
+            background-size: cover; /* Ensures image covers the button area */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents image repetition */
+            position: relative; /* Needed for overlay/active state */
         }
         .simon-btn:active {
             transform: scale(0.98);
         }
         .simon-btn.active {
             opacity: 1; /* Bright state */
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px var(--btn-color-light); /* Glow effect */
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); /* base glow */
         }
-        #green { background-color: #4CAF50; --btn-color-light: #8bc34a; }
-        #red { background-color: #F44336; --btn-color-light: #ef5350; }
-        #yellow { background-color: #FFEB3B; --btn-color-light: #ffee58; }
-        #blue { background-color: #2196F3; --btn-color-light: #42a5f5; }
+        /* Specific image paths for buttons */
+        #green { background-image: url('6.jpg'); --btn-color-light: #8bc34a; }
+        #red { background-image: url('4.jpg'); --btn-color-light: #ef5350; }
+        #yellow { background-image: url('2.jpg'); --btn-color-light: #ffee58; }
+        #blue { background-image: url('1.jpg'); --btn-color-light: #42a5f5; }
+
+        /* NEW: Overlay for active state to make images 'brighten' */
+        .simon-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0); /* Start transparent */
+            border-radius: 10px;
+            transition: background-color 0.2s;
+        }
+        .simon-btn.active::after {
+            background-color: rgba(255, 255, 255, 0.4); /* White overlay for brightening effect */
+        }
+
 
         .info-panel {
             @apply text-lg font-semibold text-gray-700 mt-4;
@@ -156,11 +179,10 @@
                 simonTurnIndex = 0;
                 simonCanClick = false;
                 simonLevelDisplay.textContent = simonLevel;
-                simonMessageDisplay.textContent = '';
+                messageDisplay.textContent = ''; // Fixed: Changed from 'messageDisplay' to 'simonMessageDisplay' for consistency
                 simonStartBtn.disabled = true; 
                 clearTimeout(playerTurnTimeout); 
                 
-                // Reset difficulty parameters for new game
                 lightDuration = 600; 
                 pauseDuration = 400;
                 playerResponseTime = 2000;
@@ -172,23 +194,19 @@
                 simonPlayerSequence = [];
                 simonTurnIndex = 0;
                 simonCanClick = false;
-                simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
+                simonMessageDisplay.textContent = 'ดูและจำลำดับ...'; // Use simonMessageDisplay
                 clearTimeout(playerTurnTimeout); 
 
-                // --- NEW DIFFICULTY LOGIC ---
+                // --- DIFFICULTY LOGIC ---
                 if (simonLevel < 10) {
-                    // Gradual increase in difficulty up to Level 9
                     lightDuration = Math.max(200, lightDuration - 50); 
                     pauseDuration = Math.max(100, pauseDuration - 30); 
                     playerResponseTime = Math.max(1000, playerResponseTime - 100); 
                 } else {
-                    // Significant difficulty jump from Level 10 onwards
-                    lightDuration = 100; // Very fast flashes
-                    pauseDuration = 50;  // Very short pause
-                    playerResponseTime = 700; // Much less time to respond per button
+                    lightDuration = 100; 
+                    pauseDuration = 50;  
+                    playerResponseTime = 700; 
                 }
-                // --- END NEW DIFFICULTY LOGIC ---
-
 
                 const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
                 simonSequence.push(randomColor);
@@ -213,7 +231,6 @@
                 } else {
                     simonCanClick = true;
                     simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
-                    // Adjust total time for player response based on sequence length and difficulty
                     playerTurnTimeout = setTimeout(() => {
                         endGame('หมดเวลา! คุณตอบไม่ทัน');
                     }, playerResponseTime * simonSequence.length); 
@@ -242,7 +259,6 @@
                         simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
                         setTimeout(nextLevel, 1000); 
                     } else {
-                        // Player made correct move, reset timeout for next button in sequence
                         playerTurnTimeout = setTimeout(() => {
                             endGame('หมดเวลา! คุณตอบไม่ทัน');
                         }, playerResponseTime); 
