@@ -112,17 +112,10 @@
             let simonLevel = 0;
             let simonCanClick = false; 
             let simonTurnIndex = 0; 
-
-            // No audio for now, just visual feedback as requested.
-            // If you want sounds, uncomment and provide local paths:
-            /*
-            const simonSoundMap = {
-                green: new Audio('sounds/simonSound1.mp3'),
-                red: new Audio('sounds/simonSound2.mp3'),
-                yellow: new Audio('sounds/simonSound3.mp3'),
-                blue: new Audio('sounds/simonSound4.mp3')
-            };
-            */
+            let playerTurnTimeout; 
+            let lightDuration = 600; 
+            let pauseDuration = 400; 
+            let playerResponseTime = 2000; 
 
             // --- LOCAL STORAGE (Only for this game's state and global coins) ---
             function saveState() {
@@ -134,21 +127,20 @@
                 if (savedData) {
                     state = JSON.parse(savedData);
                 } else {
-                    // Fallback to default if loaded directly
                     state = { monCoins: 0, playCoins: 0 }; 
                 }
             }
 
             // --- Game Functions ---
             function initializeSimonGame() {
-                loadState(); // Load global state
+                loadState(); 
                 if (state.playCoins > 0) {
                     state.playCoins -= 1;
-                    saveState(); // Save updated playCoins
-                    startGame(); // Start Simon Says game
+                    saveState(); 
+                    startGame(); 
                 } else {
                     alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
-                    window.location.href = 'index.html'; // Go back to main menu
+                    window.location.href = 'index.html'; 
                 }
             }
 
@@ -165,7 +157,13 @@
                 simonCanClick = false;
                 simonLevelDisplay.textContent = simonLevel;
                 simonMessageDisplay.textContent = '';
-                simonStartBtn.disabled = true; // Disable start button during game
+                simonStartBtn.disabled = true; 
+                clearTimeout(playerTurnTimeout); 
+                
+                // Reset difficulty parameters for new game
+                lightDuration = 600; 
+                pauseDuration = 400;
+                playerResponseTime = 2000;
             }
 
             function nextLevel() {
@@ -175,6 +173,22 @@
                 simonTurnIndex = 0;
                 simonCanClick = false;
                 simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
+                clearTimeout(playerTurnTimeout); 
+
+                // --- NEW DIFFICULTY LOGIC ---
+                if (simonLevel < 10) {
+                    // Gradual increase in difficulty up to Level 9
+                    lightDuration = Math.max(200, lightDuration - 50); 
+                    pauseDuration = Math.max(100, pauseDuration - 30); 
+                    playerResponseTime = Math.max(1000, playerResponseTime - 100); 
+                } else {
+                    // Significant difficulty jump from Level 10 onwards
+                    lightDuration = 100; // Very fast flashes
+                    pauseDuration = 50;  // Very short pause
+                    playerResponseTime = 700; // Much less time to respond per button
+                }
+                // --- END NEW DIFFICULTY LOGIC ---
+
 
                 const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
                 simonSequence.push(randomColor);
@@ -188,27 +202,33 @@
                     const button = document.getElementById(colorToLight);
                     
                     button.classList.add('active');
-                    // if (simonSoundMap[colorToLight]) simonSoundMap[colorToLight].play(); // Play sound if available
+                    // if (simonSoundMap[colorToLight]) simonSoundMap[colorToLight].play(); 
 
                     setTimeout(() => {
                         button.classList.remove('active');
                         setTimeout(() => {
                             playSequence(index + 1);
-                        }, 200); 
-                    }, 500); 
+                        }, pauseDuration); 
+                    }, lightDuration); 
                 } else {
                     simonCanClick = true;
                     simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
+                    // Adjust total time for player response based on sequence length and difficulty
+                    playerTurnTimeout = setTimeout(() => {
+                        endGame('หมดเวลา! คุณตอบไม่ทัน');
+                    }, playerResponseTime * simonSequence.length); 
                 }
             }
 
             function handlePlayerClick(event) {
                 if (!simonCanClick) return;
 
+                clearTimeout(playerTurnTimeout); 
+
                 const clickedColor = event.target.dataset.color;
                 
                 event.target.classList.add('active');
-                // if (simonSoundMap[clickedColor]) simonSoundMap[clickedColor].play(); // Play sound if available
+                // if (simonSoundMap[clickedColor]) simonSoundMap[clickedColor].play(); 
                 setTimeout(() => {
                     event.target.classList.remove('active');
                 }, 150); 
@@ -221,6 +241,11 @@
                         simonCanClick = false; 
                         simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
                         setTimeout(nextLevel, 1000); 
+                    } else {
+                        // Player made correct move, reset timeout for next button in sequence
+                        playerTurnTimeout = setTimeout(() => {
+                            endGame('หมดเวลา! คุณตอบไม่ทัน');
+                        }, playerResponseTime); 
                     }
                 } else {
                     endGame('ผิด! ลองใหม่ไหม?');
@@ -231,14 +256,14 @@
                 simonCanClick = false;
                 simonMessageDisplay.textContent = message;
                 simonStartBtn.disabled = false; 
+                clearTimeout(playerTurnTimeout); 
 
-                // Calculate reward: 1 Mon Coin per level reached
-                const finalReward = simonLevel; // 1 Mon Coin per level
+                const finalReward = simonLevel; 
                 state.monCoins += finalReward;
-                saveState(); // Save updated monCoins
+                saveState(); 
 
                 alert(`เกมจบ! คุณไปถึง Level ${simonLevel} และได้รับ ${finalReward} เหรียญม่อน!`);
-                window.location.href = 'index.html'; // Go back to main menu
+                window.location.href = 'index.html'; 
             }
 
             // --- Event Listeners ---
@@ -248,8 +273,6 @@
                 button.addEventListener('click', handlePlayerClick);
             });
 
-            // Initial setup for the Simon Says game screen (when loaded directly or navigated to)
-            // We need to load state on page load even if not starting game immediately, to know playCoins.
             loadState(); 
         });
     </script>
