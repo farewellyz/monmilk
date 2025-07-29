@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมเป่ายิ้งฉุบ - เกมของม่อน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #fdf2f8; /* bg-pink-50 */
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 15px 15px;
+            color: #4a5568; /* text-gray-700 */
+        }
+        .hidden {
+            display: none;
+        }
+        .app-container {
+            background-color: #fff0f5; /* Lavender Blush */
+            box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
+        }
+        .card {
+            @apply bg-white p-5 rounded-3xl shadow-lg transition-all duration-300;
+        }
+        .game-choice-btn img {
+            @apply rounded-2xl shadow-lg transition-all duration-300;
+            border: 4px solid transparent;
+        }
+        .game-choice-btn:hover img {
+            @apply scale-105 shadow-xl;
+        }
+        .game-choice-btn.selected img {
+            @apply border-pink-400 scale-110;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
+        <div id="rps-game-screen">
+               <header class="flex items-center mb-4">
+                 <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
+                 <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">เป่ายิ้งฉุบ!</h1>
+            </header>
+            <div class="card text-center mb-4">
+                <p>ชนะต่อเนื่อง: <span id="rps-streak-counter" class="font-bold text-3xl text-green-500">0</span> ครั้ง</p>
+                <p class="mt-2">เงินรางวัลรอบนี้: <span id="rps-reward-counter" class="font-bold text-3xl text-yellow-500">1</span> $</p>
+            </div>
+            <div class="card mb-4">
+                <p id="rps-result-text" class="text-center text-2xl font-semibold h-8 mb-4"></p>
+                <div class="flex justify-around items-center">
+                    <div class="text-center">
+                        <p class="font-semibold mb-2 text-lg">คุณ</p>
+                        <div id="rps-player-choice-display" class="w-24 h-24 sm:w-28 sm:h-28 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-400 text-4xl shadow-inner">?</div>
+                    </div>
+                    <p class="text-4xl sm:text-5xl font-bold text-pink-400 animate-pulse">VS</p>
+                    <div class="text-center">
+                        <p class="font-semibold mb-2 text-lg">บอท</p>
+                        <div id="rps-bot-choice-display" class="w-24 h-24 sm:w-28 sm:h-28 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-400 text-4xl shadow-inner">?</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <p class="text-center font-semibold mb-4 text-lg">เลือกเลย!</p>
+                <div class="flex justify-around gap-2">
+                    <button class="game-choice-btn" data-choice="rock"><img src="rock.jpg" alt="ค้อน" class="w-20 h-20 sm:w-24 sm:h-24"></button>
+                    <button class="game-choice-btn" data-choice="paper"><img src="paper.jpg" alt="กระดาษ" class="w-20 h-20 sm:w-24 sm:h-24"></button>
+                    <button class="game-choice-btn" data-choice="scissors"><img src="scissors.jpg" alt="กรรไกร" class="w-20 h-20 sm:w-24 sm:h-24"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT (Simplified for game file, relies on main state) ---
+            let state = {};
+
+            // --- DOM ELEMENTS ---
+            const rpsStreakCounter = document.getElementById('rps-streak-counter');
+            const rpsRewardCounter = document.getElementById('rps-reward-counter');
+            const rpsResultText = document.getElementById('rps-result-text');
+            const rpsPlayerChoiceDisplay = document.getElementById('rps-player-choice-display');
+            const rpsBotChoiceDisplay = document.getElementById('rps-bot-choice-display');
+            const rpsChoiceBtns = document.querySelectorAll('.game-choice-btn');
+
+            // --- LOCAL STORAGE (Only for this game's state and global coins) ---
+            function saveState() {
+                localStorage.setItem('monGameDataV14', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedData = localStorage.getItem('monGameDataV14');
+                if (savedData) {
+                    state = JSON.parse(savedData);
+                } else {
+                    // This scenario should ideally not happen if user always starts from main menu
+                    // Fallback to default if loaded directly
+                    state = { monCoins: 0, playCoins: 0, rpsStreak: 0 }; 
+                }
+            }
+
+            // --- RPS GAME LOGIC ---
+            function initializeRPSGame() {
+                loadState(); // Load global state
+                if (state.playCoins > 0) {
+                    state.playCoins -= 1;
+                    saveState(); // Save updated playCoins
+                    resetRPSGame();
+                    // Update coin displays in main menu would happen on return
+                } else {
+                    alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
+                    window.location.href = 'index.html'; // Go back to main menu
+                }
+            }
+
+            function resetRPSGame() {
+                state.rpsStreak = 0; // Reset RPS streak specific to this game
+                updateRPSGameUI();
+                rpsResultText.textContent = '';
+                rpsPlayerChoiceDisplay.innerHTML = '<span class="text-gray-400 text-4xl">?</span>';
+                rpsBotChoiceDisplay.innerHTML = '<span class="text-gray-400 text-4xl">?</span>';
+                rpsChoiceBtns.forEach(b => b.classList.remove('selected'));
+                saveState(); // Save the reset streak
+            }
+
+            function updateRPSGameUI() {
+                rpsStreakCounter.textContent = state.rpsStreak;
+                const reward = state.rpsStreak === 0 ? 1 : Math.pow(2, state.rpsStreak);
+                rpsRewardCounter.textContent = reward;
+            }
+            
+            function handleRPSPlayerChoice(playerChoice) {
+                const choices = ['rock', 'paper', 'scissors'];
+                const botChoice = choices[Math.floor(Math.random() * choices.length)];
+
+                // Ensure image paths are correct relative to rps_game.html
+                const choiceImages = {
+                    rock: 'rock.jpg',
+                    paper: 'paper.jpg',
+                    scissors: 'scissors.jpg'
+                };
+                rpsPlayerChoiceDisplay.innerHTML = `<img src="${choiceImages[playerChoice]}" class="w-full h-full object-cover rounded-2xl">`;
+                rpsBotChoiceDisplay.innerHTML = `<img src="${choiceImages[botChoice]}" class="w-full h-full object-cover rounded-2xl">`;
+
+                if (playerChoice === botChoice) {
+                    rpsResultText.textContent = 'เสมอจ้า!';
+                } else if (
+                    (playerChoice === 'rock' && botChoice === 'scissors') ||
+                    (playerChoice === 'paper' && botChoice === 'rock') ||
+                    (playerChoice === 'scissors' && botChoice === 'paper')
+                ) {
+                    const reward = state.rpsStreak === 0 ? 1 : Math.pow(2, state.rpsStreak);
+                    state.monCoins += reward; // Add mon coins
+                    state.rpsStreak++;
+                    rpsResultText.textContent = `ชนะ! ได้รับ ${reward} $`;
+                    updateRPSGameUI();
+                    saveState(); // Save state after win
+                } else {
+                    const totalEarned = state.rpsStreak === 0 ? 0 : Array.from({length: state.rpsStreak}, (_, i) => i === 0 ? 1 : Math.pow(2, i)).reduce((a, b) => a + b, 0);
+                    alert(`แพ้แล้วนะคะ! คุณได้รับเงินรางวัลทั้งหมด ${totalEarned} $ จากการชนะ ${state.rpsStreak} ครั้งติดต่อกัน`);
+                    window.location.href = 'index.html'; // Go back to main menu after losing
+                }
+            }
+            
+            rpsChoiceBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    rpsChoiceBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    rpsResultText.textContent = '';
+                    setTimeout(() => handleRPSPlayerChoice(btn.dataset.choice), 300);
+                });
+            });
+
+            // --- INITIALIZATION ---
+            initializeRPSGame(); // Initialize the RPS game when this page loads
+        });
+    </script>
+</body>
+</html>

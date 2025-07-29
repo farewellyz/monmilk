@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Says - เกมของม่อน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #fdf2f8; /* bg-pink-50 */
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 15px 15px;
+            color: #4a5568; /* text-gray-700 */
+        }
+        .hidden {
+            display: none;
+        }
+        .app-container {
+            background-color: #fff0f5; /* Lavender Blush */
+            box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
+        }
+        .card {
+            @apply bg-white p-8 rounded-3xl shadow-xl border-4 border-pink-200; /* Adjusted for game-specific card */
+            text-align: center;
+        }
+        .simon-game-board {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            width: 300px; /* Fixed size of the board */
+            height: 300px;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden; /* Ensures rounded corners are applied */
+        }
+        .simon-btn {
+            width: 100%;
+            height: 100%;
+            border: 5px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            opacity: 0.7; /* Default dim state */
+            transform: scale(1);
+        }
+        .simon-btn:active {
+            transform: scale(0.98);
+        }
+        .simon-btn.active {
+            opacity: 1; /* Bright state */
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px var(--btn-color-light); /* Glow effect */
+        }
+        #green { background-color: #4CAF50; --btn-color-light: #8bc34a; }
+        #red { background-color: #F44336; --btn-color-light: #ef5350; }
+        #yellow { background-color: #FFEB3B; --btn-color-light: #ffee58; }
+        #blue { background-color: #2196F3; --btn-color-light: #42a5f5; }
+
+        .info-panel {
+            @apply text-lg font-semibold text-gray-700 mt-4;
+        }
+        .start-btn {
+            @apply bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors;
+            margin-top: 20px;
+        }
+        .start-btn:disabled {
+            @apply bg-gray-400 cursor-not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
+        <div id="simon-game-screen">
+            <header class="flex items-center mb-4">
+                <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
+                <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">Simon Says!</h1>
+            </header>
+            <div class="card">
+                <div class="simon-game-board">
+                    <div id="green" class="simon-btn" data-color="green"></div>
+                    <div id="red" class="simon-btn" data-color="red"></div>
+                    <div id="yellow" class="simon-btn" data-color="yellow"></div>
+                    <div id="blue" class="simon-btn" data-color="blue"></div>
+                </div>
+                <div class="info-panel">
+                    Level: <span id="simon-level-display">0</span><br>
+                    <span id="simon-message-display">กด "เริ่มเกม" เพื่อเริ่ม!</span>
+                </div>
+                <button id="simon-start-btn" class="start-btn">เริ่มเกม</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT (Simplified for game file, relies on main state) ---
+            let state = {};
+
+            // --- DOM ELEMENTS ---
+            const simonColors = ['green', 'red', 'yellow', 'blue'];
+            const simonButtons = document.querySelectorAll('.simon-btn'); 
+            const simonStartBtn = document.getElementById('simon-start-btn');
+            const simonLevelDisplay = document.getElementById('simon-level-display');
+            const simonMessageDisplay = document.getElementById('simon-message-display');
+
+            let simonSequence = [];
+            let simonPlayerSequence = [];
+            let simonLevel = 0;
+            let simonCanClick = false; 
+            let simonTurnIndex = 0; 
+
+            // No audio for now, just visual feedback as requested.
+            // If you want sounds, uncomment and provide local paths:
+            /*
+            const simonSoundMap = {
+                green: new Audio('sounds/simonSound1.mp3'),
+                red: new Audio('sounds/simonSound2.mp3'),
+                yellow: new Audio('sounds/simonSound3.mp3'),
+                blue: new Audio('sounds/simonSound4.mp3')
+            };
+            */
+
+            // --- LOCAL STORAGE (Only for this game's state and global coins) ---
+            function saveState() {
+                localStorage.setItem('monGameDataV14', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedData = localStorage.getItem('monGameDataV14');
+                if (savedData) {
+                    state = JSON.parse(savedData);
+                } else {
+                    // Fallback to default if loaded directly
+                    state = { monCoins: 0, playCoins: 0 }; 
+                }
+            }
+
+            // --- Game Functions ---
+            function initializeSimonGame() {
+                loadState(); // Load global state
+                if (state.playCoins > 0) {
+                    state.playCoins -= 1;
+                    saveState(); // Save updated playCoins
+                    startGame(); // Start Simon Says game
+                } else {
+                    alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
+                    window.location.href = 'index.html'; // Go back to main menu
+                }
+            }
+
+            function startGame() {
+                resetGame();
+                nextLevel();
+            }
+
+            function resetGame() {
+                simonSequence = [];
+                simonPlayerSequence = [];
+                simonLevel = 0;
+                simonTurnIndex = 0;
+                simonCanClick = false;
+                simonLevelDisplay.textContent = simonLevel;
+                simonMessageDisplay.textContent = '';
+                simonStartBtn.disabled = true; // Disable start button during game
+            }
+
+            function nextLevel() {
+                simonLevel++;
+                simonLevelDisplay.textContent = simonLevel;
+                simonPlayerSequence = [];
+                simonTurnIndex = 0;
+                simonCanClick = false;
+                simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
+
+                const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
+                simonSequence.push(randomColor);
+
+                playSequence(0); 
+            }
+
+            function playSequence(index) {
+                if (index < simonSequence.length) {
+                    const colorToLight = simonSequence[index];
+                    const button = document.getElementById(colorToLight);
+                    
+                    button.classList.add('active');
+                    // if (simonSoundMap[colorToLight]) simonSoundMap[colorToLight].play(); // Play sound if available
+
+                    setTimeout(() => {
+                        button.classList.remove('active');
+                        setTimeout(() => {
+                            playSequence(index + 1);
+                        }, 200); 
+                    }, 500); 
+                } else {
+                    simonCanClick = true;
+                    simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
+                }
+            }
+
+            function handlePlayerClick(event) {
+                if (!simonCanClick) return;
+
+                const clickedColor = event.target.dataset.color;
+                
+                event.target.classList.add('active');
+                // if (simonSoundMap[clickedColor]) simonSoundMap[clickedColor].play(); // Play sound if available
+                setTimeout(() => {
+                    event.target.classList.remove('active');
+                }, 150); 
+
+                simonPlayerSequence.push(clickedColor);
+
+                if (simonPlayerSequence[simonTurnIndex] === simonSequence[simonTurnIndex]) {
+                    simonTurnIndex++;
+                    if (simonTurnIndex === simonSequence.length) {
+                        simonCanClick = false; 
+                        simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
+                        setTimeout(nextLevel, 1000); 
+                    }
+                } else {
+                    endGame('ผิด! ลองใหม่ไหม?');
+                }
+            }
+
+            function endGame(message) {
+                simonCanClick = false;
+                simonMessageDisplay.textContent = message;
+                simonStartBtn.disabled = false; 
+
+                // Calculate reward: 1 Mon Coin per level reached
+                const finalReward = simonLevel; // 1 Mon Coin per level
+                state.monCoins += finalReward;
+                saveState(); // Save updated monCoins
+
+                alert(`เกมจบ! คุณไปถึง Level ${simonLevel} และได้รับ ${finalReward} เหรียญม่อน!`);
+                window.location.href = 'index.html'; // Go back to main menu
+            }
+
+            // --- Event Listeners ---
+            simonStartBtn.addEventListener('click', initializeSimonGame); 
+
+            simonButtons.forEach(button => {
+                button.addEventListener('click', handlePlayerClick);
+            });
+
+            // Initial setup for the Simon Says game screen (when loaded directly or navigated to)
+            // We need to load state on page load even if not starting game immediately, to know playCoins.
+            loadState(); 
+        });
+    </script>
+</body>
+</html>
