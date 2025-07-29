@@ -85,11 +85,9 @@
         .buy-item-btn:active {
             transform: translateY(1px); @apply shadow-md border-b-2;
         }
-
-        /* Removed game-menu-card specific styles as we are going back to standard buttons */
     </style>
 </head>
-<body class="text-gray-700">
+<body>
 
     <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
 
@@ -157,9 +155,14 @@
                 </a>
             </div>
 
-            <div class="space-y-4 mt-6"> <button id="go-to-shop-btn" class="btn btn-shop">
+            <div class="space-y-4 mt-6"> 
+                <button id="go-to-shop-btn" class="btn btn-shop">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
                     ร้านค้าแลกของ
+                </button>
+                <button id="reset-game-btn" class="btn bg-gray-500 border-gray-700 hover:bg-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 15.5v2m-.001-9h.01M20 20v-5h-.581m0 0a8.003 8.003 0 01-15.357-2l-.001-.628m0 0v1.5a1 1 0 001 1h1.5l.59-.59M11 11h2v2h-2v-2z" /></svg>
+                    รีเซ็ตเกม (ลบข้อมูล)
                 </button>
             </div>
 
@@ -200,7 +203,6 @@
             const screens = {
                 menu: document.getElementById('menu-screen'),
                 shop: document.getElementById('shop-screen'),
-                // RPS, Memory, Simon screens are now handled by separate HTML files
             };
             const coinDisplays = {
                 mon: document.getElementById('mon-coin-display'),
@@ -211,6 +213,7 @@
             const shopItemsList = document.getElementById('shop-items-list');
             const inventoryCard = document.getElementById('inventory-card');
             const inventoryList = document.getElementById('inventory-list');
+            const resetGameBtn = document.getElementById('reset-game-btn'); // New: Reset game button
             
             // --- NAVIGATION BUTTONS ---
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
@@ -227,7 +230,7 @@
                     state = JSON.parse(savedData);
                 } else {
                     state = {
-                        monCoins: 0, 
+                        monCoins: 1000, 
                         playCoins: 0, 
                         rpsStreak: 0,
                         lastCheckinDate: null, 
@@ -369,6 +372,17 @@
                     });
                 });
             }
+
+            // --- RESET GAME LOGIC ---
+            // Added resetGameBtn to DOM elements (see above)
+            resetGameBtn.addEventListener('click', () => {
+                if (confirm('คุณแน่ใจนะว่าจะรีเซ็ตเกม? ข้อมูลทั้งหมดจะหายไปนะ!')) {
+                    localStorage.removeItem('monGameDataV14'); // Remove the specific game data
+                    alert('รีเซ็ตเกมสำเร็จ! เกมจะเริ่มใหม่แล้วนะ');
+                    window.location.reload(); // Reload the page to restart the game
+                }
+            });
+
 
             // --- INITIALIZATION ---
             function init() {
