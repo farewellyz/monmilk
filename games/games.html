@@ -619,7 +619,7 @@
                 
                 // Peek time for levels 1, 2, 3, 4, 5+
                 // Example: Level 1 (7s), Level 2 (6s), Level 3 (5s), Level 4 (4s), Level 5+ (3s)
-                const peekTimes = [5, 5, 10, 8, 6]; 
+                const peekTimes = [5, 5, 15, 10, 8]; 
                 const peekTime = memoryGameState.level > peekTimes.length ? 3 : peekTimes[memoryGameState.level - 1];
 
                 createMemoryBoard(); // Call createMemoryBoard without arguments
