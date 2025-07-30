@@ -110,28 +110,27 @@
             width: 100%;
             height: 100%;
             pointer-events: none; /* ทำให้คลิกทะลุไปโดน mole ด้านล่างได้ */
-            /* เพิ่ม z-index เพื่อให้แน่ใจว่า particles อยู่ด้านบน */
             z-index: 10; 
         }
 
         .particle {
             position: absolute;
-            width: 8px; /* ขนาดใหญ่ขึ้น */
-            height: 8px; /* ขนาดใหญ่ขึ้น */
+            width: 8px; 
+            height: 8px; 
             border-radius: 50%;
             opacity: 0;
-            /* เพิ่ม animation-fill-mode เพื่อให้คงสถานะสุดท้าย */
             animation: particle-burst 0.6s ease-out forwards; 
         }
 
         @keyframes particle-burst {
             0% {
-                transform: translate(-50%, -50%) scale(1);
+                /* เริ่มจากจุดศูนย์กลางของโมล */
+                transform: translate(-50%, -50%) scale(1); 
                 opacity: 1;
             }
             100% {
-                /* เคลื่อนที่ไปไกลขึ้น เพื่อให้กระจายตัวชัดเจน */
-                transform: translate(calc(var(--randomX) * 30px - 50%), calc(var(--randomY) * 30px - 50%)) scale(0.5); 
+                /* กระจายออกไปจากจุดเริ่มต้น 50px */
+                transform: translate(calc(var(--targetX)), calc(var(--targetY))) scale(0.5); 
                 opacity: 0;
             }
         }
@@ -148,7 +147,7 @@
             <div class="card">
                 <div class="info-panel mb-4">
                     คะแนน: <span id="score-display">0</span><br>
-                    เวลา: <span id="time-display">60</span> วินาที
+                    เวลา: <span id="time-display">30</span> วินาที
                 </div>
                 <div class="game-board" id="game-board">
                     <div class="particle-container" id="particle-container"></div>
@@ -174,7 +173,7 @@
 
             // --- GAME VARIABLES ---
             let score = 0;
-            let time = 60; // Game duration in seconds: 1 minute
+            let time = 30; // Game duration in seconds: 30 seconds
             let gameActive = false;
             
             let moleInterval; // Interval for moles popping up
@@ -184,12 +183,12 @@
 
             const numHoles = 9; // 3x3 grid
             let moles = []; // Array to store mole elements (the mole divs themselves)
-            
+
             // DIFFICULTY / CHANCE SETTINGS (Adjusted for more boom moles)
             const minPopUpDuration = 600; // Minimum time a mole stays up (faster)
             const maxPopUpDuration = 1200; // Maximum time a mole stays up (faster)
             const popAttemptInterval = 600; // How frequently new moles are attempted to pop (faster)
-            const boomMoleChance = 0.35; // Increased boom mole chance to 35%
+            const boomMoleChance = 0.35; // 35% chance for a boom mole to appear
 
             // SOUNDS (Important: Provide file paths if you have them, otherwise remove/comment out)
             const whackSound = new Audio('whack.mp3'); // Sound for hitting normal mole
@@ -233,7 +232,6 @@
                 const idx = Math.floor(Math.random() * molesArray.length);
                 const hole = molesArray[idx];
                 if (hole === lastHole) {
-                    // console.log('Ah nah that is the same hole, try again');
                     return randomHole(molesArray); 
                 }
                 lastHole = hole;
@@ -245,17 +243,13 @@
 
                 const mole = randomHole(moles);
                 
-                // Ensure the mole is completely down and clean before popping up again
-                // This is crucial to prevent overlapping moles in the same hole
                 if (mole.classList.contains('up') || mole.classList.contains('hit')) {
-                    return; // Skip this attempt if the hole is already occupied or recently hit
+                    return; 
                 }
 
-                // Clean previous classes (especially 'boom-mole' for a normal mole or 'hit')
                 mole.classList.remove('boom-mole'); 
                 mole.classList.remove('hit'); 
                 
-                // Determine mole type
                 const isBoomMole = Math.random() < boomMoleChance;
                 if (isBoomMole) {
                     mole.classList.add('boom-mole');
@@ -264,23 +258,21 @@
                     mole.dataset.type = 'normal';
                 }
 
-                mole.classList.add('up'); // Make mole visible
+                mole.classList.add('up'); 
                 
-                // Set a timeout for the mole to go down automatically if not hit
                 const popUpTimeout = setTimeout(() => {
                     mole.classList.remove('up');
                     mole.classList.remove('hit'); 
                     mole.classList.remove('boom-mole'); 
-                    // No need to call popUpMole() here, as it's handled by the main moleInterval
-                }, randomBetween(minPopUpDuration, maxPopUpDuration)); // Mole stays up for a varied time
+                }, randomBetween(minPopUpDuration, maxPopUpDuration)); 
 
-                mole.dataset.timeoutId = popUpTimeout; // Store the timeout ID on the mole element
-                molePopUpTimeouts.push(popUpTimeout); // Store all timeouts for cleanup
+                mole.dataset.timeoutId = popUpTimeout; 
+                molePopUpTimeouts.push(popUpTimeout); 
             }
 
             // NEW: createParticles function, using mole's rect for position
             function createParticles(moleElement) {
-                const numParticles = 8;
+                const numParticles = 3; // กำหนดจำนวน Particle เป็น 3
                 const moleRect = moleElement.getBoundingClientRect();
                 const gameBoardRect = gameBoard.getBoundingClientRect(); // Get gameBoard position
 
@@ -294,21 +286,20 @@
                     particleContainer.appendChild(particle);
 
                     const angle = Math.random() * Math.PI * 2; // Random angle in radians
-                    const spread = 20 + Math.random() * 20; // Random spread distance
+                    const spreadDistance = 50; // ระยะการกระจายที่กว้างขึ้น
 
                     // Set start position at the center of the hit mole
                     particle.style.left = `${centerX}px`;
                     particle.style.top = `${centerY}px`;
                     
-                    // Set end position for animation
-                    particle.style.setProperty('--targetX', `${Math.cos(angle) * spread}px`);
-                    particle.style.setProperty('--targetY', `${Math.sin(angle) * spread}px`);
+                    // Set end position for animation: Use random angles for spread
+                    particle.style.setProperty('--targetX', `${Math.cos(angle) * spreadDistance}px`);
+                    particle.style.setProperty('--targetY', `${Math.sin(angle) * spreadDistance}px`);
 
-                    // Use slightly different colors for more visual interest
                     const colors = ['#FFD700', '#FFA500', '#FF4500']; // Gold, Orange, OrangeRed
                     particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 
-                    // Remove particle after animation
+                    // Remove particle after animation (using animationend listener)
                     particle.addEventListener('animationend', () => {
                         particle.remove();
                     });
@@ -318,34 +309,30 @@
 
             function whack(event) {
                 if (!gameActive) return; 
-                if (!event.target.classList.contains('up')) return; // Only whack if mole is up
+                if (!event.target.classList.contains('up')) return; 
 
-                // Clear the mole's auto-down timeout to ensure it goes down NOW
                 clearTimeout(event.target.dataset.timeoutId); 
                 
                 const moleType = event.target.dataset.type;
 
-                // Visual feedback for hit
-                event.target.classList.remove('up'); // Mole goes down immediately
-                event.target.classList.add('hit'); // Show hit state
+                event.target.classList.remove('up'); 
+                event.target.classList.add('hit'); 
                 
-                // Clean up hit state and type after a short visual feedback
                 setTimeout(() => {
                     event.target.classList.remove('hit');
-                    event.target.classList.remove('boom-mole'); // Ensure boom-mole class is removed
+                    event.target.classList.remove('boom-mole'); 
                 }, 100); 
 
                 if (moleType === 'boom') {
-                    if (boomSound && typeof boomSound.play === 'function') boomSound.play(); // Play boom sound
-                    score = Math.floor(score / 2); // Halve the score
-                    endGame('คุณตีโดนตุ่นระเบิด! คะแนนของคุณถูกหารสอง'); // Reason for ending game
+                    if (boomSound && typeof boomSound.play === 'function') boomSound.play(); 
+                    score = Math.floor(score / 2); 
+                    endGame('คุณตีโดนตุ่นระเบิด! คะแนนของคุณถูกหารสอง'); 
                     return; 
-                } else { // Normal mole
-                    if (whackSound && typeof whackSound.play === 'function') whackSound.play(); // Play whack sound
+                } else { 
+                    if (whackSound && typeof whackSound.play === 'function') whackSound.play(); 
                     score++;
                     scoreDisplay.textContent = score;
 
-                    // Call createParticles with the mole element itself
                     createParticles(event.target); 
                 }
             }
@@ -358,13 +345,12 @@
                     gameMessage.classList.add('hidden'); 
 
                     score = 0;
-                    time = 60; // Reset time to 60 seconds
+                    time = 30; // Reset time to 30 seconds
                     scoreDisplay.textContent = score;
                     timeDisplay.textContent = time;
                     startGameBtn.disabled = true;
                     gameActive = true;
 
-                    // Fix: Clear all existing intervals and timeouts (robust cleanup)
                     clearInterval(moleInterval); 
                     clearInterval(timerInterval);
                     molePopUpTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
@@ -373,15 +359,13 @@
                         mole.classList.remove('up');
                         mole.classList.remove('hit');
                         mole.classList.remove('boom-mole');
-                        clearTimeout(mole.dataset.timeoutId); // Clear any timeouts attached directly to moles
-                        delete mole.dataset.timeoutId; // Remove the dataset property
-                        delete mole.dataset.type; // Remove the dataset property
+                        clearTimeout(mole.dataset.timeoutId); 
+                        delete mole.dataset.timeoutId; 
+                        delete mole.dataset.type; 
                     });
 
-                    // Start popping moles periodically
-                    moleInterval = setInterval(popUpMole, popAttemptInterval); // Moles attempt to pop at a fixed interval
+                    moleInterval = setInterval(popUpMole, popAttemptInterval); 
 
-                    // Start game timer
                     timerInterval = setInterval(() => {
                         time--;
                         timeDisplay.textContent = time;
@@ -390,7 +374,6 @@
                         }
                     }, 1000);
 
-                    // Pop up the first mole after a short delay
                     setTimeout(popUpMole, 500); 
 
                 } else {
@@ -401,25 +384,22 @@
 
             function endGame(reason = 'เกมจบแล้ว!') { 
                 gameActive = false;
-                clearInterval(moleInterval); // Stop new moles from popping
-                clearInterval(timerInterval); // Stop the game timer
+                clearInterval(moleInterval); 
+                clearInterval(timerInterval); 
 
-                // Clear any remaining mole pop-up timeouts
                 molePopUpTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-                molePopUpTimeouts = []; // Clear array
+                molePopUpTimeouts = []; 
                 
-                // Ensure all moles are down and clean
                 moles.forEach(mole => {
                     mole.classList.remove('up');
                     mole.classList.remove('hit');
                     mole.classList.remove('boom-mole');
-                    clearTimeout(mole.dataset.timeoutId); // Ensure direct timeouts are cleared
-                    delete mole.dataset.timeoutId; // Clean up dataset properties
+                    clearTimeout(mole.dataset.timeoutId); 
+                    delete mole.dataset.timeoutId; 
                     delete mole.dataset.type;
                 });
 
-                // REWARD CALCULATION: 3 points for 1 Mon Coin
-                const baseRewardPerScore = 3; // Now 3 points per coin
+                const baseRewardPerScore = 3; 
                 const finalReward = Math.floor(score / baseRewardPerScore); 
 
                 let alertMessage = `${reason}\n\nคุณทำคะแนนได้ ${score}`;
@@ -436,9 +416,9 @@
             }
 
             // --- INITIALIZATION ---
-            createHoles(); // Create holes when the page loads
+            createHoles(); 
             startGameBtn.addEventListener('click', startGame);
-            loadState(); // Load initial state to check play coins
+            loadState(); 
         });
     </script>
 </body>
