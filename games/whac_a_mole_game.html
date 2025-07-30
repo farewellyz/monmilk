@@ -82,7 +82,7 @@
             transition: transform 0.1s ease-out, background-color 0.1s ease-out;
         }
 
-        /* Boom Mole Specific Styles */
+        /* NEW: Boom Mole Specific Styles */
         .boom-mole {
             background-image: url('boom_mole.png'); /* Replace with your boom mole image */
             background-color: transparent; /* Remove background color if using image */
@@ -140,12 +140,16 @@
             let score = 0;
             let time = 60; // Game duration in seconds: 1 minute
             let gameActive = false;
-            let molePopUpTimeouts = []; // Stores timeouts for moles going down
+            
+            // Fix: Declare these variables at the top-level script scope
+            let moleInterval; // Interval for moles popping up
             let timerInterval; // Interval for game timer
             let lastHole; // To prevent mole from popping in the same hole twice in a row
+            let molePopUpTimeouts = []; // Stores timeouts for moles going down
+
             const numHoles = 9; // 3x3 grid
             let moles = []; // Array to store mole elements (the mole divs themselves)
-
+            
             // DIFFICULTY / CHANCE SETTINGS (Adjusted for faster/fewer moles)
             const minPopUpDuration = 600; // Minimum time a mole stays up (faster)
             const maxPopUpDuration = 1200; // Maximum time a mole stays up (faster)
@@ -284,11 +288,11 @@
                     startGameBtn.disabled = true;
                     gameActive = true;
 
-                    // Clear all existing timeouts and intervals
-                    clearInterval(moleInterval); // This might be undefined first time, but it's safe
+                    // Fix: Clear all existing intervals and timeouts (robust cleanup)
+                    clearInterval(moleInterval); 
                     clearInterval(timerInterval);
                     molePopUpTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-                    molePopUpTimeouts = []; // Clear array of stored timeouts
+                    molePopUpTimeouts = []; 
                     moles.forEach(mole => {
                         mole.classList.remove('up');
                         mole.classList.remove('hit');
