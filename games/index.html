@@ -24,10 +24,16 @@
             box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
         }
         .card {
+            /* Basic card styling */
             @apply bg-white p-5 rounded-3xl shadow-lg transition-all duration-300;
+            border: 2px solid #FBCFE8; /* Soft pink border */
+            background: linear-gradient(145deg, #fffafa, #ffe4e6); /* Light pink gradient */
+            box-shadow: 0 5px 15px rgba(219, 39, 119, 0.1), inset 0 0 5px rgba(255,255,255,0.5);
         }
+
+        /* General button styling */
         .btn {
-            @apply w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md transition-all duration-300 flex items-center justify-center gap-2 border-b-4;
+            @apply w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md transition-all duration-300 flex items-center justify-center border-b-4;
             transform: translateY(0);
         }
         .btn:hover {
@@ -38,53 +44,218 @@
             transform: translateY(2px);
             @apply shadow-sm;
         }
-        .btn-play { /* Specific style for RPS */
-            @apply bg-gradient-to-br from-pink-400 to-red-400 border-pink-600;
-        }
-        .btn-play-memory { /* Specific style for Memory Game */
-            @apply bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600;
-        }
-        .btn-play-simon { /* Specific style for Simon Says */
-            @apply bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600;
-        }
-        .btn-shop {
-            @apply bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600;
-        }
-        .btn-checkin {
-            @apply bg-gradient-to-br from-sky-400 to-blue-500 border-sky-600;
-        }
+
+        /* Specific button colors */
+        .btn-play { @apply bg-gradient-to-br from-pink-400 to-red-400 border-pink-600; }
+        .btn-play-memory { @apply bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600; }
+        .btn-play-simon { @apply bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600; }
+        .btn-shop { @apply bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600; }
+        .btn-checkin { @apply bg-gradient-to-br from-sky-400 to-blue-500 border-sky-600; }
         .btn-disabled {
             @apply bg-gray-300 border-gray-400 cursor-not-allowed;
             transform: translateY(0) !important;
             filter: grayscale(1);
         }
+
+        /* Mission button styling */
         .mission-btn {
-            @apply text-sm px-4 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-200 flex items-center gap-1.5 border-b-4;
+            @apply text-sm px-4 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-200 flex items-center justify-center border-b-4;
             transform: translateY(0);
         }
-        .mission-btn.incomplete {
-            @apply bg-gradient-to-br from-green-400 to-emerald-500 border-green-700;
-        }
-        .mission-btn.incomplete:hover {
-            transform: translateY(-2px); @apply shadow-lg; filter: brightness(1.05);
-        }
-        .mission-btn.incomplete:active {
-            transform: translateY(1px); @apply shadow-sm border-b-2;
-        }
-        .mission-btn.completed {
-            @apply bg-gradient-to-br from-gray-400 to-gray-500 border-gray-600 cursor-default;
-        }
+        .mission-btn.incomplete { @apply bg-gradient-to-br from-green-400 to-emerald-500 border-green-700; }
+        .mission-btn.incomplete:hover { transform: translateY(-2px); @apply shadow-lg; filter: brightness(1.05); }
+        .mission-btn.incomplete:active { transform: translateY(1px); @apply shadow-sm border-b-2; }
+        .mission-btn.completed { @apply bg-gradient-to-br from-gray-400 to-gray-500 border-gray-600 cursor-default; }
+
+        /* Buy item button styling */
         .buy-item-btn {
-            @apply px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2 border-b-4;
+            @apply px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center border-b-4;
             @apply bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700;
             transform: translateY(0);
         }
-        .buy-item-btn:hover {
-            transform: translateY(-2px); @apply shadow-xl; filter: brightness(1.1);
+        .buy-item-btn:hover { transform: translateY(-2px); @apply shadow-xl; filter: brightness(1.1); }
+        .buy-item-btn:active { transform: translateY(1px); @apply shadow-md border-b-2; }
+
+        /* Inventory item "ใช้" button */
+        .play-item-btn {
+            @apply px-3 py-1 text-sm font-bold text-white rounded-lg shadow-md transition-all duration-200 border-b-2;
+            background-color: #8A2BE2; /* Blue-violet */
+            border-bottom-color: #6A1BAE;
         }
-        .buy-item-btn:active {
-            transform: translateY(1px); @apply shadow-md border-b-2;
+        .play-item-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        .play-item-btn:active { transform: translateY(0.5px); box-shadow: inset 0 0 3px rgba(0,0,0,0.2); border-bottom-width: 1px; }
+        .play-item-btn:disabled { @apply bg-gray-300 border-gray-400 cursor-not-allowed; transform: translateY(0) !important; }
+
+        /* --- Custom UI Styling for Clarity and Aesthetics --- */
+
+        /* Header Title */
+        .main-header-title {
+            font-size: 2.75rem; /* text-4xl base */
+            line-height: 1.1;
+            font-weight: 700; /* font-bold */
+            color: #DB2777; /* pink-600 */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2); /* Soft shadow for depth */
+            margin-bottom: 0.5rem;
         }
+        .subtitle {
+            font-size: 1.125rem; /* text-lg */
+            color: #EC4899; /* pink-500 */
+            font-weight: 500; /* font-medium */
+        }
+
+        /* Card Headers */
+        .card-header {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: #6B7280; /* gray-600 */
+            margin-bottom: 1rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed #FBCFE8; /* Light dashed line */
+        }
+
+        /* Wallet Display */
+        .wallet-section {
+            @apply flex justify-around items-center;
+            padding-top: 0.5rem;
+        }
+        .wallet-coin-display {
+            font-size: 2.5rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+        }
+        .wallet-coin-label {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            color: #9CA3AF; /* gray-400 */
+        }
+        .mon-coin-color { color: #F59E0B; /* amber-500 */ }
+        .play-coin-color { color: #10B981; /* emerald-500 */ }
+
+        /* Inventory Item */
+        .inventory-item {
+            @apply flex justify-between items-center bg-rose-50 p-3 rounded-lg border-l-4 border-rose-200;
+            font-size: 1.125rem; /* text-lg */
+            color: #BE185D; /* pink-700 */
+        }
+        .inventory-item span:first-child { font-weight: 600; } /* Item name */
+        .inventory-item span:last-child {
+            font-size: 1rem; /* text-base */
+            font-weight: 700;
+            background-color: #FBCFE8; /* pink-200 */
+            color: #DB2777; /* pink-600 */
+            border-radius: 9999px; /* rounded-full */
+            padding: 0.25rem 0.75rem; /* px-3 py-1 */
+            margin-left: 0.5rem;
+        }
+        .inventory-item .play-item-btn { margin-left: 0.75rem; }
+
+        /* Mission Item */
+        .mission-item {
+            @apply flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200;
+            font-size: 1rem; /* text-base */
+            color: #6B7280; /* gray-600 */
+        }
+        .mission-item p { font-weight: 500; }
+        .mission-item .mission-btn { margin-left: 0.5rem; }
+
+        /* Shop Item */
+        .shop-item {
+            @apply flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200;
+        }
+        .shop-item-name {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600;
+            color: #BE185D; /* pink-700 */
+        }
+        .shop-item-price {
+            font-size: 1rem; /* text-base */
+            font-weight: 700;
+            color: #F59E0B; /* amber-500 */
+            margin-left: 0.5rem;
+        }
+        .shop-item .buy-item-btn { margin-left: 0.75rem; }
+
+
+        /* --- Game Card Styling --- */
+        .game-card-grid {
+            @apply grid gap-4;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+        .game-card {
+            @apply block p-4 rounded-2xl shadow-md text-center transition-all duration-300;
+            border-bottom: 4px solid;
+            position: relative;
+            overflow: hidden; 
+            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 0 5px rgba(255,255,255,0.7);
+        }
+        .game-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 0 0 8px rgba(255,255,255,0.9);
+        }
+        .game-card h3 {
+            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
+            @apply text-white text-xl font-bold mb-1 relative z-10; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .game-card p {
+            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
+            @apply text-white text-sm opacity-90 relative z-10;
+        }
+
+        /* Specific game card colors */
+        .game-card.rps {
+            background: linear-gradient(to bottom right, #EC4899, #F43F5E); /* Pink-red */
+            border-bottom-color: #BE185D;
+        }
+        
+        .game-card.memory {
+            background: linear-gradient(to bottom right, #3B82F6, #2563EB); /* Blue */
+            border-bottom-color: #1D4ED8;
+        }
+
+        .game-card.simon {
+            background: linear-gradient(to bottom right, #A855F7, #9333EA); /* Purple */
+            border-bottom-color: #7E22CE;
+        }
+        
+        .game-card.whac-a-mole {
+            background: linear-gradient(to bottom right, #6D28D9, #4C1D95); /* Deep purple */
+            border-bottom-color: #3B0764;
+        }
+
+        .game-card.catch-object {
+            background: linear-gradient(to bottom right, #F472B6, #EC4899); /* Rose pink */
+            border-bottom-color: #DB2777;
+        }
+
+        /* NEW: Bonus Game Highlight */
+        .game-card.bonus-game {
+            border: 4px solid #FFD700; /* Gold border */
+            box-shadow: 0 0 15px rgba(255,215,0,0.8), 0 0 30px rgba(255,215,0,0.6), 0 0 50px rgba(255,215,0,0.4); /* Stronger multi-layer glow */
+            transform: scale(1.05); /* Slightly larger */
+            transition: all 0.3s ease-in-out; /* Smooth transition for scale and shadow */
+            background: linear-gradient(145deg, #FFD700, #FFA500); /* Gold to Orange gradient */
+            border-bottom-color: #FF8C00; /* Darker orange border */
+        }
+        /* Specific text styles for bonus game card */
+        .game-card.bonus-game h3, .game-card.bonus-game p {
+            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
+            color: #FFFFFF; /* White text on gold background */
+            text-shadow: 0 0 5px rgba(0,0,0,0.7), 0 0 10px rgba(255,255,255,0.5); /* Stronger shadow/glow for text */
+        }
+        .game-card.bonus-game:hover {
+            transform: translateY(-5px) scale(1.07); /* More pronounced hover */
+            box-shadow: 0 0 25px rgba(255,215,0,0.9), 0 0 50px rgba(255,215,0,0.7), 0 0 80px rgba(255,215,0,0.5); /* Even stronger glow on hover */
+        }
+        .bonus-game-header {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #FFD700; /* Gold */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+            margin-bottom: 0.75rem;
+        }
+
     </style>
 </head>
 <body>
@@ -93,76 +264,94 @@
 
         <div id="menu-screen">
             <header class="text-center mb-6">
-                <h1 class="text-4xl sm:text-5xl font-bold text-pink-500 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                <h1 class="main-header-title">
                     เกมของม่อน
                 </h1>
-                <p class="text-pink-400 mt-1">มาเล่นกันเถอะ!</p>
+                <p class="subtitle mt-1">มาเล่นกันเถอะ!</p>
             </header>
 
-            <div class="card mb-6">
-                <h2 class="text-xl font-semibold mb-3 text-center text-gray-500">
-                    <span class="inline-block align-middle">💰</span> กระเป๋าเงิน
+            <div id="bonus-game-section" class="card mb-6 hidden">
+                <h2 class="card-header bonus-game-header">
+                    🎉 เกมโบนัสวันนี้ (x2 เหรียญม่อน)! 🎉
                 </h2>
-                <div class="flex justify-around">
+                <div class="text-center text-gray-700 font-semibold text-xl">
+                    <span id="daily-bonus-game-name"></span>
+                </div>
+            </div>
+
+            <div class="card mb-6">
+                <h2 class="card-header">
+                    💰 กระเป๋าเงิน
+                </h2>
+                <div class="wallet-section">
                     <div class="text-center">
-                        <p class="text-3xl font-bold text-yellow-500" id="mon-coin-display">0</p>
-                        <p class="text-sm font-medium text-gray-500">เหรียญม่อน ($)</p>
+                        <p class="wallet-coin-display mon-coin-color" id="mon-coin-display">0</p>
+                        <p class="wallet-coin-label">เหรียญม่อน ($)</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-3xl font-bold text-green-500" id="play-coin-display">0</p>
-                        <p class="text-sm font-medium text-gray-500">เหรียญเล่นม่อน</p>
+                        <p class="wallet-coin-display play-coin-color" id="play-coin-display">0</p>
+                        <p class="wallet-coin-label">เหรียญเล่นม่อน</p>
                     </div>
                 </div>
             </div>
 
             <div id="inventory-card" class="card mb-6 hidden">
-                   <h2 class="text-xl font-semibold mb-4 text-gray-500">
-                     <span class="inline-block align-middle">🎒</span> กระเป๋าของฉัน
+                   <h2 class="card-header">
+                     🎒 กระเป๋าของฉัน
                 </h2>
                 <div id="inventory-list" class="space-y-2"></div>
             </div>
 
             <div class="card mb-6">
-                <h2 class="text-xl font-semibold mb-3 text-gray-500">
-                    <span class="inline-block align-middle">🗓️</span> เช็คอินรายวัน
+                <h2 class="card-header">
+                    🗓️ เช็คอินรายวัน
                 </h2>
                 <button id="check-in-btn" class="btn btn-checkin">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     เช็คอิน (รับ 5 เหรียญ)
                 </button>
             </div>
             
             <div class="card mb-6">
-                   <h2 class="text-xl font-semibold mb-4 text-gray-500">
-                     <span class="inline-block align-middle">🎯</span> ภารกิจรายวัน
+                   <h2 class="card-header">
+                     🎯 ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
             </div>
 
-            <div class="space-y-4">
-                <a href="rps_game.html" class="btn btn-play">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                    เกมเป่ายิ้งฉุบ (ใช้ 1 เหรียญ)
-                </a>
-                <a href="memory_game.html" class="btn btn-play-memory">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>
-                    เกมจับคู่ภาพ (ใช้ 1 เหรียญ)
-                </a>
-                <a href="simon_game.html" class="btn btn-play-simon">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                    Simon Says (ใช้ 1 เหรียญ)
-                </a>
-                <a href="whac_a_mole_game.html" class="btn btn-play">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm-1 11a1 1 0 11-2 0 1 1 0 012 0zm5-1a1 1 0 100-2 1 1 0 000 2zM6 6a1 1 0 00-1 1v3a1 1 0 102 0V7a1 1 0 00-1-1zm6 0a1 1 0 00-1 1v3a1 1 0 102 0V7a1 1 0 00-1-1z"/></svg>
-                    เกม Whac-A-Mole (ใช้ 1 เหรียญ)
-                </a>
+            <div class="game-buttons-section">
+                <h2 class="card-header">
+                    🎮 เล่นเกมกัน!
+                </h2>
+                <div class="game-card-grid" id="game-card-list">
+                    <a href="rps_game.html" class="game-card rps" data-game-id="rps">
+                        <h3>เป่ายิ้งฉุบ</h3>
+                        <p>ใช้ 1 เหรียญ</p>
+                    </a>
+                    <a href="memory_game.html" class="game-card memory" data-game-id="memory">
+                        <h3>จับคู่ภาพ</h3>
+                        <p>ใช้ 1 เหรียญ</p>
+                    </a>
+                    <a href="simon_game.html" class="game-card simon" data-game-id="simon">
+                        <h3>เกมกดตามม่อน</h3>
+                        <p>ใช้ 1 เหรียญ</p>
+                    </a>
+                    <a href="whac_a_mole_game.html" class="game-card whac-a-mole" data-game-id="whac_a_mole">
+                        <h3>เกมตีหัวม่อน</h3>
+                        <p>ใช้ 1 เหรียญ</p>
+                    </a>
+                    <a href="catch_falling_object.html" class="game-card catch-object" data-game-id="catch_object">
+                        <h3>รับม่อนด้วย!</h3>
+                        <p>ใช้ 1 เหรียญ</p>
+                    </a>
+                </div>
             </div>
 
-            <div class="space-y-4 mt-6"> 
+            <div class="game-buttons-section"> 
+                <h2 class="card-header">
+                    🛍️ ร้านค้าของม่อน
+                </h2>
                 <button id="go-to-shop-btn" class="btn btn-shop">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
-                    ร้านค้าแลกของ
+                    ไปร้านค้าแลกของ
                 </button>
             </div>
 
@@ -193,11 +382,30 @@
             ];
             
             const shopItems = [
-                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', price: 100 }, 
-                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', price: 300 },
-                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', price: 1000 },
-                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', price: 500 },
+                // ราคาสินค้าเพิ่มขึ้น 2 เท่า
+                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', price: 200 },  
+                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', price: 600 }, 
+                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', price: 2000 }, 
+                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', price: 1000 }, 
             ];
+            
+            // ข้อมูลไอเทมที่ใช้ได้ (เพื่อแสดงในกระเป๋า)
+            const consumableItems = {
+                'ticket_random': { name: 'ตั๋วสุ่มวงล้อ', action: () => alert('ใช้: ตั๋วสุ่มวงล้อ - วงล้อหมุนติ้วๆ!') },
+                'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้', action: () => alert('ใช้: ตั๋วให้พาไปไหนก็ได้ - รอเค้าพาไปนะ') },
+                'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้', action: () => alert('ใช้: ตั๋วที่ขออะไรก็ได้ - ขออะไรดีน้า') },
+                'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', action: () => alert('ใช้: ตั๋วที่ให้เค้าทำอะไรก็ได้ - อืม.. ให้อะไรดี') },
+            };
+
+            // NEW: List of all playable games for bonus system
+            const allPlayableGames = [
+                { id: 'rps', name: 'เป่ายิ้งฉุบ', file: 'rps_game.html' },
+                { id: 'memory', name: 'จับคู่ภาพ', file: 'memory_game.html' },
+                { id: 'simon', name: 'เกมกดตามม่อน', file: 'simon_game.html' },
+                { id: 'whac_a_mole', name: 'เกมตีหัวม่อน', file: 'whac_a_mole_game.html' },
+                { id: 'catch_object', name: 'รับม่อนด้วย!', file: 'catch_falling_object.html' },
+            ];
+
 
             // --- DOM ELEMENTS ---
             const screens = {
@@ -213,7 +421,11 @@
             const shopItemsList = document.getElementById('shop-items-list');
             const inventoryCard = document.getElementById('inventory-card');
             const inventoryList = document.getElementById('inventory-list');
-            
+            const bonusGameSection = document.getElementById('bonus-game-section'); 
+            const dailyBonusGameName = document.getElementById('daily-bonus-game-name'); 
+            const gameCardList = document.getElementById('game-card-list'); 
+
+
             // --- NAVIGATION BUTTONS ---
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
             document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
@@ -229,17 +441,60 @@
                     state = JSON.parse(savedData);
                 } else {
                     state = {
-                        monCoins: 0, 
+                        monCoins: 1000, 
                         playCoins: 0, 
                         rpsStreak: 0,
                         lastCheckinDate: null, 
                         dailyMissions: [],
                         lastMissionDate: null, 
-                        inventory: {}    
+                        inventory: {},
+                        // NEW: Bonus game state
+                        dailyBonusGameId: null,
+                        lastBonusGameDate: null
                     };
                     generateNewMissions();
                 }
             }
+
+            // NEW: Function to pick daily bonus game
+            function pickDailyBonusGame() {
+                const today = new Date().toDateString();
+                if (state.lastBonusGameDate !== today) {
+                    const randomIndex = Math.floor(Math.random() * allPlayableGames.length);
+                    state.dailyBonusGameId = allPlayableGames[randomIndex].id;
+                    state.lastBonusGameDate = today;
+                    saveState();
+                }
+                displayBonusGame();
+            }
+
+            // NEW: Function to display bonus game
+            function displayBonusGame() {
+                if (state.dailyBonusGameId) {
+                    const bonusGame = allPlayableGames.find(game => game.id === state.dailyBonusGameId);
+                    if (bonusGame) {
+                        dailyBonusGameName.textContent = bonusGame.name;
+                        bonusGameSection.classList.remove('hidden');
+
+                        // Highlight the bonus game card and set href with bonus parameter
+                        gameCardList.querySelectorAll('.game-card').forEach(card => {
+                            card.classList.remove('bonus-game'); // Remove from previous bonus game
+                            const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
+                            if (gameData) {
+                                card.href = gameData.file; // Reset to base file name
+                                if (card.dataset.gameId === state.dailyBonusGameId) {
+                                    card.classList.add('bonus-game');
+                                    card.href = `${gameData.file}?bonus=true`; // Add bonus parameter to URL
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            // This global function is now deprecated as we pass data via URL
+            // window.isBonusGame = function(gameId) { /* ... (this part is no longer needed/used by game files directly) ... */ }
+
 
             // --- UI UPDATE & NAVIGATION ---
             function updateCoinDisplays() {
@@ -250,6 +505,10 @@
             function showScreen(screenName) {
                 Object.values(screens).forEach(s => s.classList.add('hidden'));
                 screens[screenName].classList.remove('hidden');
+                if (screenName === 'menu') {
+                    renderInventory(); 
+                    displayBonusGame(); // Re-display bonus game when returning to menu
+                }
             }
             
             function renderInventory() {
@@ -258,20 +517,43 @@
 
                 if (userItems.length > 0) {
                     userItems.forEach(itemId => {
-                        const itemDetails = shopItems.find(shopItem => shopItem.id === itemId);
+                        const itemDetails = consumableItems[itemId]; 
                         if (itemDetails) {
                             const itemEl = document.createElement('div');
-                            itemEl.className = 'bg-rose-100 p-3 rounded-lg flex justify-between items-center';
+                            itemEl.className = 'bg-rose-100 p-3 rounded-lg flex justify-between items-center inventory-item';
                             itemEl.innerHTML = `
                                 <span class="font-medium text-rose-700">${itemDetails.name}</span>
-                                <span class="font-bold text-white bg-rose-400 rounded-full px-3 py-1 text-sm">x${state.inventory[itemId]}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-rose-400 inventory-count">x${state.inventory[itemId]}</span>
+                                    <button data-id="${itemId}" class="play-item-btn">ใช้</button>
+                                </div>
                             `;
                             inventoryList.appendChild(itemEl);
                         }
                     });
                     inventoryCard.classList.remove('hidden');
+                    document.querySelectorAll('.play-item-btn').forEach(button => {
+                        button.addEventListener('click', useItem);
+                    });
                 } else {
                     inventoryCard.classList.add('hidden');
+                }
+            }
+
+            function useItem(event) {
+                const itemId = event.target.dataset.id;
+                if (state.inventory[itemId] > 0) {
+                    state.inventory[itemId]--; 
+                    const itemDetails = consumableItems[itemId];
+                    if (itemDetails && itemDetails.action) {
+                        itemDetails.action(); 
+                    } else {
+                        alert(`ใช้ไอเทม: ${itemDetails.name} (แต่ไม่มีผลอะไรพิเศษตอนนี้)`);
+                    }
+                    
+                    saveState();
+                    renderInventory(); 
+                    updateCoinDisplays(); 
                 }
             }
             
@@ -279,11 +561,11 @@
             function updateCheckInButton() {
                 const today = new Date().toDateString();
                 if (state.lastCheckinDate === today) {
-                    checkInBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>เช็คอินแล้ววันนี้!`;
+                    checkInBtn.innerHTML = `เช็คอินแล้ววันนี้!`;
                     checkInBtn.disabled = true;
                     checkInBtn.classList.add('btn-disabled');
                 } else {
-                    checkInBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>เช็คอิน (รับ 5 เหรียญ)`;
+                    checkInBtn.innerHTML = `เช็คอิน (รับ 5 เหรียญ)`;
                     checkInBtn.disabled = false;
                     checkInBtn.classList.remove('btn-disabled');
                 }
@@ -311,10 +593,10 @@
                 dailyMissionsList.innerHTML = '';
                 state.dailyMissions.forEach((mission, index) => {
                     const missionEl = document.createElement('div');
-                    missionEl.className = 'flex justify-between items-center bg-pink-100 p-3 rounded-xl border-l-4 border-pink-300';
+                    missionEl.className = 'flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200 mission-item';
                     const btnClass = mission.completed ? 'completed' : 'incomplete';
                     const btnContent = mission.completed 
-                        ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> สำเร็จ`
+                        ? `สำเร็จ`
                         : 'เสร็จสิ้น';
 
                     missionEl.innerHTML = `<p class="text-gray-600">${mission.text}</p><button data-index="${index}" class="mission-btn ${btnClass}">${btnContent}</button>`;
@@ -341,14 +623,13 @@
                 shopItemsList.innerHTML = '';
                 shopItems.forEach(item => {
                     const itemEl = document.createElement('div');
-                    itemEl.className = 'card flex justify-between items-center';
+                    itemEl.className = 'card flex justify-between items-center shop-item';
                     itemEl.innerHTML = `
                         <div>
-                            <p class="font-semibold text-lg text-gray-700">${item.name}</p>
-                            <p class="font-bold text-yellow-600">${item.price} $</p>
+                            <p class="shop-item-name">${item.name}</p>
+                            <p class="shop-item-price">${item.price} $</p>
                         </div>
                         <button data-price="${item.price}" data-id="${item.id}" class="buy-item-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
                             ซื้อ
                         </button>`;
                     shopItemsList.appendChild(itemEl);
@@ -362,7 +643,7 @@
                             state.monCoins -= price;
                             state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
                             updateCoinDisplays();
-                            renderInventory();
+                            renderInventory(); 
                             saveState();
                             alert('ซื้อสำเร็จ! ตั๋วถูกเพิ่มในกระเป๋าแล้วค่ะ');
                         } else {
@@ -385,8 +666,9 @@
                 updateCheckInButton();
                 renderMissions();
                 renderShopItems();
-                renderInventory();
-                showScreen('menu'); // Always start on the menu screen
+                renderInventory(); 
+                pickDailyBonusGame(); // Pick and display bonus game on initial load
+                showScreen('menu'); 
             }
 
             init();

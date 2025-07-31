@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมรับม่อนด้วย!</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #fdf2f8; /* bg-pink-50 */
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 15px 15px;
+            color: #4a5568; /* text-gray-700 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            position: relative; /* สำหรับ fixed positioning ของ overlays */
+        }
+        .container {
+            /* Adjusted container styling */
+            @apply bg-white p-4 sm:p-6 rounded-3xl shadow-xl; /* Smaller padding on small screens */
+            border: 4px solid #FBCFE8; /* pink-200, thicker border */
+            max-width: 95vw; /* Max width relative to viewport */
+            width: 320px; /* Base width */
+            text-align: center;
+            position: relative; 
+            z-index: 1; /* ให้ container อยู่บน overlays ที่ fixed มาทับ */
+            background: linear-gradient(145deg, #fffafa, #ffe4e6); /* Light pink gradient */
+            box-shadow: 0 5px 15px rgba(219, 39, 119, 0.2), inset 0 0 10px rgba(255,255,255,0.8); /* Adjusted shadow */
+        }
+        .game-area {
+            border: 6px solid #DB2777; /* pink-600, thicker border */
+            border-radius: 15px; /* Slightly rounded corners */
+            background-color: #CCE0FF; 
+            width: 100%; /* Make responsive */
+            max-width: 300px; /* Max width for game area within container */
+            aspect-ratio: 3 / 4; 
+            position: relative; 
+            overflow: hidden; 
+            margin: 0 auto;
+            cursor: none; 
+            transition: background-color 0.5s ease; 
+        }
+        .game-area.day { background-color: #CCE0FF; } 
+        .game-area.night { background-color: #2F4F4F; } 
+        .game-area.slow-motion-bg { background-color: #90EE90; } 
+        .game-area.speed-up-bg { background-color: #FFB6C1; } 
+
+        /* NEW: In-game score display */
+        .in-game-score-display {
+            position: absolute;
+            top: 5%; /* Adjusted for better visibility */
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Kanit', sans-serif !important; /* Force Kanit font */
+            font-size: 3rem; /* Large font size */
+            font-weight: 800; /* Extra bold */
+            color: #FFD700 !important; /* Gold color, force important */
+            text-shadow: 0 0 10px #FF8C00, 0 0 20px #FF4500, 0 0 30px #FF0000 !important; /* Stronger orange/red glow, force important */
+            z-index: 5; /* Ensure it's above falling objects */
+            pointer-events: none; /* Make it unclickable */
+            transition: transform 0.1s ease-out; /* Smooth scale transition */
+        }
+
+        .in-game-score-display.score-bounce {
+            animation: score-bounce-anim 0.3s ease-out;
+        }
+
+        @keyframes score-bounce-anim {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); } /* Bounce up */
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+
+        /* Moon and Star styles */
+        .moon {
+            position: absolute;
+            top: 10%;
+            right: 10%;
+            width: 10vw; /* Responsive size */
+            height: 10vw; /* Responsive size */
+            max-width: 40px; /* Max size for desktop */
+            max-height: 40px;
+            background-color: #F5F5DC; 
+            border-radius: 50%;
+            box-shadow: 0 0 15px #F5F5DC;
+            display: none; 
+            z-index: 0; 
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            width: 1vw; /* Responsive size */
+            height: 1vw; /* Responsive size */
+            max-width: 3px; /* Max size for desktop */
+            max-height: 3px;
+            opacity: 0;
+            animation: twinkle 1.5s infinite ease-in-out alternate;
+            display: none; 
+            z-index: 0; 
+        }
+        @keyframes twinkle {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .info-panel {
+            /* Adjusted info-panel styling for mobile responsiveness */
+            @apply text-base font-semibold text-gray-700 mt-3; /* Smaller font, less margin-top */
+            position: relative; 
+            z-index: 2; 
+            padding: 8px 0; /* Adjusted padding */
+            border-radius: 8px; /* Adjusted border-radius */
+            background-color: rgba(255,255,255,0.8); /* Slightly more opaque background */
+            box-shadow: inset 0 0 3px rgba(0,0,0,0.1); /* Adjusted shadow */
+        }
+        /* Specific text styles within info-panel */
+        .info-panel span {
+            font-weight: bold;
+            color: #DB2777; 
+        }
+        .info-panel .text-sm {
+            font-size: 0.75rem; 
+            color: #6B7280; 
+        }
+        
+        /* Score Feedback Styles */
+        .score-feedback {
+            position: absolute; 
+            font-size: 4vw; 
+            font-weight: bold;
+            color: #008000; 
+            opacity: 0;
+            animation: score-feedback-pop 1s forwards;
+            white-space: nowrap; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5); 
+            transform: translate(-50%, -50%); 
+        }
+        .score-feedback.negative { color: #FF0000; }
+        .score-feedback.bonus {
+            font-size: 5vw; 
+            color: #8A2BE2; 
+            text-shadow: 1px 1px 5px rgba(138,43,226,0.8); 
+        }
+
+        @keyframes score-feedback-pop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -70%) scale(1); } 
+            80% { opacity: 1; transform: translate(-50%, -90%) scale(1); } 
+            100% { opacity: 0; transform: translate(-50%, -110%) scale(0.8); } 
+        }
+
+        /* Particle Styles */
+        .particle-container {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            z-index: 999; 
+        }
+
+        .particle {
+            position: absolute; 
+            width: 2vw; 
+            height: 2vw; 
+            max-width: 8px; 
+            max-height: 8px;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particle-burst 0.6s ease-out forwards; 
+        }
+
+        @keyframes particle-burst {
+            0% {
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(var(--targetX)), calc(var(--targetY))) scale(0.5); 
+                opacity: 0;
+            }
+        }
+        /* Explosion Particle Styles */
+        .particle.explosion {
+            width: 3vw; 
+            height: 3vw; 
+            max-width: 12px; 
+            max-height: 12px;
+            background-color: #FF4500; 
+            animation: particle-explosion 0.8s ease-out forwards;
+        }
+        @keyframes particle-explosion {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(var(--targetX)), calc(var(--targetY))) scale(0.2);
+                opacity: 0;
+                background-color: rgba(0,0,0,0); 
+            }
+        }
+
+        .start-btn {
+            /* Adjusted button styling for mobile responsiveness */
+            @apply bg-pink-500 hover:bg-pink-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition-colors; 
+            font-size: 1.1rem; 
+            margin-top: 20px; 
+            border-bottom: 4px solid #C0267D; 
+        }
+        .start-btn:active {
+            transform: translateY(1px); 
+            border-bottom: 2px solid #C0267D; 
+            box-shadow: none;
+        }
+        .start-btn:disabled {
+            @apply bg-gray-400 border-gray-500 cursor-not-allowed;
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        #game-message {
+            @apply text-red-500 mt-3 text-sm hidden; 
+        }
+
+        /* Difficulty buttons */
+        .difficulty-buttons {
+            @apply flex justify-around mt-3 space-x-1; 
+            width: 100%;
+            max-width: 300px;
+            margin: 10px auto 0; 
+        }
+        .difficulty-btn {
+            @apply flex-1 px-2 py-1.5 text-sm font-bold text-white rounded-xl shadow-md transition-all duration-200 border-b-2; 
+            transform: translateY(0);
+        }
+        .difficulty-btn:hover {
+            transform: translateY(-0.5px); 
+        }
+        .difficulty-btn:active {
+            transform: translateY(0.5px); 
+            box-shadow: inset 0 0 3px rgba(0,0,0,0.2); 
+            border-bottom-width: 1px; 
+        }
+        .difficulty-btn.easy { @apply bg-green-500 border-green-700; }
+        .difficulty-btn.medium { @apply bg-yellow-500 border-yellow-700; }
+        .difficulty-btn.hard { @apply bg-red-500 border-red-700; }
+
+
+        /* Player Basket Styles (ใช้รูปภาพ) */
+        .player-basket {
+            position: absolute;
+            bottom: 10px; 
+            width: 80px; 
+            height: 40px; 
+            background-image: url('basket.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: left 0.05s linear; 
+            z-index: 2; 
+        }
+        /* Basket glow on hit */
+        .player-basket.hit-feedback {
+            animation: basket-hit 0.2s ease-out;
+            box-shadow: 0 0 15px 5px rgba(255,255,0,0.8); /* Yellow glow */
+        }
+        /* Basket expand on combo */
+        .player-basket.basket-combo-level-1 { width: 90px; } 
+        .player-basket.basket-combo-level-2 { width: 100px; } 
+        .player-basket.basket-combo-level-3 { width: 110px; } 
+        .player-basket.basket-combo-level-4 { width: 120px; } 
+
+
+        @keyframes basket-hit {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Falling Object Styles (ใช้รูปภาพ) */
+        .falling-object {
+            position: absolute;
+            top: -50px; 
+            width: 40px; 
+            height: 40px; 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 1; 
+        }
+        /* Specific images for each type */
+        .falling-object.good_apple { background-image: url('good_apple.png'); }
+        .falling-object.rotten_apple { background-image: url('rotten_apple.png'); }
+        .falling-object.coin { background-image: url('coin.png'); }
+        .falling-object.bomb { 
+            background-image: url('bomb.png'); 
+            width: 50px; 
+            height: 50px;
+        }
+        .falling-object.star { background-image: url('star.png'); }
+        .falling-object.slow_potion { background-image: url('slow_potion.png'); }
+        .falling-object.speed_potion { background-image: url('speed_potion.png'); }
+
+        /* Snow effect styles (can be repurposed for stars/night sky) */
+        .snow-flakes { 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden; 
+            z-index: 0; 
+        }
+
+        .snow-flake { 
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: falling-snow linear infinite; 
+        }
+
+        @keyframes falling-snow {
+            from { transform: translateY(-10px); } 
+            to { transform: translateY(calc(100% + 10px)); } 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-4">
+            <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition float-left">&larr;</a>
+            <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 inline-block">รับม่อนด้วย!</h1>
+        </header>
+        <div id="gameArea" class="game-area day"> 
+            <div id="playerBasket" class="player-basket"></div>
+            <div class="snow-flakes" id="dynamic-background-elements-container"></div> 
+            <div id="in-game-score" class="in-game-score-display">0</div> </div>
+        <div class="info-panel">
+            คะแนน: <span id="score-display">0</span> แต้ม<br>
+            คอมโบ: <span id="combo-display">0</span> ต่อเนื่อง<br>
+            เวลา: <span id="time-display">30</span> วิ!<br>
+            <span class="text-sm font-normal">ทำลายสถิติ! <span id="high-score-display">0</span> แต้ม</span>
+        </div>
+        <button id="start-game-btn" class="start-btn">เริ่มผจญภัย!</button>
+        
+        <div id="difficulty-selection" class="difficulty-buttons hidden">
+            <button class="difficulty-btn easy" data-difficulty="easy">ง่าย</button>
+            <button class="difficulty-btn medium" data-difficulty="medium">ปานกลาง</button>
+            <button class="difficulty-btn hard" data-difficulty="hard">ยาก</button>
+        </div>
+
+        <p id="game-message" class="text-red-500 mt-4 hidden">เหรียญเล่นม่อนไม่พอ! แย่จังเลย...</p>
+    </div>
+
+    <div class="particle-container" id="particle-container"></div>
+    <div class="score-feedback-overlay" id="score-feedback-overlay"></div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameArea = document.getElementById('gameArea');
+            const playerBasket = document.getElementById('playerBasket');
+            const scoreDisplay = document.getElementById('score-display');
+            const comboDisplay = document.getElementById('combo-display'); 
+            const timeDisplay = document.getElementById('time-display');
+            const highScoreDisplay = document.getElementById('high-score-display'); 
+            const startGameBtn = document.getElementById('start-game-btn');
+            const difficultySelection = document.getElementById('difficulty-selection'); 
+            const difficultyButtons = document.querySelectorAll('.difficulty-btn'); 
+            const gameMessage = document.getElementById('game-message');
+            const particleContainer = document.getElementById('particle-container'); 
+            const scoreFeedbackOverlay = document.getElementById('score-feedback-overlay'); 
+            const infoPanel = document.querySelector('.info-panel'); 
+            const dynamicBackgroundElementsContainer = document.getElementById('dynamic-background-elements-container'); 
+            const inGameScoreDisplay = document.getElementById('in-game-score'); 
+
+            // --- Game State Variables ---
+            let score = 0;
+            let time = 30; 
+            let gameActive = false;
+            let gameLoopInterval; 
+            let timerInterval; 
+            let lastSpawnTime = 0; 
+            
+            const fallingObjects = []; 
+
+            let comboCount = 0; 
+            const comboThresholds = [5, 10, 15, 20]; 
+            const comboBonuses = [10, 25, 50, 100]; 
+
+            // --- Game Difficulty/Logic Settings ---
+            let objectSpeed; 
+            let objectSpawnRate; 
+            let bombChance; 
+            let goodObjectChance; 
+            let currentDifficultyRewardMultiplier; 
+
+            const difficultySettings = { 
+                'easy': { speed: 2.5, spawnRate: 800, bombChance: 0.03, goodChance: 0.45, rewardMultiplier: 7 },
+                'medium': { speed: 3.5, spawnRate: 550, bombChance: 0.08, goodChance: 0.40, rewardMultiplier: 5 }, 
+                'hard': { speed: 5, spawnRate: 400, bombChance: 0.12, goodChance: 0.35, rewardMultiplier: 5 } 
+            };
+
+
+            const initialObjectSize = 40; 
+            const playCoinCost = 1; 
+            let scoreMultiplier = 1; 
+            let gameSpeedMultiplier = 1; 
+            let effectTimeout; 
+
+            // Day/Night cycle variables
+            const dayDuration = 15; 
+            const nightDuration = 15; 
+            let currentDayNightCycle = 'day';
+            let dayNightCycleTimeout;
+
+            // Define all falling object types with their properties
+            const objectTypes = [
+                { name: 'good_apple', image: 'good_apple.png', baseScore: 1, isBad: false, chance: 0.40, size: 40, particleColor: ['#00FF00', '#FFFF00'] }, 
+                { name: 'rotten_apple', image: 'rotten_apple.png', baseScore: -2, isBad: true, chance: 0.20, size: 40, particleColor: ['#8B4513', '#A0522D'] }, 
+                { name: 'coin', image: 'coin.png', baseScore: 5, isBad: false, chance: 0.15, size: 40, particleColor: ['#FFD700', '#FFA500'] }, 
+                { name: 'bomb', image: 'bomb.png', baseScore: 0, isBad: true, chance: 0.05, size: 50, effect: 'bomb', particleColor: ['#B22222', '#333333'] }, 
+                { name: 'star', image: 'star.png', baseScore: 0, isBad: false, chance: 0.05, size: 40, effect: 'score_multiplier', particleColor: ['#FFFF00', '#FFEA00'] }, 
+                { name: 'slow_potion', image: 'slow_potion.png', baseScore: 0, isBad: false, chance: 0.05, size: 40, effect: 'slow_game', particleColor: ['#00BFFF', '#ADD8E6'] }, 
+                { name: 'speed_potion', image: 'speed_potion.png', baseScore: 0, isBad: true, chance: 0.10, effect: 'speed_game', size: 40, particleColor: ['#FF6347', '#FF0000'] } 
+            ];
+
+            // --- LOCAL STORAGE (เหมือนกับเกมอื่นๆ) ---
+            let globalState = {}; 
+
+            function saveGlobalState() {
+                localStorage.setItem('monGameDataV14', JSON.stringify(globalState));
+            }
+
+            function loadGlobalState() {
+                const savedData = localStorage.getItem('monGameDataV14');
+                if (savedData) {
+                    globalState = JSON.parse(savedData);
+                    if (typeof globalState.highScore === 'undefined' || globalState.highScore === null) {
+                        globalState.highScore = 0;
+                    }
+                } else {
+                    globalState = { monCoins: 0, playCoins: 0, highScore: 0 }; 
+                }
+            }
+
+            function saveHighScore() { 
+                if (score > globalState.highScore) {
+                    globalState.highScore = score;
+                    saveGlobalState();
+                    highScoreDisplay.textContent = globalState.highScore;
+                }
+            }
+
+
+            // --- Game Logic Functions ---
+            function spawnObject() {
+                // Adjust chances based on difficulty settings
+                const originalBaseChances = { 
+                    'good_apple': 0.40, 'rotten_apple': 0.20, 'coin': 0.15, 'star': 0.05, 'slow_potion': 0.05, 'speed_potion': 0.10
+                };
+                const originalSumNonBombChances = 0.40 + 0.20 + 0.15 + 0.05 + 0.05 + 0.10; 
+
+                const remainingChanceForNonBombs = 1.0 - bombChance;
+                
+                objectTypes.forEach(type => {
+                    if (type.name !== 'bomb') {
+                        type.chance = (originalBaseChances[type.name] / originalSumNonBombChances) * remainingChanceForNonBombs;
+                    }
+                });
+                objectTypes.find(type => type.name === 'bomb').chance = bombChance;
+
+
+                const totalChance = objectTypes.reduce((sum, type) => sum + type.chance, 0); 
+                let randomValue = Math.random() * totalChance;
+                let selectedType = objectTypes[0]; 
+
+                for (const type of objectTypes) {
+                    if (randomValue < type.chance) {
+                        selectedType = type;
+                        break;
+                    }
+                    randomValue -= type.chance;
+                }
+
+                const x = Math.random() * (gameArea.offsetWidth - selectedType.size); 
+                const objectDiv = document.createElement('div');
+                objectDiv.classList.add('falling-object', selectedType.name); 
+                objectDiv.style.left = `${x}px`;
+                objectDiv.style.top = `-50px`; 
+                objectDiv.style.width = `${selectedType.size}px`;
+                objectDiv.style.height = `${selectedType.size}px`;
+
+                gameArea.appendChild(objectDiv);
+                fallingObjects.push({
+                    element: objectDiv,
+                    x: x,
+                    y: -50,
+                    width: selectedType.size,
+                    height: selectedType.size,
+                    type: selectedType.name,
+                    baseScore: selectedType.baseScore,
+                    isBad: selectedType.isBad,
+                    effect: selectedType.effect,
+                    particleColor: selectedType.particleColor
+                });
+            }
+
+            // createParticles function: Position particles relative to the viewport
+            function createParticles(x, y, colors, isExplosion = false) {
+                const numParticles = isExplosion ? 15 : 5; 
+                const spreadDistance = isExplosion ? 80 : 30; 
+                const particleSize = isExplosion ? 12 : 8; 
+                const animationDuration = isExplosion ? '0.8s' : '0.6s';
+
+                for (let i = 0; i < numParticles; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    if (isExplosion) particle.classList.add('explosion');
+                    particleContainer.appendChild(particle);
+
+                    const angle = Math.random() * Math.PI * 2; 
+                    const currentSpread = spreadDistance * Math.random(); 
+
+                    particle.style.left = `${x}px`; 
+                    particle.style.top = `${y}px`;   
+                    
+                    particle.style.width = `${particleSize}px`;
+                    particle.style.height = `${particleSize}px`;
+                    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                    // Set end position for animation
+                    particle.style.setProperty('--targetX', `${Math.cos(angle) * currentSpread}px`);
+                    particle.style.setProperty('--targetY', `${Math.sin(angle) * currentSpread}px`);
+                    particle.style.animationDuration = animationDuration;
+
+                    particle.addEventListener('animationend', () => {
+                        particle.remove();
+                    });
+                }
+            }
+
+            // Function to display score/combo feedback: Position relative to the viewport
+            function showScoreFeedback(value, isBonus = false, message = null, targetRect = null) {
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.classList.add('score-feedback');
+                if (value < 0) {
+                    feedbackDiv.classList.add('negative');
+                }
+                if (isBonus) {
+                    feedbackDiv.classList.add('bonus');
+                }
+                feedbackDiv.textContent = message ? message : (value > 0 ? '+' : '') + value; 
+                
+                // Position feedback based on targetRect (object position)
+                let startX, startY;
+                if (targetRect) { 
+                    startX = targetRect.left + targetRect.width / 2;
+                    startY = targetRect.top + targetRect.height / 2;
+                } else { 
+                    // Fallback to center of gameArea if no specific target (e.g., missed item)
+                    const gameRect = gameArea.getBoundingClientRect();
+                    startX = gameRect.left + gameRect.width / 2;
+                    startY = gameRect.top + gameRect.height / 2;
+                }
+
+                feedbackDiv.style.left = `${startX}px`;
+                feedbackDiv.style.top = `${startY}px`;
+
+                scoreFeedbackOverlay.appendChild(feedbackDiv);
+                
+                feedbackDiv.addEventListener('animationend', () => {
+                    feedbackDiv.remove();
+                });
+            }
+
+
+            function applyEffect(effectType) {
+                // Clear previous effect if any
+                if (effectTimeout) {
+                    clearTimeout(effectTimeout);
+                    gameSpeedMultiplier = 1; 
+                    scoreMultiplier = 1; 
+                    gameArea.classList.remove('slow-motion-bg', 'speed-up-bg');
+                }
+
+                if (effectType === 'score_multiplier') {
+                    scoreMultiplier = 2; 
+                    playerBasket.classList.add('hit-feedback'); 
+                    showScoreFeedback(0, true, '2x คะแนน!', playerBasket.getBoundingClientRect()); 
+                    effectTimeout = setTimeout(() => {
+                        scoreMultiplier = 1;
+                        playerBasket.classList.remove('hit-feedback');
+                    }, 5000);
+                } else if (effectType === 'slow_game') {
+                    gameSpeedMultiplier = 0.5; 
+                    gameArea.classList.add('slow-motion-bg');
+                    showScoreFeedback(0, true, 'ช้าลง!', playerBasket.getBoundingClientRect()); 
+                    effectTimeout = setTimeout(() => {
+                        gameSpeedMultiplier = 1;
+                        gameArea.classList.remove('slow-motion-bg');
+                    }, 5000);
+                } else if (effectType === 'speed_game') {
+                    gameSpeedMultiplier = 1.5; 
+                    gameArea.classList.add('speed-up-bg');
+                    showScoreFeedback(0, true, 'เร็วขึ้น!', playerBasket.getBoundingClientRect()); 
+                    effectTimeout = setTimeout(() => {
+                        gameSpeedMultiplier = 1;
+                        gameArea.classList.remove('speed-up-bg');
+                    }, 5000);
+                }
+            }
+
+            // Function to create sun, moon, and stars
+            let moonElement;
+            let starElements = [];
+            
+            function createSkyElements() {
+                // Clear any existing sky elements from previous game sessions
+                dynamicBackgroundElementsContainer.innerHTML = '';
+                starElements = []; // Reset array
+
+                // Create Moon
+                moonElement = document.createElement('div');
+                moonElement.classList.add('moon');
+                dynamicBackgroundElementsContainer.appendChild(moonElement);
+
+                // Create Stars
+                for (let i = 0; i < 20; i++) { // 20 stars
+                    const star = document.createElement('div');
+                    star.classList.add('star');
+                    star.style.left = `${Math.random() * gameArea.offsetWidth}px`;
+                    star.style.top = `${Math.random() * gameArea.offsetHeight * 0.7}px`; // Top 70% of screen
+                    star.style.animationDelay = `${Math.random() * 2}s`; // Stagger twinkle
+                    dynamicBackgroundElementsContainer.appendChild(star);
+                    starElements.push(star);
+                }
+                // Initial hide/show based on current cycle
+                if (currentDayNightCycle === 'day') {
+                    hideMoonStarsShowSun();
+                } else {
+                    hideSunShowMoonStars();
+                }
+            }
+
+            // Function to control sun/moon/stars visibility
+            function hideSunShowMoonStars() {
+                gameArea.classList.remove('day');
+                gameArea.classList.add('night');
+                if (moonElement) moonElement.style.display = 'block';
+                starElements.forEach(star => star.style.display = 'block');
+            }
+
+            function hideMoonStarsShowSun() {
+                gameArea.classList.remove('night');
+                gameArea.classList.add('day');
+                if (moonElement) moonElement.style.display = 'none';
+                starElements.forEach(star => star.style.display = 'none');
+            }
+
+            // Day/Night cycle function
+            function startDayNightCycle() {
+                if (!gameActive) { // Stop cycle if game is not active
+                    if (dayNightCycleTimeout) clearTimeout(dayNightCycleTimeout);
+                    return;
+                }
+
+                if (currentDayNightCycle === 'day') {
+                    hideSunShowMoonStars();
+                    currentDayNightCycle = 'night';
+                    dayNightCycleTimeout = setTimeout(startDayNightCycle, nightDuration * 1000);
+                } else {
+                    hideMoonStarsShowSun();
+                    currentDayNightCycle = 'day';
+                    dayNightCycleTimeout = setTimeout(startDayNightCycle, dayDuration * 1000);
+                }
+            }
+
+
+            function updateGameArea() {
+                if (!gameActive) return;
+
+                // Dynamic difficulty scaling
+                const gameProgress = (30 - time) / 30; 
+                const currentObjectSpeed = objectSpeed + (gameProgress * 2); 
+                const currentSpawnRate = Math.max(300, objectSpawnRate - (gameProgress * 300)); 
+
+                // Spawn new object if enough time has passed
+                const currentTime = performance.now();
+                if (currentTime - lastSpawnTime > currentSpawnRate) {
+                    spawnObject();
+                    lastSpawnTime = currentTime;
+                }
+
+                // Update and draw falling objects
+                for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                    const obj = fallingObjects[i];
+                    obj.y += currentObjectSpeed * gameSpeedMultiplier; 
+                    obj.element.style.top = `${obj.y}px`; 
+
+                    // Collision detection (Object hits basket)
+                    const basketRect = playerBasket.getBoundingClientRect();
+                    const objectRect = obj.element.getBoundingClientRect();
+
+                    if (objectRect.bottom > basketRect.top && 
+                        objectRect.top < basketRect.bottom && 
+                        objectRect.right > basketRect.left && 
+                        objectRect.left < basketRect.right) 
+                    {
+                        // Get center of object for particle effect, relative to viewport
+                        const objCenterX = objectRect.left + objectRect.width / 2;
+                        const objCenterY = objectRect.top + objectRect.height / 2;
+
+                        if (obj.effect === 'bomb') {
+                            createParticles(objCenterX, objCenterY, obj.particleColor, true); 
+                            endGame('โดนระเบิด!', score, true); 
+                            return; 
+                        } else {
+                            const actualScoreChange = obj.baseScore * scoreMultiplier;
+                            score += actualScoreChange; 
+                            scoreDisplay.textContent = score;
+                            inGameScoreDisplay.textContent = score; 
+                            inGameScoreDisplay.classList.add('score-bounce'); 
+                            setTimeout(() => inGameScoreDisplay.classList.remove('score-bounce'), 300); 
+                            createParticles(objCenterX, objCenterY, obj.particleColor); 
+                            playerBasket.classList.add('hit-feedback'); 
+                            setTimeout(() => playerBasket.classList.remove('hit-feedback'), 200);
+                            showScoreFeedback(actualScoreChange, false, null, objectRect); 
+
+                            if (obj.effect) {
+                                applyEffect(obj.effect);
+                            }
+                            // Combo Logic
+                            if (!obj.isBad) { 
+                                comboCount++;
+                                let comboBonusAwarded = false;
+                                for(let j = 0; j < comboThresholds.length; j++) {
+                                    if(comboCount === comboThresholds[j]) {
+                                        score += comboBonuses[j]; 
+                                        scoreDisplay.textContent = score;
+                                        inGameScoreDisplay.textContent = score; 
+                                        inGameScoreDisplay.classList.add('score-bounce'); 
+                                        setTimeout(() => inGameScoreDisplay.classList.remove('score-bounce'), 300); 
+                                        showScoreFeedback(comboBonuses[j], true, `COMBO x${comboThresholds[j]}!`, objectRect); 
+                                        createParticles(objCenterX, objCenterY, ['#8A2BE2', '#00BFFF'], false); 
+                                        comboCount = 0; 
+                                        comboBonusAwarded = true;
+                                        break;
+                                    }
+                                }
+                                if (!comboBonusAwarded) {
+                                    comboDisplay.textContent = comboCount; 
+                                }
+                            } else { 
+                                comboCount = 0; 
+                                comboDisplay.textContent = 0;
+                            }
+                        }
+                        obj.element.remove(); 
+                        fallingObjects.splice(i, 1); 
+                    } 
+                    // Object hits bottom (missed)
+                    else if (obj.y > gameArea.offsetHeight) { 
+                        if (!obj.isBad) { 
+                            const actualPenalty = penaltyPerMissedGoodObject;
+                            score = Math.max(0, score - actualPenalty); 
+                            scoreDisplay.textContent = score;
+                            inGameScoreDisplay.textContent = score; 
+                            inGameScoreDisplay.classList.add('score-bounce'); 
+                            setTimeout(() => inGameScoreDisplay.classList.remove('score-bounce'), 300); 
+                            showScoreFeedback(-actualPenalty, false, null, objectRect); 
+                        }
+                        obj.element.remove(); 
+                        fallingObjects.splice(i, 1); 
+                        // Combo Logic
+                        comboCount = 0; 
+                        comboDisplay.textContent = 0;
+                    }
+                }
+            }
+
+            // Function to set difficulty and start game
+            function selectDifficultyAndStartGame(difficulty) {
+                const settings = difficultySettings[difficulty];
+                if (!settings) {
+                    console.error("Invalid difficulty setting:", difficulty);
+                    return;
+                }
+
+                objectSpeed = settings.speed;
+                objectSpawnRate = settings.spawnRate;
+                bombChance = settings.bombChance;
+                
+                const originalBaseChances = { 
+                    'good_apple': 0.40, 'rotten_apple': 0.20, 'coin': 0.15, 'star': 0.05, 'slow_potion': 0.05, 'speed_potion': 0.10
+                };
+                const originalSumNonBombChances = 0.40 + 0.20 + 0.15 + 0.05 + 0.05 + 0.10; 
+
+                const remainingChanceForNonBombs = 1.0 - bombChance;
+                
+                objectTypes.forEach(type => {
+                    if (type.name !== 'bomb') {
+                        type.chance = (originalBaseChances[type.name] / originalSumNonBombChances) * remainingChanceForNonBombs;
+                    }
+                });
+                objectTypes.find(type => type.name === 'bomb').chance = bombChance;
+
+
+                currentDifficultyRewardMultiplier = settings.rewardMultiplier; 
+
+                initializeGame();
+            }
+
+            function initializeGame() {
+                loadGlobalState(); 
+                highScoreDisplay.textContent = globalState.highScore; 
+
+                if (globalState.playCoins >= playCoinCost) {
+                    globalState.playCoins -= playCoinCost;
+                    saveGlobalState(); 
+                    gameMessage.classList.add('hidden'); 
+                    startGameBtn.classList.add('hidden'); 
+                    difficultySelection.classList.add('hidden'); 
+
+                    score = 0;
+                    time = 30;
+                    comboCount = 0; 
+                    scoreMultiplier = 1; 
+                    gameSpeedMultiplier = 1;
+                    if (effectTimeout) clearTimeout(effectTimeout); 
+                    gameArea.classList.remove('slow-motion-bg', 'speed-up-bg'); 
+
+                    fallingObjects.forEach(obj => obj.element.remove()); 
+                    fallingObjects.length = 0; 
+                    scoreDisplay.textContent = score;
+                    inGameScoreDisplay.textContent = score; 
+                    comboDisplay.textContent = comboCount; 
+                    timeDisplay.textContent = time;
+                    
+                    gameActive = true;
+
+                    clearInterval(gameLoopInterval);
+                    clearInterval(timerInterval);
+                    if (dayNightCycleTimeout) clearTimeout(dayNightCycleTimeout); 
+
+                    // Start Day/Night Cycle
+                    currentDayNightCycle = 'day'; 
+                    gameArea.classList.add('day');
+                    gameArea.classList.remove('night');
+                    hideMoonStarsShowSun(); 
+                    dayNightCycleTimeout = setTimeout(startDayNightCycle, dayDuration * 1000); 
+
+
+                    timerInterval = setInterval(() => {
+                        time--;
+                        timeDisplay.textContent = time;
+                        if (time <= 0) {
+                            endGame('หมดเวลา!');
+                        }
+                    }, 1000);
+
+                    lastSpawnTime = performance.now(); 
+                    gameLoopInterval = setInterval(updateGameArea, 20); 
+
+                } else {
+                    gameMessage.classList.remove('hidden'); 
+                    startGameBtn.classList.remove('hidden'); 
+                    difficultySelection.classList.add('hidden'); 
+                }
+            }
+
+            function endGame(reason = 'เกมจบแล้ว!', currentScore = score, instantLose = false) {
+                gameActive = false;
+                clearInterval(gameLoopInterval); 
+                clearInterval(timerInterval); 
+                if (effectTimeout) clearTimeout(effectTimeout); 
+                if (dayNightCycleTimeout) clearTimeout(dayNightCycleTimeout); 
+                gameArea.classList.remove('slow-motion-bg', 'speed-up-bg', 'day', 'night'); 
+                gameArea.classList.add('day'); 
+
+                fallingObjects.forEach(obj => obj.element.remove());
+                fallingObjects.length = 0;
+                
+                let finalScore = currentScore;
+                if (instantLose) { 
+                    finalScore = Math.floor(finalScore / 2); 
+                }
+
+                saveHighScore(); 
+
+                let finalReward = Math.floor(finalScore / currentDifficultyRewardMultiplier); 
+                
+                // --- NEW: Daily Bonus Game Check (Uses isCurrentGameBonus from URL) ---
+                let bonusGameMessagePart = ''; // For alert message
+                // Check URL parameter for bonus status
+                const urlParams = new URLSearchParams(window.location.search);
+                const isBonusFromURL = urlParams.get('bonus') === 'true';
+
+                if (isBonusFromURL) { // Check the flag from URL
+                    finalReward *= 2; // คูณรางวัลเป็น 2 เท่า
+                    bonusGameMessagePart = "\n🎊 เกมโบนัสประจำวัน! รางวัล x2! 🎊"; 
+                }
+                // --- END NEW ---
+
+                let alertMessage = `${reason}${bonusGameMessagePart}\n\nคุณทำคะแนนได้ ${finalScore} แต้ม`;
+
+                if (finalReward > 0) {
+                    globalState.monCoins += finalReward;
+                    saveGlobalState(); 
+                    alertMessage += ` และได้รับ ${finalReward} เหรียญม่อน!`;
+                } else {
+                    alertMessage += ` ลองใหม่นะ!`;
+                }
+                alert(alertMessage);
+
+                startGameBtn.classList.remove('hidden'); 
+                difficultySelection.classList.remove('hidden'); 
+
+                gameArea.classList.remove('slow-motion-bg', 'speed-up-bg', 'night');
+                gameArea.classList.add('day');
+
+
+                // window.location.href = 'index.html'; 
+            }
+
+            // --- Event Listeners ---
+            startGameBtn.addEventListener('click', () => { 
+                startGameBtn.classList.add('hidden'); 
+                difficultySelection.classList.remove('hidden'); 
+            });
+
+            difficultyButtons.forEach(button => { 
+                button.addEventListener('click', (e) => {
+                    const difficulty = e.target.dataset.difficulty;
+                    selectDifficultyAndStartGame(difficulty);
+                });
+            });
+
+
+            gameArea.addEventListener('mousemove', (e) => {
+                if (!gameActive) return;
+                const mouseX = e.clientX - gameArea.getBoundingClientRect().left;
+                playerBasket.style.left = `${Math.min(Math.max(0, mouseX - playerBasket.offsetWidth / 2), gameArea.offsetWidth - playerBasket.offsetWidth)}px`;
+            });
+
+            gameArea.addEventListener('touchmove', (e) => {
+                if (!gameActive) return;
+                e.preventDefault(); 
+                const touchX = e.touches[0].clientX - gameArea.getBoundingClientRect().left;
+                playerBasket.style.left = `${Math.min(Math.max(0, touchX - playerBasket.offsetWidth / 2), gameArea.offsetWidth - playerBasket.offsetWidth)}px`;
+            }, { passive: false }); 
+
+            // --- INITIALIZATION ---
+            loadGlobalState(); 
+            highScoreDisplay.textContent = globalState.highScore; 
+            playerBasket.style.left = `${gameArea.offsetWidth / 2 - playerBasket.offsetWidth / 2}px`; 
+
+            // Call createSkyElements once on initialization
+            createSkyElements();
+        });
+    </script>
+</body>
+</html>

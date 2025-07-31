@@ -77,7 +77,7 @@
         <div id="simon-game-screen">
             <header class="flex items-center mb-4">
                 <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
-                <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">Simon Says!</h1>
+                <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">เกมกดตามม่อน!</h1>
             </header>
             <div class="card">
                 <div class="simon-game-board">
@@ -117,30 +117,49 @@
             let pauseDuration = 400; 
             let playerResponseTime = 2000; 
 
+            // NEW: Variable to store if this is a bonus game, determined from URL
+            let isCurrentGameBonus = false;
+
             // --- LOCAL STORAGE (Only for this game's state and global coins) ---
             function saveState() {
                 localStorage.setItem('monGameDataV14', JSON.stringify(state));
             }
 
+            // Fix: Load state robustly, including bonus game flags if present
             function loadState() {
-                const savedData = localStorage.getItem('monGameDataV14');
-                if (savedData) {
-                    state = JSON.parse(savedData);
-                } else {
-                    state = { monCoins: 0, playCoins: 0 }; 
+                try {
+                    const savedData = localStorage.getItem('monGameDataV14');
+                    if (savedData) {
+                        state = JSON.parse(savedData);
+                        // Initialize bonus game specific properties if they don't exist in saved data
+                        if (typeof state.dailyBonusGameId === 'undefined') state.dailyBonusGameId = null;
+                        if (typeof state.lastBonusGameDate === 'undefined') state.lastBonusGameDate = null;
+                    } else {
+                        // Default state if no data in localStorage
+                        state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
+                    }
+                } catch (e) {
+                    console.error("Error loading state from localStorage:", e);
+                    // Fallback to default state if parsing fails
+                    state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
                 }
             }
 
             // --- Game Functions ---
             function initializeSimonGame() {
-                loadState(); 
+                loadState(); // Load global state
+
+                // NEW: Check URL parameter for bonus status (reliable method)
+                const urlParams = new URLSearchParams(window.location.search);
+                isCurrentGameBonus = urlParams.get('bonus') === 'true';
+
                 if (state.playCoins > 0) {
                     state.playCoins -= 1;
-                    saveState(); 
-                    startGame(); 
+                    saveState(); // Save updated playCoins
+                    startGame(); // Start Simon Says game
                 } else {
                     alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
-                    window.location.href = 'index.html'; 
+                    window.location.href = 'index.html'; // Go back to main menu
                 }
             }
 
@@ -157,10 +176,9 @@
                 simonCanClick = false;
                 simonLevelDisplay.textContent = simonLevel;
                 simonMessageDisplay.textContent = '';
-                simonStartBtn.disabled = true; 
+                simonStartBtn.disabled = true; // Disable start button during game
                 clearTimeout(playerTurnTimeout); 
                 
-                // Reset difficulty parameters for new game
                 lightDuration = 600; 
                 pauseDuration = 400;
                 playerResponseTime = 2000;
@@ -175,20 +193,16 @@
                 simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
                 clearTimeout(playerTurnTimeout); 
 
-                // --- NEW DIFFICULTY LOGIC ---
+                // --- DIFFICULTY LOGIC ---
                 if (simonLevel < 10) {
-                    // Gradual increase in difficulty up to Level 9
                     lightDuration = Math.max(200, lightDuration - 50); 
                     pauseDuration = Math.max(100, pauseDuration - 30); 
                     playerResponseTime = Math.max(1000, playerResponseTime - 100); 
                 } else {
-                    // Significant difficulty jump from Level 10 onwards
-                    lightDuration = 100; // Very fast flashes
-                    pauseDuration = 50;  // Very short pause
-                    playerResponseTime = 700; // Much less time to respond per button
+                    lightDuration = 100; 
+                    pauseDuration = 50;  
+                    playerResponseTime = 700; 
                 }
-                // --- END NEW DIFFICULTY LOGIC ---
-
 
                 const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
                 simonSequence.push(randomColor);
@@ -213,7 +227,6 @@
                 } else {
                     simonCanClick = true;
                     simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
-                    // Adjust total time for player response based on sequence length and difficulty
                     playerTurnTimeout = setTimeout(() => {
                         endGame('หมดเวลา! คุณตอบไม่ทัน');
                     }, playerResponseTime * simonSequence.length); 
@@ -242,7 +255,6 @@
                         simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
                         setTimeout(nextLevel, 1000); 
                     } else {
-                        // Player made correct move, reset timeout for next button in sequence
                         playerTurnTimeout = setTimeout(() => {
                             endGame('หมดเวลา! คุณตอบไม่ทัน');
                         }, playerResponseTime); 
@@ -258,12 +270,21 @@
                 simonStartBtn.disabled = false; 
                 clearTimeout(playerTurnTimeout); 
 
-                const finalReward = simonLevel; 
-                state.monCoins += finalReward;
-                saveState(); 
+                let finalReward = simonLevel; // 1 Mon Coin per level
+                
+                // --- NEW: Daily Bonus Game Check (Uses isCurrentGameBonus from URL) ---
+                let bonusGameMessagePart = '';
+                if (isCurrentGameBonus) { // Check the flag set at initialization
+                    finalReward *= 2; // Multiply reward by 2
+                    bonusGameMessagePart = "\n🎊 เกมโบนัสประจำวัน! รางวัล x2! 🎊"; 
+                }
+                // --- END NEW ---
 
-                alert(`เกมจบ! คุณไปถึง Level ${simonLevel} และได้รับ ${finalReward} เหรียญม่อน!`);
-                window.location.href = 'index.html'; 
+                state.monCoins += finalReward;
+                saveState(); // Save updated monCoins
+
+                alert(`เกมจบ! คุณไปถึง Level ${simonLevel} และได้รับ ${finalReward} เหรียญม่อน!${bonusGameMessagePart}`); // Add bonus message to alert
+                window.location.href = 'index.html'; // Go back to main menu
             }
 
             // --- Event Listeners ---
@@ -273,6 +294,7 @@
                 button.addEventListener('click', handlePlayerClick);
             });
 
+            // Initial setup for the Simon Says game screen (when loaded directly or navigated to)
             loadState(); 
         });
     </script>
