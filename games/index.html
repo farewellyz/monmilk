@@ -56,6 +56,22 @@
             transform: translateY(0) !important;
             filter: grayscale(1);
         }
+        /* Style for Reset Mission Button */
+        .btn-mission-reset {
+            @apply bg-orange-400 border-orange-600;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            width: auto;
+        }
+        .btn-mission-reset:hover {
+            transform: translateY(-1px);
+        }
+        .btn-mission-reset:active {
+            transform: translateY(1px);
+        }
+
 
         /* Mission button styling */
         .mission-btn {
@@ -118,6 +134,7 @@
         .wallet-section {
             @apply flex justify-around items-center;
             padding-top: 0.5rem;
+            margin-bottom: 10px; /* Space above the new button */
         }
         .wallet-coin-display {
             font-size: 2.5rem; /* text-4xl */
@@ -293,6 +310,8 @@
                         <p class="wallet-coin-label">เหรียญเล่นม่อน</p>
                     </div>
                 </div>
+                <div class="flex justify-center">
+                    </div>
             </div>
 
             <div id="inventory-card" class="card mb-6 hidden">
@@ -316,6 +335,9 @@
                      🎯 ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
+                <div class="flex justify-center">
+                    <button id="reset-mission-btn" class="btn btn-mission-reset">รีเซ็ตภารกิจ (1 เหรียญ)</button>
+                </div>
             </div>
 
             <div class="game-buttons-section">
@@ -418,6 +440,7 @@
             };
             const checkInBtn = document.getElementById('check-in-btn');
             const dailyMissionsList = document.getElementById('daily-missions-list');
+            const resetMissionBtn = document.getElementById('reset-mission-btn'); // NEW: Get reset mission button
             const shopItemsList = document.getElementById('shop-items-list');
             const inventoryCard = document.getElementById('inventory-card');
             const inventoryList = document.getElementById('inventory-list');
@@ -492,9 +515,6 @@
                 }
             }
 
-            // This global function is now deprecated as we pass data via URL
-            // window.isBonusGame = function(gameId) { /* ... (this part is no longer needed/used by game files directly) ... */ }
-
 
             // --- UI UPDATE & NAVIGATION ---
             function updateCoinDisplays() {
@@ -562,7 +582,7 @@
                 const today = new Date().toDateString();
                 if (state.lastCheckinDate === today) {
                     checkInBtn.innerHTML = `เช็คอินแล้ววันนี้!`;
-                    checkInBtn.disabled = true;
+                    checkInBtn.disabled = true; 
                     checkInBtn.classList.add('btn-disabled');
                 } else {
                     checkInBtn.innerHTML = `เช็คอิน (รับ 5 เหรียญ)`;
@@ -582,6 +602,27 @@
                     alert('เช็คอินสำเร็จ! คุณได้รับ 5 เหรียญเล่นม่อน');
                 }
             });
+
+            // NEW: Reset Mission button functionality
+            resetMissionBtn.addEventListener('click', () => {
+                if (state.playCoins >= 0) { // Cost 1 play coin to reset
+                    state.playCoins -= 0;
+                    // Find a completed mission to reset
+                    const missionToResetIndex = state.dailyMissions.findIndex(m => m.completed); // Find completed mission
+                    if (missionToResetIndex !== -1) {
+                        state.dailyMissions[missionToResetIndex].completed = false; // Mark it as incomplete
+                        alert('รีเซ็ตภารกิจสำเร็จ! ลองทำภารกิจนั้นใหม่ได้เลย');
+                    } else {
+                        alert('ไม่มีภารกิจที่สำเร็จแล้วให้รีเซ็ตจ้า!');
+                    }
+                    updateCoinDisplays();
+                    renderMissions();
+                    saveState();
+                } else {
+                    alert('เหรียญเล่นม่อนไม่พอรีเซ็ตภารกิจจ้า! (ต้องใช้ 1 เหรียญ)'); 
+                }
+            });
+
 
             // --- DAILY MISSIONS LOGIC ---
             function generateNewMissions() {
