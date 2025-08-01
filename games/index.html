@@ -31,7 +31,7 @@
             box-shadow: 0 5px 15px rgba(219, 39, 119, 0.1), inset 0 0 5px rgba(255,255,255,0.5);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .card-base:hover {
+        .card-base:not(.bonus-game-card):hover { /* Added :not() to prevent double hover effect on bonus card */
             transform: translateY(-5px);
             box-shadow: 0 12px 25px rgba(219, 39, 119, 0.15), inset 0 0 5px rgba(255,255,255,0.5);
         }
@@ -48,7 +48,6 @@
             transform: translateY(1px);
         }
         
-        /* ===== START: UPGRADED BONUS HIGHLIGHT (RAINBOW) ===== */
         @keyframes pulsing-glow {
             0%   { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 25px rgba(255, 255, 255, 0.3); }
             50%  { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 50px rgba(255, 255, 255, 0.6); }
@@ -61,6 +60,42 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* Rainbow border for the main announcement card */
+        #bonus-game-section {
+            position: relative;
+            border: 4px solid transparent;
+            background-clip: padding-box; 
+            overflow: hidden;
+            border-radius: 1.5rem; 
+        }
+
+        #bonus-game-section::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: 0; /* Changed to 0 to be behind content */
+            margin: -4px; 
+            border-radius: inherit; 
+            background: linear-gradient(125deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3, #ff2400);
+            background-size: 400% 400%;
+            animation: animated-rainbow-gradient 10s infinite linear;
+        }
+
+        /* Ensure content is on top of the border pseudo-element */
+        #bonus-game-section > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .bonus-game-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #be185d; /* text-pink-700 */
+            border-bottom: none;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.7);
+        }
+
+        /* Styling for the smaller game card that IS the bonus game */
         .game-card.bonus-game {
             border: 3px solid #fff;
             transform: scale(1.05);
@@ -81,20 +116,6 @@
             font-weight: 700;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.8);
         }
-
-        .bonus-game-header {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(125deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3, #ff2400);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
-            animation: animated-rainbow-gradient 10s infinite linear;
-            border-bottom: none;
-        }
-        /* ===== END: UPGRADED BONUS HIGHLIGHT (RAINBOW) ===== */
     </style>
 </head>
 <body>
@@ -110,7 +131,7 @@
             </header>
 
             <div id="bonus-game-section" class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6 hidden">
-                <h2 class="bonus-game-header text-2xl font-semibold text-gray-500 mb-4 text-center pb-2 flex items-center justify-center">
+                <h2 class="bonus-game-header text-2xl font-semibold mb-4 text-center pb-2 flex items-center justify-center">
                     <span class="w-8 h-8 mr-3 flex items-center justify-center text-2xl">✨</span>
                     เกมโบนัสวันนี้ (x2 เหรียญ)
                 </h2>
