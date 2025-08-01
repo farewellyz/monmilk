@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เกมของม่อน</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,239 +24,77 @@
             background-color: #fff0f5; /* Lavender Blush */
             box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
         }
-        .card {
-            /* Basic card styling */
-            @apply bg-white p-5 rounded-3xl shadow-lg transition-all duration-300;
-            border: 2px solid #FBCFE8; /* Soft pink border */
-            background: linear-gradient(145deg, #fffafa, #ffe4e6); /* Light pink gradient */
+        
+        .card-base {
+            border: 2px solid #FBCFE8;
+            background: linear-gradient(145deg, #fffafa, #ffe4e6);
             box-shadow: 0 5px 15px rgba(219, 39, 119, 0.1), inset 0 0 5px rgba(255,255,255,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-base:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(219, 39, 119, 0.15), inset 0 0 5px rgba(255,255,255,0.5);
         }
 
-        /* General button styling */
-        .btn {
-            @apply w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md transition-all duration-300 flex items-center justify-center border-b-4;
+        .btn-base {
             transform: translateY(0);
+            transition: transform 0.2s ease, filter 0.2s ease;
         }
-        .btn:hover {
+        .btn-base:hover {
             transform: translateY(-2px);
             filter: brightness(1.05);
         }
-        .btn:active {
-            transform: translateY(2px);
-            @apply shadow-sm;
-        }
-
-        /* Specific button colors */
-        .btn-play { @apply bg-gradient-to-br from-pink-400 to-red-400 border-pink-600; }
-        .btn-play-memory { @apply bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600; }
-        .btn-play-simon { @apply bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600; }
-        .btn-shop { @apply bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600; }
-        .btn-checkin { @apply bg-gradient-to-br from-sky-400 to-blue-500 border-sky-600; }
-        .btn-disabled {
-            @apply bg-gray-300 border-gray-400 cursor-not-allowed;
-            transform: translateY(0) !important;
-            filter: grayscale(1);
-        }
-
-        /* Mission button styling */
-        .mission-btn {
-            @apply text-sm px-4 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-200 flex items-center justify-center border-b-4;
-            transform: translateY(0);
-        }
-        .mission-btn.incomplete { @apply bg-gradient-to-br from-green-400 to-emerald-500 border-green-700; }
-        .mission-btn.incomplete:hover { transform: translateY(-2px); @apply shadow-lg; filter: brightness(1.05); }
-        .mission-btn.incomplete:active { transform: translateY(1px); @apply shadow-sm border-b-2; }
-        .mission-btn.completed { @apply bg-gradient-to-br from-gray-400 to-gray-500 border-gray-600 cursor-default; }
-
-        /* Buy item button styling */
-        .buy-item-btn {
-            @apply px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center border-b-4;
-            @apply bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700;
-            transform: translateY(0);
-        }
-        .buy-item-btn:hover { transform: translateY(-2px); @apply shadow-xl; filter: brightness(1.1); }
-        .buy-item-btn:active { transform: translateY(1px); @apply shadow-md border-b-2; }
-
-        /* Inventory item "ใช้" button */
-        .play-item-btn {
-            @apply px-3 py-1 text-sm font-bold text-white rounded-lg shadow-md transition-all duration-200 border-b-2;
-            background-color: #8A2BE2; /* Blue-violet */
-            border-bottom-color: #6A1BAE;
-        }
-        .play-item-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-        .play-item-btn:active { transform: translateY(0.5px); box-shadow: inset 0 0 3px rgba(0,0,0,0.2); border-bottom-width: 1px; }
-        .play-item-btn:disabled { @apply bg-gray-300 border-gray-400 cursor-not-allowed; transform: translateY(0) !important; }
-
-        /* --- Custom UI Styling for Clarity and Aesthetics --- */
-
-        /* Header Title */
-        .main-header-title {
-            font-size: 2.75rem; /* text-4xl base */
-            line-height: 1.1;
-            font-weight: 700; /* font-bold */
-            color: #DB2777; /* pink-600 */
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.2); /* Soft shadow for depth */
-            margin-bottom: 0.5rem;
-        }
-        .subtitle {
-            font-size: 1.125rem; /* text-lg */
-            color: #EC4899; /* pink-500 */
-            font-weight: 500; /* font-medium */
-        }
-
-        /* Card Headers */
-        .card-header {
-            font-size: 1.5rem; /* text-2xl */
-            font-weight: 600; /* font-semibold */
-            color: #6B7280; /* gray-600 */
-            margin-bottom: 1rem;
-            text-align: center;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px dashed #FBCFE8; /* Light dashed line */
-        }
-
-        /* Wallet Display */
-        .wallet-section {
-            @apply flex justify-around items-center;
-            padding-top: 0.5rem;
-        }
-        .wallet-coin-display {
-            font-size: 2.5rem; /* text-4xl */
-            font-weight: 700; /* font-bold */
-        }
-        .wallet-coin-label {
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* font-medium */
-            color: #9CA3AF; /* gray-400 */
-        }
-        .mon-coin-color { color: #F59E0B; /* amber-500 */ }
-        .play-coin-color { color: #10B981; /* emerald-500 */ }
-
-        /* Inventory Item */
-        .inventory-item {
-            @apply flex justify-between items-center bg-rose-50 p-3 rounded-lg border-l-4 border-rose-200;
-            font-size: 1.125rem; /* text-lg */
-            color: #BE185D; /* pink-700 */
-        }
-        .inventory-item span:first-child { font-weight: 600; } /* Item name */
-        .inventory-item span:last-child {
-            font-size: 1rem; /* text-base */
-            font-weight: 700;
-            background-color: #FBCFE8; /* pink-200 */
-            color: #DB2777; /* pink-600 */
-            border-radius: 9999px; /* rounded-full */
-            padding: 0.25rem 0.75rem; /* px-3 py-1 */
-            margin-left: 0.5rem;
-        }
-        .inventory-item .play-item-btn { margin-left: 0.75rem; }
-
-        /* Mission Item */
-        .mission-item {
-            @apply flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200;
-            font-size: 1rem; /* text-base */
-            color: #6B7280; /* gray-600 */
-        }
-        .mission-item p { font-weight: 500; }
-        .mission-item .mission-btn { margin-left: 0.5rem; }
-
-        /* Shop Item */
-        .shop-item {
-            @apply flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200;
-        }
-        .shop-item-name {
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 600;
-            color: #BE185D; /* pink-700 */
-        }
-        .shop-item-price {
-            font-size: 1rem; /* text-base */
-            font-weight: 700;
-            color: #F59E0B; /* amber-500 */
-            margin-left: 0.5rem;
-        }
-        .shop-item .buy-item-btn { margin-left: 0.75rem; }
-
-
-        /* --- Game Card Styling --- */
-        .game-card-grid {
-            @apply grid gap-4;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        }
-        .game-card {
-            @apply block p-4 rounded-2xl shadow-md text-center transition-all duration-300;
-            border-bottom: 4px solid;
-            position: relative;
-            overflow: hidden; 
-            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 0 5px rgba(255,255,255,0.7);
-        }
-        .game-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 0 0 8px rgba(255,255,255,0.9);
-        }
-        .game-card h3 {
-            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
-            @apply text-white text-xl font-bold mb-1 relative z-10; 
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        }
-        .game-card p {
-            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
-            @apply text-white text-sm opacity-90 relative z-10;
-        }
-
-        /* Specific game card colors */
-        .game-card.rps {
-            background: linear-gradient(to bottom right, #EC4899, #F43F5E); /* Pink-red */
-            border-bottom-color: #BE185D;
+        .btn-base:active {
+            transform: translateY(1px);
         }
         
-        .game-card.memory {
-            background: linear-gradient(to bottom right, #3B82F6, #2563EB); /* Blue */
-            border-bottom-color: #1D4ED8;
+        /* ===== START: UPGRADED BONUS HIGHLIGHT (RAINBOW) ===== */
+        @keyframes pulsing-glow {
+            0%   { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 25px rgba(255, 255, 255, 0.3); }
+            50%  { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 50px rgba(255, 255, 255, 0.6); }
+            100% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 25px rgba(255, 255, 255, 0.3); }
         }
 
-        .game-card.simon {
-            background: linear-gradient(to bottom right, #A855F7, #9333EA); /* Purple */
-            border-bottom-color: #7E22CE;
-        }
-        
-        .game-card.whac-a-mole {
-            background: linear-gradient(to bottom right, #6D28D9, #4C1D95); /* Deep purple */
-            border-bottom-color: #3B0764;
+        @keyframes animated-rainbow-gradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .game-card.catch-object {
-            background: linear-gradient(to bottom right, #F472B6, #EC4899); /* Rose pink */
-            border-bottom-color: #DB2777;
-        }
-
-        /* NEW: Bonus Game Highlight */
         .game-card.bonus-game {
-            border: 4px solid #FFD700; /* Gold border */
-            box-shadow: 0 0 15px rgba(255,215,0,0.8), 0 0 30px rgba(255,215,0,0.6), 0 0 50px rgba(255,215,0,0.4); /* Stronger multi-layer glow */
-            transform: scale(1.05); /* Slightly larger */
-            transition: all 0.3s ease-in-out; /* Smooth transition for scale and shadow */
-            background: linear-gradient(145deg, #FFD700, #FFA500); /* Gold to Orange gradient */
-            border-bottom-color: #FF8C00; /* Darker orange border */
+            border: 3px solid #fff;
+            transform: scale(1.05);
+            background: linear-gradient(125deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3, #ff2400);
+            background-size: 400% 400%;
+            animation: 
+                pulsing-glow 2.5s infinite ease-in-out,
+                animated-rainbow-gradient 10s infinite linear;
         }
-        /* Specific text styles for bonus game card */
-        .game-card.bonus-game h3, .game-card.bonus-game p {
-            font-family: 'Kanit', sans-serif; /* Ensure Kanit font */
-            color: #FFFFFF; /* White text on gold background */
-            text-shadow: 0 0 5px rgba(0,0,0,0.7), 0 0 10px rgba(255,255,255,0.5); /* Stronger shadow/glow for text */
-        }
+        
         .game-card.bonus-game:hover {
-            transform: translateY(-5px) scale(1.07); /* More pronounced hover */
-            box-shadow: 0 0 25px rgba(255,215,0,0.9), 0 0 50px rgba(255,215,0,0.7), 0 0 80px rgba(255,215,0,0.5); /* Even stronger glow on hover */
+            transform: translateY(-5px) scale(1.08);
+            animation-play-state: paused;
         }
-        .bonus-game-header {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 700; /* font-bold */
-            color: #FFD700; /* Gold */
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-            margin-bottom: 0.75rem;
+        
+        .game-card.bonus-game h3, .game-card.bonus-game p {
+            color: white;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.8);
         }
 
+        .bonus-game-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(125deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3, #ff2400);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            animation: animated-rainbow-gradient 10s infinite linear;
+            border-bottom: none;
+        }
+        /* ===== END: UPGRADED BONUS HIGHLIGHT (RAINBOW) ===== */
     </style>
 </head>
 <body>
@@ -264,98 +103,107 @@
 
         <div id="menu-screen">
             <header class="text-center mb-6">
-                <h1 class="main-header-title">
+                <h1 class="text-5xl leading-tight font-bold bg-gradient-to-r from-fuchsia-500 to-pink-500 text-transparent bg-clip-text [text-shadow:1px_1px_3px_rgba(219,39,119,0.1)] mb-2">
                     เกมของม่อน
                 </h1>
-                <p class="subtitle mt-1">มาเล่นกันเถอะ!</p>
+                <p class="text-lg text-pink-500 font-medium mt-1">มาเล่นกันเถอะ!</p>
             </header>
 
-            <div id="bonus-game-section" class="card mb-6 hidden">
-                <h2 class="card-header bonus-game-header">
-                    🎉 เกมโบนัสวันนี้ (x2 เหรียญม่อน)! 🎉
+            <div id="bonus-game-section" class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6 hidden">
+                <h2 class="bonus-game-header text-2xl font-semibold text-gray-500 mb-4 text-center pb-2 flex items-center justify-center">
+                    <span class="w-8 h-8 mr-3 flex items-center justify-center text-2xl">✨</span>
+                    เกมโบนัสวันนี้ (x2 เหรียญ)
                 </h2>
-                <div class="text-center text-gray-700 font-semibold text-xl">
-                    <span id="daily-bonus-game-name"></span>
+                <div class="text-center text-gray-700 font-semibold text-xl" id="daily-bonus-game-name"></div>
+            </div>
+
+            <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
+                    กระเป๋าเงิน
+                </h2>
+                <div class="flex justify-around items-center pt-2">
+                    <div class="text-center">
+                        <p class="text-4xl font-bold text-amber-500 flex items-center justify-center">
+                            <span id="mon-coin-display">0</span>
+                            <img src="mon_coin_icon.png" alt="Mon Coin" class="w-8 h-8 ml-2">
+                        </p>
+                        <p class="text-sm font-medium text-gray-400">เหรียญม่อน ($)</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-bold text-emerald-500 flex items-center justify-center">
+                            <span id="play-coin-display">0</span>
+                            <img src="play_coin_icon.png" alt="Play Coin" class="w-8 h-8 ml-2">
+                        </p>
+                        <p class="text-sm font-medium text-gray-400">เหรียญเล่นม่อน</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="card mb-6">
-                <h2 class="card-header">
-                    💰 กระเป๋าเงิน
-                </h2>
-                <div class="wallet-section">
-                    <div class="text-center">
-                        <p class="wallet-coin-display mon-coin-color" id="mon-coin-display">0</p>
-                        <p class="wallet-coin-label">เหรียญม่อน ($)</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="wallet-coin-display play-coin-color" id="play-coin-display">0</p>
-                        <p class="wallet-coin-label">เหรียญเล่นม่อน</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="inventory-card" class="card mb-6 hidden">
-                   <h2 class="card-header">
-                     🎒 กระเป๋าของฉัน
+            <div id="inventory-card" class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6 hidden">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 18h-2a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-2" /><path d="M12 11v-6" /><path d="M8 7l4 -4l4 4" /><path d="M10 14h4" /></svg>
+                    กระเป๋าของฉัน
                 </h2>
                 <div id="inventory-list" class="space-y-2"></div>
             </div>
 
-            <div class="card mb-6">
-                <h2 class="card-header">
-                    🗓️ เช็คอินรายวัน
+            <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M19 16l-2 3h4l-2 3" /></svg>
+                    เช็คอินรายวัน
                 </h2>
-                <button id="check-in-btn" class="btn btn-checkin">
+                <button id="check-in-btn" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-sky-400 to-blue-500 border-sky-600 disabled:bg-gray-300 disabled:border-gray-400 disabled:cursor-not-allowed disabled:transform-none disabled:filter-grayscale">
                     เช็คอิน (รับ 5 เหรียญ)
                 </button>
             </div>
             
-            <div class="card mb-6">
-                   <h2 class="card-header">
-                     🎯 ภารกิจรายวัน
+            <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242 0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
+                   ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
             </div>
 
-            <div class="game-buttons-section">
-                <h2 class="card-header">
-                    🎮 เล่นเกมกัน!
+            <div class="game-buttons-section mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 12c0 -2.76 2.24 -5 5 -5h10c2.76 0 5 2.24 5 5v7h-20v-7z" /><path d="M5.5 12h.01" /><path d="M8.5 12h.01" /><path d="M15.5 12h.01" /><path d="M18.5 12h.01" /><path d="M15 5v-1a2 2 0 0 0 -2 -2h-2a2 2 0 0 0 -2 2v1" /></svg>
+                    เล่นเกมกัน!
                 </h2>
-                <div class="game-card-grid" id="game-card-list">
-                    <a href="rps_game.html" class="game-card rps" data-game-id="rps">
-                        <h3>เป่ายิ้งฉุบ</h3>
-                        <p>ใช้ 1 เหรียญ</p>
+                <div id="game-card-container" class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                    <a href="rps_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-pink-400 to-red-400 border-pink-600 hover:transform hover:-translate-y-1" data-game-id="rps">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เป่ายิ้งฉุบ</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="memory_game.html" class="game-card memory" data-game-id="memory">
-                        <h3>จับคู่ภาพ</h3>
-                        <p>ใช้ 1 เหรียญ</p>
+                    <a href="memory_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600 hover:transform hover:-translate-y-1" data-game-id="memory">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">จับคู่ภาพ</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="simon_game.html" class="game-card simon" data-game-id="simon">
-                        <h3>เกมกดตามม่อน</h3>
-                        <p>ใช้ 1 เหรียญ</p>
+                    <a href="simon_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600 hover:transform hover:-translate-y-1" data-game-id="simon">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมกดตามม่อน</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="whac_a_mole_game.html" class="game-card whac-a-mole" data-game-id="whac_a_mole">
-                        <h3>เกมตีหัวม่อน</h3>
-                        <p>ใช้ 1 เหรียญ</p>
+                    <a href="whac_a_mole_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-800 border-indigo-800 hover:transform hover:-translate-y-1" data-game-id="whac_a_mole">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมตีหัวม่อน</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="catch_falling_object.html" class="game-card catch-object" data-game-id="catch_object">
-                        <h3>รับม่อนด้วย!</h3>
-                        <p>ใช้ 1 เหรียญ</p>
+                    <a href="catch_falling_object.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-rose-400 to-pink-500 border-rose-600 hover:transform hover:-translate-y-1" data-game-id="catch_object">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">รับม่อนด้วย!</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
                 </div>
             </div>
 
             <div class="game-buttons-section"> 
-                <h2 class="card-header">
-                    🛍️ ร้านค้าของม่อน
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z" /><path d="M9 11v-5a3 3 0 0 1 6 0v5" /></svg>
+                    ร้านค้าของม่อน
                 </h2>
-                <button id="go-to-shop-btn" class="btn btn-shop">
+                <button id="go-to-shop-btn" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600">
                     ไปร้านค้าแลกของ
                 </button>
             </div>
-
-
         </div>
 
         <div id="shop-screen" class="hidden">
@@ -366,38 +214,45 @@
             <div id="shop-items-list" class="space-y-4"></div>
         </div>
         
-        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- STATE MANAGEMENT ---
             let state = {};
 
             const allMissions = [
-                { text: 'ถ่ายรูปหน้าส่งให้ม่อน', reward: 1 }, { text: 'ถ่ายootdส่งให้ม่อน', reward: 1 },
-                { text: 'บอกรักม่อน', reward: 1 }, { text: 'บอกคิดถึงม่อน', reward: 1 },
-                { text: 'อัดคลิปบอกรักม่อน', reward: 1 }, { text: 'ถ่ายรูปส่งจุ้บให้ม่อน', reward: 1 },
-                { text: 'ร้องเพลงให้ม่อนฟัง', reward: 1 }, { text: 'ถ่ายรูปอาหารส่งให้ม่อน', reward: 1 },
-                { text: 'ทำให้ม่อนบอกรัก', reward: 1 }, { text: 'ทำให้ม่อนบอกคิดถึง', reward: 1 },
+                { text: 'ถ่ายรูปหน้าส่งให้ม่อน (1 เหรียญ)', reward: 1 }, 
+                { text: 'ถ่าย ootd ส่งให้ม่อน (1 เหรียญ)', reward: 1 },
+                { text: 'บอกรักม่อน (1 เหรียญ)', reward: 1 }, 
+                { text: 'บอกคิดถึงม่อน (1 เหรียญ)', reward: 1 },
+                { text: 'อัดคลิปบอกรักม่อน (1 เหรียญ)', reward: 1 }, 
+                { text: 'ถ่ายรูปส่งจุ้บให้ม่อน (1 เหรียญ)', reward: 1 },
+                { text: 'ร้องเพลงให้ม่อนฟัง (1 เหรียญ)', reward: 1 }, 
+                { text: 'ถ่ายรูปอาหารส่งให้ม่อน (1 เหรียญ)', reward: 1 },
+                { text: 'ทำให้ม่อนบอกรัก (1 เหรียญ)', reward: 1 }, 
+                { text: 'ทำให้ม่อนบอกคิดถึง (1 เหรียญ)', reward: 1 },
+				{ text: 'โชว์กินข้าวให้ม่อนดู (1 เหรียญ)', reward: 1 }, 
+                { text: 'ทำหน้าแบ๊ว (1 เหรียญ)', reward: 1 },
+                { text: 'ทำให้ม่อนยิ้ม (1 เหรียญ)', reward: 1 }, 
+                { text: 'ถ่ายรูปตอนทาครีม (1 เหรียญ)', reward: 1 },
+				{ text: 'บอกรักโดยไม่มีคำว่ารัก (1 เหรียญ)', reward: 1 }, 
+                { text: 'ลงสตอรี่เกี่ยวกับม่อน (2 เหรียญ)', reward: 2 },
             ];
             
             const shopItems = [
-                // ราคาสินค้าเพิ่มขึ้น 2 เท่า
-                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', price: 200 },  
+                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', price: 200 },  
                 { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', price: 600 }, 
                 { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', price: 2000 }, 
                 { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', price: 1000 }, 
             ];
             
-            // ข้อมูลไอเทมที่ใช้ได้ (เพื่อแสดงในกระเป๋า)
             const consumableItems = {
-                'ticket_random': { name: 'ตั๋วสุ่มวงล้อ', action: () => alert('ใช้: ตั๋วสุ่มวงล้อ - วงล้อหมุนติ้วๆ!') },
-                'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้', action: () => alert('ใช้: ตั๋วให้พาไปไหนก็ได้ - รอเค้าพาไปนะ') },
-                'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้', action: () => alert('ใช้: ตั๋วที่ขออะไรก็ได้ - ขออะไรดีน้า') },
-                'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', action: () => alert('ใช้: ตั๋วที่ให้เค้าทำอะไรก็ได้ - อืม.. ให้อะไรดี') },
+                'ticket_random': { name: 'ตั๋วสุ่มวงล้อ' },
+                'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้' },
+                'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้' },
+                'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้' },
             };
 
-            // NEW: List of all playable games for bonus system
             const allPlayableGames = [
                 { id: 'rps', name: 'เป่ายิ้งฉุบ', file: 'rps_game.html' },
                 { id: 'memory', name: 'จับคู่ภาพ', file: 'memory_game.html' },
@@ -406,8 +261,6 @@
                 { id: 'catch_object', name: 'รับม่อนด้วย!', file: 'catch_falling_object.html' },
             ];
 
-
-            // --- DOM ELEMENTS ---
             const screens = {
                 menu: document.getElementById('menu-screen'),
                 shop: document.getElementById('shop-screen'),
@@ -423,14 +276,11 @@
             const inventoryList = document.getElementById('inventory-list');
             const bonusGameSection = document.getElementById('bonus-game-section'); 
             const dailyBonusGameName = document.getElementById('daily-bonus-game-name'); 
-            const gameCardList = document.getElementById('game-card-list'); 
+            const gameCardList = document.getElementById('game-card-container');
 
-
-            // --- NAVIGATION BUTTONS ---
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
             document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
 
-            // --- LOCAL STORAGE ---
             function saveState() {
                 localStorage.setItem('monGameDataV14', JSON.stringify(state));
             }
@@ -443,12 +293,10 @@
                     state = {
                         monCoins: 1000, 
                         playCoins: 0, 
-                        rpsStreak: 0,
                         lastCheckinDate: null, 
                         dailyMissions: [],
                         lastMissionDate: null, 
                         inventory: {},
-                        // NEW: Bonus game state
                         dailyBonusGameId: null,
                         lastBonusGameDate: null
                     };
@@ -456,7 +304,6 @@
                 }
             }
 
-            // NEW: Function to pick daily bonus game
             function pickDailyBonusGame() {
                 const today = new Date().toDateString();
                 if (state.lastBonusGameDate !== today) {
@@ -468,35 +315,28 @@
                 displayBonusGame();
             }
 
-            // NEW: Function to display bonus game
             function displayBonusGame() {
-                if (state.dailyBonusGameId) {
-                    const bonusGame = allPlayableGames.find(game => game.id === state.dailyBonusGameId);
-                    if (bonusGame) {
-                        dailyBonusGameName.textContent = bonusGame.name;
-                        bonusGameSection.classList.remove('hidden');
+                if (!state.dailyBonusGameId) return;
 
-                        // Highlight the bonus game card and set href with bonus parameter
-                        gameCardList.querySelectorAll('.game-card').forEach(card => {
-                            card.classList.remove('bonus-game'); // Remove from previous bonus game
-                            const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
-                            if (gameData) {
-                                card.href = gameData.file; // Reset to base file name
-                                if (card.dataset.gameId === state.dailyBonusGameId) {
-                                    card.classList.add('bonus-game');
-                                    card.href = `${gameData.file}?bonus=true`; // Add bonus parameter to URL
-                                }
+                const bonusGame = allPlayableGames.find(game => game.id === state.dailyBonusGameId);
+                if (bonusGame) {
+                    dailyBonusGameName.textContent = bonusGame.name;
+                    bonusGameSection.classList.remove('hidden');
+
+                    gameCardList.querySelectorAll('.game-card').forEach(card => {
+                        card.classList.remove('bonus-game');
+                        const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
+                        if (gameData) {
+                            card.href = gameData.file;
+                            if (card.dataset.gameId === state.dailyBonusGameId) {
+                                card.classList.add('bonus-game');
+                                card.href = `${gameData.file}?bonus=true`;
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }
 
-            // This global function is now deprecated as we pass data via URL
-            // window.isBonusGame = function(gameId) { /* ... (this part is no longer needed/used by game files directly) ... */ }
-
-
-            // --- UI UPDATE & NAVIGATION ---
             function updateCoinDisplays() {
                 coinDisplays.mon.textContent = state.monCoins;
                 coinDisplays.play.textContent = state.playCoins;
@@ -507,7 +347,7 @@
                 screens[screenName].classList.remove('hidden');
                 if (screenName === 'menu') {
                     renderInventory(); 
-                    displayBonusGame(); // Re-display bonus game when returning to menu
+                    displayBonusGame();
                 }
             }
             
@@ -520,12 +360,12 @@
                         const itemDetails = consumableItems[itemId]; 
                         if (itemDetails) {
                             const itemEl = document.createElement('div');
-                            itemEl.className = 'bg-rose-100 p-3 rounded-lg flex justify-between items-center inventory-item';
+                            itemEl.className = 'flex justify-between items-center bg-rose-50 p-3 rounded-lg border-l-4 border-rose-200 text-lg text-pink-700';
                             itemEl.innerHTML = `
-                                <span class="font-medium text-rose-700">${itemDetails.name}</span>
+                                <span class="font-semibold">${itemDetails.name}</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-rose-400 inventory-count">x${state.inventory[itemId]}</span>
-                                    <button data-id="${itemId}" class="play-item-btn">ใช้</button>
+                                    <span class="text-base font-bold bg-pink-200 text-pink-600 rounded-full px-3 py-1 ml-2">x${state.inventory[itemId]}</span>
+                                    <button data-id="${itemId}" class="play-item-btn btn-base px-3 py-1 text-sm font-bold text-white rounded-lg shadow-md border-b-2" style="background-color: #8A2BE2; border-bottom-color: #6A1BAE;">ใช้</button>
                                 </div>
                             `;
                             inventoryList.appendChild(itemEl);
@@ -543,13 +383,10 @@
             function useItem(event) {
                 const itemId = event.target.dataset.id;
                 if (state.inventory[itemId] > 0) {
-                    state.inventory[itemId]--; 
                     const itemDetails = consumableItems[itemId];
-                    if (itemDetails && itemDetails.action) {
-                        itemDetails.action(); 
-                    } else {
-                        alert(`ใช้ไอเทม: ${itemDetails.name} (แต่ไม่มีผลอะไรพิเศษตอนนี้)`);
-                    }
+                    alert(`ใช้ไอเทม: ${itemDetails.name}!`);
+                    
+                    state.inventory[itemId]--; 
                     
                     saveState();
                     renderInventory(); 
@@ -557,17 +394,14 @@
                 }
             }
             
-            // --- CHECK-IN LOGIC ---
             function updateCheckInButton() {
                 const today = new Date().toDateString();
                 if (state.lastCheckinDate === today) {
-                    checkInBtn.innerHTML = `เช็คอินแล้ววันนี้!`;
+                    checkInBtn.textContent = 'เช็คอินแล้ววันนี้!';
                     checkInBtn.disabled = true;
-                    checkInBtn.classList.add('btn-disabled');
                 } else {
-                    checkInBtn.innerHTML = `เช็คอิน (รับ 5 เหรียญ)`;
+                    checkInBtn.textContent = 'เช็คอิน (รับ 5 เหรียญ)';
                     checkInBtn.disabled = false;
-                    checkInBtn.classList.remove('btn-disabled');
                 }
             }
             
@@ -580,10 +414,10 @@
                     updateCheckInButton();
                     saveState();
                     alert('เช็คอินสำเร็จ! คุณได้รับ 5 เหรียญเล่นม่อน');
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 }
             });
 
-            // --- DAILY MISSIONS LOGIC ---
             function generateNewMissions() {
                 const shuffled = [...allMissions].sort(() => 0.5 - Math.random());
                 state.dailyMissions = shuffled.slice(0, 5).map(mission => ({ ...mission, completed: false }));
@@ -593,43 +427,54 @@
                 dailyMissionsList.innerHTML = '';
                 state.dailyMissions.forEach((mission, index) => {
                     const missionEl = document.createElement('div');
-                    missionEl.className = 'flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200 mission-item';
-                    const btnClass = mission.completed ? 'completed' : 'incomplete';
-                    const btnContent = mission.completed 
-                        ? `สำเร็จ`
+                    const isCompleted = mission.completed;
+                    
+                    missionEl.className = `flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200 text-base text-gray-600 transition-opacity duration-300 ${isCompleted ? 'opacity-60' : ''}`;
+                    
+                    const btnClass = isCompleted 
+                        ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-600'
+                        : 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-600';
+                    
+                    const btnContent = isCompleted 
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>` 
                         : 'เสร็จสิ้น';
 
-                    missionEl.innerHTML = `<p class="text-gray-600">${mission.text}</p><button data-index="${index}" class="mission-btn ${btnClass}">${btnContent}</button>`;
+                    missionEl.innerHTML = `
+                        <p class="font-medium transition-all duration-300 ${isCompleted ? 'line-through' : ''}">${mission.text}</p>
+                        <button data-index="${index}" class="btn-base text-sm px-3 py-2 rounded-xl font-semibold text-white shadow-md flex items-center justify-center border-b-4 ml-2 ${btnClass}">${btnContent}</button>`;
+                    
                     dailyMissionsList.appendChild(missionEl);
                 });
 
-                document.querySelectorAll('.mission-btn.incomplete').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const index = e.currentTarget.dataset.index;
-                        const mission = state.dailyMissions[index];
-                        if (!mission.completed) {
+                document.querySelectorAll('button[data-index]').forEach(btn => {
+                    const index = btn.dataset.index;
+                    const mission = state.dailyMissions[index];
+                    if (!mission.completed) {
+                        btn.addEventListener('click', () => {
                             mission.completed = true;
                             state.playCoins += mission.reward;
                             updateCoinDisplays();
                             renderMissions();
                             saveState();
-                        }
-                    });
+                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        });
+                    }
                 });
             }
 
-            // --- SHOP LOGIC ---
             function renderShopItems() {
                 shopItemsList.innerHTML = '';
                 shopItems.forEach(item => {
                     const itemEl = document.createElement('div');
-                    itemEl.className = 'card flex justify-between items-center shop-item';
+                    itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
                     itemEl.innerHTML = `
                         <div>
-                            <p class="shop-item-name">${item.name}</p>
-                            <p class="shop-item-price">${item.price} $</p>
+                            <p class="text-lg font-semibold text-gray-700">${item.name}</p>
+                            <p class="text-base font-bold text-amber-500 flex items-center">
+                                ${item.price} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1">
+                            </p>
                         </div>
-                        <button data-price="${item.price}" data-id="${item.id}" class="buy-item-btn">
+                        <button data-price="${item.price}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">
                             ซื้อ
                         </button>`;
                     shopItemsList.appendChild(itemEl);
@@ -645,7 +490,8 @@
                             updateCoinDisplays();
                             renderInventory(); 
                             saveState();
-                            alert('ซื้อสำเร็จ! ตั๋วถูกเพิ่มในกระเป๋าแล้วค่ะ');
+                            alert('ซื้อสำเร็จ! ไอเทมถูกเพิ่มในกระเป๋าแล้วค่ะ');
+                            confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, scalar: 1.2 });
                         } else {
                             alert('อุ๊ย! เหรียญม่อนไม่พอจ้า!');
                         }
@@ -653,7 +499,6 @@
                 });
             }
 
-            // --- INITIALIZATION ---
             function init() {
                 loadState();
                 const today = new Date().toDateString();
@@ -667,7 +512,7 @@
                 renderMissions();
                 renderShopItems();
                 renderInventory(); 
-                pickDailyBonusGame(); // Pick and display bonus game on initial load
+                pickDailyBonusGame();
                 showScreen('menu'); 
             }
 
