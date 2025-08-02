@@ -213,6 +213,10 @@
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">รับม่อนด้วย!</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
+                    <a href="cafe.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-amber-400 to-yellow-600 border-amber-600 hover:transform hover:-translate-y-1" data-game-id="cafe">
+                        <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมคาเฟ่</h3>
+                        <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
+                    </a>
                 </div>
             </div>
 
@@ -280,6 +284,7 @@
                 { id: 'simon', name: 'เกมกดตามม่อน', file: 'simon_game.html' },
                 { id: 'whac_a_mole', name: 'เกมตีหัวม่อน', file: 'whac_a_mole_game.html' },
                 { id: 'catch_object', name: 'รับม่อนด้วย!', file: 'catch_falling_object.html' },
+                { id: 'cafe', name: 'เกมคาเฟ่', file: 'cafe.html' },
             ];
 
             const screens = {
@@ -297,7 +302,7 @@
             const inventoryList = document.getElementById('inventory-list');
             const bonusGameSection = document.getElementById('bonus-game-section'); 
             const dailyBonusGameName = document.getElementById('daily-bonus-game-name'); 
-            const gameCardList = document.getElementById('game-card-container');
+            const gameCardContainer = document.getElementById('game-card-container');
 
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
             document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
@@ -344,14 +349,15 @@
                     dailyBonusGameName.textContent = bonusGame.name;
                     bonusGameSection.classList.remove('hidden');
 
-                    gameCardList.querySelectorAll('.game-card').forEach(card => {
+                    gameCardContainer.querySelectorAll('.game-card').forEach(card => {
                         card.classList.remove('bonus-game');
+                        // Construct the original href without query params
                         const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
                         if (gameData) {
-                            card.href = gameData.file;
+                            card.href = gameData.file; 
                             if (card.dataset.gameId === state.dailyBonusGameId) {
                                 card.classList.add('bonus-game');
-                                card.href = `${gameData.file}?bonus=true`;
+                                // The actual URL with bonus is handled by the click event listener
                             }
                         }
                     });
@@ -535,6 +541,31 @@
                 renderInventory(); 
                 pickDailyBonusGame();
                 showScreen('menu'); 
+
+                // ++ เพิ่มโค้ดจัดการการคลิกเกมการ์ด ++
+                document.querySelectorAll('.game-card').forEach(card => {
+                    card.addEventListener('click', (event) => {
+                        event.preventDefault(); // หยุดการเปลี่ยนหน้าทันที
+
+                        const gameId = card.dataset.gameId;
+                        let targetUrl = card.href;
+
+                        if (state.playCoins > 0) {
+                            state.playCoins--;
+                            updateCoinDisplays();
+                            saveState();
+
+                            // ถ้าเป็นเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL
+                            if (gameId === state.dailyBonusGameId) {
+                                targetUrl += '?bonus=true';
+                            }
+                            
+                            window.location.href = targetUrl; // ไปยังหน้าเกม
+                        } else {
+                            alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
+                        }
+                    });
+                });
             }
 
             init();

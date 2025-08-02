@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>คาเฟ่ของม่อนกับมิ้ว</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes heart-animation { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(0.5); opacity: 0; } }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes fever-glow { 0%, 100% { box-shadow: 0 0 25px 8px rgba(255, 255, 0, 0.7); } 50% { box-shadow: 0 0 40px 20px rgba(255, 107, 107, 0.7); } }
+        @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes float-animation { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes shooting-star {
+            0% { transform: translateY(100vh) translateX(-50vw) scale(0); opacity: 1; }
+            70% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50vw) scale(1); opacity: 0; }
+        }
+        @keyframes vine-grow { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+        @keyframes butterfly-flutter { 0%, 100% { transform: translateX(0) rotate(0deg); } 25% { transform: translateX(5px) rotate(5deg); } 75% { transform: translateX(-5px) rotate(-5deg); } }
+
+        body {
+            font-family: 'Mitr', sans-serif;
+            color: #4c1d95; /* Violet-900 */
+            overflow: hidden;
+            touch-action: none;
+            background-color: #f5f3ff; /* Violet-50 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            perspective: 1500px;
+        }
+        
+        #background-gradient {
+            position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
+            z-index: -2;
+            background: linear-gradient(-45deg, #a78bfa, #c4b5fd, #ddd6fe, #a78bfa);
+            background-size: 400% 400%;
+            animation: gradient-animation 20s ease infinite;
+            transition: transform 0.2s linear;
+        }
+
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .star { position: absolute; background-color: white; border-radius: 50%; animation-name: shooting-star; animation-timing-function: linear; animation-iteration-count: infinite; }
+
+        .game-view {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 35px 0 rgba(76, 29, 149, 0.2);
+            transition: box-shadow 0.5s ease, transform 0.5s ease;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        
+        .decorative-vines {
+            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
+            pointer-events: none;
+            stroke: #8b5cf6; /* Violet-500 */
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 1000;
+            animation: vine-grow 5s ease-out forwards;
+        }
+        .butterfly {
+            position: absolute; font-size: 2rem;
+            animation: butterfly-flutter 3s ease-in-out infinite;
+        }
+
+        #start-screen, #shop-screen { animation: float-animation 6s ease-in-out infinite; }
+        .game-view.fever { animation: fever-glow 1s infinite, float-animation 6s ease-in-out infinite; }
+        
+        .timer-bar-fg { background: linear-gradient(90deg, #a78bfa, #8b5cf6); transition: width 0.5s linear; }
+        .timer-bar-fg.pulsing { animation: pulse-red 1s infinite; }
+        
+        .customer-area { min-height: 180px; position: relative; }
+        .customer { transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(200px) scale(0.5); }
+        .customer.active { transform: translateY(0) scale(1); }
+        
+        .speech-bubble {
+            background-color: white; border: 2px solid #c4b5fd;
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out; 
+        }
+        .speech-bubble:after {
+            content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 0;
+            border: 15px solid transparent; border-top-color: white; border-bottom: 0;
+            margin-left: -15px; margin-bottom: -15px;
+        }
+
+        .action-button {
+            transition: all 0.15s ease-out; background-color: white;
+            border: 2px solid #ddd6fe; border-bottom-width: 8px; border-radius: 20px;
+            transform: translateZ(20px);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .item-button { font-size: 2.25rem; border-bottom-color: #c4b5fd; }
+        .difficulty-button, .shop-button { border-bottom-color: #8b5cf6; }
+        .action-button:hover { transform: translateY(-4px) translateZ(30px) rotateX(-8deg) rotateY(4deg); border-bottom-width: 12px; filter: brightness(1.05); }
+        .action-button:active, .item-button.selected { transform: translateY(2px) translateZ(15px); border-bottom-width: 2px; background-color: #f5f3ff; }
+        
+        .feedback-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        .feedback-item { position: absolute; animation: heart-animation 1s ease-out forwards; font-weight: bold; }
+
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(76, 29, 149, 0.6); display: flex; justify-content: center; align-items: center; z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
+        .modal-backdrop.show { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.7); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-backdrop.show .modal-content { transform: scale(1); opacity: 1; }
+        
+        .fever-bar-bg { background-color: #ede9fe; }
+        .fever-bar-fg { background: linear-gradient(90deg, #fef08a, #f59e0b); transition: width 0.3s ease-out; }
+        
+        .upgrade-button:disabled { background-color: #f3f4f6; border-bottom-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+        .upgrade-button:disabled:hover { transform: translateY(0) translateZ(20px); border-bottom-width: 8px; filter: brightness(1); }
+
+    </style>
+</head>
+<body>
+    <div id="background-gradient"></div>
+    <div class="stars"></div>
+
+    <div id="main-container" class="w-full max-w-sm mx-auto text-center">
+        <div id="start-screen" class="game-view rounded-3xl p-8">
+            <svg class="decorative-vines" viewBox="0 0 400 600">
+                <path d="M 10,10 C 50,150 50,250 10,300 S 50,450 10,590" />
+                <path d="M 390,10 C 350,150 350,250 390,300 S 350,450 390,590" />
+            </svg>
+            <div class="butterfly" style="top: 15%; left: 5%;">🦋</div>
+            <div class="butterfly" style="top: 75%; right: 5%; animation-delay: -1.5s;">🦋</div>
+
+            <h1 class="text-4xl font-bold text-violet-700 mb-2" style="transform: translateZ(50px);">คาเฟ่สวนในฝัน</h1>
+            <p class="text-violet-900 mb-6 text-lg" style="transform: translateZ(40px);">ม่อนสร้างเกมนี้เพื่อมิ้วเลยนะ 💖</p>
+            <div class="space-y-3">
+                <button id="btn-easy" data-difficulty="easy" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ง่ายๆ</button>
+                <button id="btn-medium" data-difficulty="medium" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ปานกลาง</button>
+                <button id="btn-hard" data-difficulty="hard" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ท้าทาย</button>
+            </div>
+            <button id="btn-shop" class="action-button shop-button w-full p-3 text-lg font-semibold mt-6">❤️ ร้านค้าอัปเกรด ❤️</button>
+             <button id="btn-back-to-main" class="action-button shop-button w-full p-3 text-lg font-semibold mt-4" style="border-bottom-color: #be185d;">กลับหน้าหลัก</button>
+        </div>
+
+        <div id="shop-screen" class="hidden game-view rounded-3xl p-6">
+             <div class="flex justify-between items-center mb-4">
+                <h2 class="text-3xl font-bold text-violet-700">ร้านค้าอัปเกรด</h2>
+                <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2">
+                    <span class="text-2xl text-red-500">❤️</span>
+                    <p id="shop-total-hearts" class="text-2xl font-bold text-rose-600">0</p>
+                </div>
+            </div>
+            <div id="upgrades-list" class="space-y-3"></div>
+            <button id="btn-back-from-shop" class="action-button shop-button w-full p-3 text-lg font-semibold mt-6">กลับ</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div id="game-view-border" class="game-view w-full rounded-3xl p-4 relative flex flex-col h-[90vh] max-h-[700px]">
+                <header class="mb-2 flex justify-between items-center w-full">
+                    <div class="text-left"> <span class="text-violet-500 text-sm">คะแนน</span> <p id="score" class="text-2xl font-bold">0</p> </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2"> <span class="text-2xl">💰</span> <p id="total-mon-coins" class="text-2xl font-bold text-amber-600">0</p> </div>
+                        <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2"> <span class="text-2xl text-red-500">❤️</span> <p id="total-hearts" class="text-2xl font-bold text-rose-600">0</p> </div>
+                    </div>
+                </header>
+                <div class="w-full h-4 bg-violet-200 rounded-full overflow-hidden mb-2 border border-violet-300"> <div id="timer-bar" class="timer-bar-fg h-full rounded-full"></div> </div>
+                <div class="w-full h-4 fever-bar-bg rounded-full overflow-hidden mb-2 border border-amber-300"> <div id="fever-bar" class="fever-bar-fg h-full rounded-full text-center text-xs text-white font-bold flex items-center justify-center">FEVER</div> </div>
+                <div class="customer-area flex-grow flex items-center justify-center"> <div id="customer" class="text-center"></div> <div id="feedback-container" class="feedback-container"></div> </div>
+                <div class="mt-auto">
+                    <div class="w-full h-4 bg-violet-300 rounded-lg mt-2 shadow-inner"></div>
+                    <div class="mt-4"> <p class="font-semibold mb-2">เลือกเมนูเสิร์ฟให้คุณลูกค้า</p> <div id="item-selection" class="grid grid-cols-3 gap-2"></div> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="game-over-modal" class="modal-backdrop">
+        <div class="modal-content bg-white rounded-2xl p-8 text-center shadow-2xl w-11/12 max-w-sm">
+            <div class="text-6xl mb-4 animate-bounce">🥰</div>
+            <h2 class="text-3xl font-bold text-violet-700 mb-2">เก่งที่สุดเลย!</h2>
+            <p class="text-slate-600 mb-2">คะแนนรวม: <span id="final-score" class="font-bold text-violet-800 text-xl">0</span></p>
+            <div class="mb-6 space-y-1">
+                <p id="bonus-text" class="hidden text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">✨ โบนัส x2! ✨</p>
+                <p class="text-amber-600 font-semibold text-lg">ได้รับ <span id="mon-coins-earned" class="font-bold"></span> เหรียญม่อน!</p>
+                <p class="text-red-500 font-semibold text-lg">ได้รับ <span id="hearts-earned" class="font-bold"></span> ดวง!</p>
+            </div>
+            <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <button id="restart-button" class="action-button shop-button w-full p-3 text-lg font-semibold">เล่นอีกครั้ง</button>
+                <button id="back-to-main-from-modal-button" class="action-button shop-button w-full p-3 text-lg font-semibold" style="border-bottom-color: #9ca3af;">กลับหน้าหลัก</button>
+            </div>
+            </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Screens
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const shopScreen = document.getElementById('shop-screen');
+            const gameViewBorder = document.getElementById('game-view-border');
+            const backgroundGradient = document.getElementById('background-gradient');
+            const starsContainer = document.querySelector('.stars');
+            
+            // Game UI
+            const scoreEl = document.getElementById('score');
+            const totalHeartsEl = document.getElementById('total-hearts');
+            const totalMonCoinsEl = document.getElementById('total-mon-coins');
+            const timerBar = document.getElementById('timer-bar');
+            const feverBar = document.getElementById('fever-bar');
+            const customerContainer = document.getElementById('customer');
+            const itemSelectionContainer = document.getElementById('item-selection');
+            const feedbackContainer = document.getElementById('feedback-container');
+
+            // Modals & Shop UI
+            const gameOverModal = document.getElementById('game-over-modal');
+            const finalScoreEl = document.getElementById('final-score');
+            const heartsEarnedEl = document.getElementById('hearts-earned');
+            const monCoinsEarnedEl = document.getElementById('mon-coins-earned');
+            const bonusTextEl = document.getElementById('bonus-text');
+            const restartButton = document.getElementById('restart-button');
+            const shopTotalHeartsEl = document.getElementById('shop-total-hearts');
+            const upgradesListEl = document.getElementById('upgrades-list');
+            
+            // Buttons
+            const shopButton = document.getElementById('btn-shop');
+            const backFromShopButton = document.getElementById('btn-back-from-shop');
+            const backToMainButton = document.getElementById('btn-back-to-main');
+            const backToMainFromModalButton = document.getElementById('back-to-main-from-modal-button');
+
+            // Game Constants
+            const BASE_GAME_DURATION = 60;
+            const FEVER_DURATION = 10;
+            const FEVER_THRESHOLD = 50;
+            const customers = ['🐰', '🐻', '🐱', '🐶', '🦊', '🐼', '🐨'];
+            const vipCustomer = '👑🐻';
+            const cakes = { 'เค้กสตรอว์เบอร์รี': '🍓', 'เค้กช็อกโกแลต': '🍫', 'เค้กผลไม้': '🍰' };
+            const drinks = { 'กาแฟ': '☕', 'ชาเขียว': '🍵', 'น้ำผลไม้': '🍹' };
+            const allItems = {...cakes, ...drinks};
+            
+            // Game State
+            let score, totalHearts, timer, timeLeft, currentOrder, playerSelection, gameActive, difficulty;
+            let combo, feverMeter, isFeverTime;
+            let upgrades = {};
+            let mainGameState = {}; 
+            const isBonusGame = new URLSearchParams(window.location.search).has('bonus');
+
+
+            const defaultUpgrades = {
+                time: { name: "เพิ่มเวลา", level: 0, maxLevel: 5, cost: [50, 100, 200, 400, 800], effect: level => `+${level*2} วินาที` },
+                vipChance: { name: "เพิ่มโอกาสเจอ VIP", level: 0, maxLevel: 5, cost: [75, 150, 300, 600, 1200], effect: level => `+${level*2}%` },
+                startFever: { name: "เกจฟีเวอร์เริ่มต้น", level: 0, maxLevel: 3, cost: [100, 250, 500], effect: level => `+${level*10}%` }
+            };
+            
+            function loadMainState() {
+                const savedData = localStorage.getItem('monGameDataV14');
+                if (savedData) {
+                    mainGameState = JSON.parse(savedData);
+                } else {
+                    mainGameState = { monCoins: 0, playCoins: 0, inventory: {} };
+                }
+                totalMonCoinsEl.textContent = mainGameState.monCoins;
+            }
+
+            function saveMainState() {
+                localStorage.setItem('monGameDataV14', JSON.stringify(mainGameState));
+            }
+
+            // --- Setup & Initialization ---
+            function loadUpgrades() {
+                upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+                const saved = localStorage.getItem('monMilkyCafeUpgrades');
+                if (saved) {
+                    const savedData = JSON.parse(saved);
+                    Object.keys(savedData).forEach(key => {
+                        if (upgrades[key] && savedData[key].hasOwnProperty('level')) {
+                            upgrades[key].level = savedData[key].level;
+                        }
+                    });
+                }
+                Object.keys(upgrades).forEach(key => {
+                    if (defaultUpgrades[key]) {
+                       upgrades[key].effect = defaultUpgrades[key].effect;
+                    }
+                });
+            }
+            
+            function saveUpgrades() {
+                const dataToSave = {};
+                Object.keys(upgrades).forEach(key => {
+                    dataToSave[key] = { level: upgrades[key].level };
+                });
+                localStorage.setItem('monMilkyCafeUpgrades', JSON.stringify(dataToSave));
+            }
+
+            function setupScreens() {
+                document.querySelectorAll('.difficulty-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        difficulty = button.dataset.difficulty;
+                        startScreen.classList.add('hidden');
+                        gameScreen.classList.remove('hidden');
+                        initGame();
+                    });
+                });	
+                shopButton.addEventListener('click', () => {
+                    startScreen.classList.add('hidden');
+                    renderShop();
+                    shopScreen.classList.remove('hidden');
+                });
+                backFromShopButton.addEventListener('click', () => {
+                    shopScreen.classList.add('hidden');
+                    startScreen.classList.remove('hidden');
+                });
+                backToMainButton.addEventListener('click', () => {
+                    window.location.href = 'index.html';
+                });
+
+                // ++ START: MODIFIED BUTTONS LOGIC ++
+                backToMainFromModalButton.addEventListener('click', () => {
+                    window.location.href = 'index.html';
+                });
+
+                restartButton.addEventListener('click', () => {
+                    loadMainState(); // Load latest state before checking coins
+
+                    if (mainGameState.playCoins > 0) {
+                        mainGameState.playCoins--;
+                        saveMainState();
+                        
+                        gameOverModal.classList.remove('show');
+                        gameScreen.classList.add('hidden');
+                        startScreen.classList.remove('hidden');
+                    } else {
+                        alert('เหรียญเล่นม่อนหมดแล้วจ้า กลับไปหน้าหลักนะ');
+                        window.location.href = 'index.html';
+                    }
+                });
+                // ++ END: MODIFIED BUTTONS LOGIC ++
+
+                loadUpgrades();
+                loadMainState();
+                totalHearts = parseInt(localStorage.getItem('monMilkyCafeHearts')) || 0;
+                totalHeartsEl.textContent = totalHearts;
+                setupParallax();
+                createStars();
+            }
+
+            function initGame() {
+                const timeBonus = upgrades.time.level * 2;
+                const startFeverBonus = (upgrades.startFever.level * 10 / 100) * FEVER_THRESHOLD;
+                
+                score = 0;
+                timeLeft = BASE_GAME_DURATION + timeBonus;
+                gameActive = true;
+                playerSelection = [];
+                combo = 0;
+                feverMeter = startFeverBonus;
+                isFeverTime = false;
+                
+                scoreEl.textContent = score;
+                updateFeverBar();
+                gameOverModal.classList.remove('show');
+                gameViewBorder.classList.remove('fever');
+                
+                shuffleAndRenderItems();
+                newCustomer();
+                
+                if (timer) clearInterval(timer);
+                timer = setInterval(updateTimer, 1000);
+                updateTimer();
+            }
+
+            // --- Item & Customer Logic ---
+            function shuffleAndRenderItems() {
+                itemSelectionContainer.innerHTML = '';
+                const itemsToDisplay = {...allItems};
+                itemSelectionContainer.classList.add('grid-cols-3');
+                itemSelectionContainer.classList.remove('grid-cols-4');
+
+                const shuffledItems = Object.entries(itemsToDisplay).sort(() => Math.random() - 0.5);
+                
+                shuffledItems.forEach(([name, emoji]) => {
+                    const button = document.createElement('button');
+                    button.className = 'action-button item-button p-2 text-3xl md:p-3 md:text-4xl';
+                    button.textContent = emoji;
+                    button.dataset.name = name;
+                    button.onclick = () => selectItem(name, button);
+                    itemSelectionContainer.appendChild(button);
+                });
+            }
+
+            function selectItem(name, buttonEl) {
+                if (!gameActive) return;
+                const selectedIndex = playerSelection.indexOf(name);
+                if (selectedIndex > -1) {
+                    playerSelection.splice(selectedIndex, 1);
+                    buttonEl.classList.remove('selected');
+                } else {
+                    playerSelection.push(name);
+                    buttonEl.classList.add('selected');
+                }
+                if (playerSelection.length === currentOrder.items.length) {
+                    checkOrder();
+                }
+            }
+
+            function newCustomer() {
+                if (!gameActive) return;
+                customerContainer.classList.remove('active');
+                setTimeout(() => {
+                    let numItems;
+                    let customerType = customers[Math.floor(Math.random() * customers.length)];
+                    const vipChance = 0.10 + (upgrades.vipChance.level * 0.02);
+                    
+                    if (difficulty !== 'easy' && Math.random() < vipChance) {
+                        customerType = vipCustomer;
+                        numItems = 5;
+                    } else if (isFeverTime) {
+                        numItems = 1;
+                    } else {
+                        if (difficulty === 'easy') numItems = 2;
+                        else if (difficulty === 'medium') numItems = Math.random() < 0.5 ? 3 : 4;
+                        else if (difficulty === 'hard') numItems = Math.random() < 0.5 ? 4 : 5;
+                    }
+                    
+                    const shuffledValidItems = [...Object.keys(allItems)].sort(() => 0.5 - Math.random());
+                    const orderItems = shuffledValidItems.slice(0, numItems);
+                    
+                    currentOrder = { items: orderItems, isVip: customerType === vipCustomer };
+                    const orderEmojis = currentOrder.items.map(name => allItems[name]).join(' ');
+
+                    customerContainer.innerHTML = `<div class="relative"><div class="text-9xl">${customerType}</div><div class="speech-bubble absolute -top-20 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
+                    
+                    customerContainer.classList.add('active');
+                }, 400);
+            }
+            
+            // --- Game Flow & Scoring ---
+            function checkOrder() {
+                if (!gameActive) return;
+                const isCorrect = currentOrder.items.length === playerSelection.length && 
+                                  currentOrder.items.sort().every((value, index) => value === playerSelection.sort()[index]);
+                if (isCorrect) correctOrder();
+                else wrongOrder();
+            }
+
+            function correctOrder() {
+                let feverGain = 10;
+                if (difficulty === 'medium') feverGain = 8;
+                if (difficulty === 'hard') feverGain = 6;
+                feverMeter += feverGain;
+                updateFeverBar();
+
+                let basePoints = 0;
+                if (difficulty === 'easy') basePoints = 2;
+                else if (difficulty === 'medium') basePoints = 4;
+                else if (difficulty === 'hard') basePoints = 6;
+
+                let points = basePoints;
+                
+                if (isFeverTime) points *= 1.5;
+                if (currentOrder.isVip) points *= 3;
+                
+                score += Math.round(points);
+                scoreEl.textContent = score;
+                showFeedback(true, `+${Math.round(points)}`);
+                resetSelection();
+                shuffleAndRenderItems();
+                
+                if (feverMeter >= FEVER_THRESHOLD && !isFeverTime) startFeverTime();
+                else newCustomer();
+            }
+
+            function wrongOrder() {
+                feverMeter = Math.max(0, feverMeter - 20);
+                updateFeverBar();
+                timeLeft = Math.max(0, timeLeft - 3);
+                updateTimer();
+                showFeedback(false, 'พลาดไปนิดนึง~');
+                resetSelection();
+            }
+            
+            function resetSelection() {
+                 playerSelection = [];
+                 document.querySelectorAll('.item-button.selected').forEach(b => b.classList.remove('selected'));
+            }
+            
+            // --- Fever Time ---
+            function startFeverTime() {
+                isFeverTime = true;
+                gameViewBorder.classList.add('fever');
+                newCustomer();
+                setTimeout(endFeverTime, FEVER_DURATION * 1000);
+            }
+            
+            function endFeverTime() {
+                isFeverTime = false;
+                feverMeter = 0;
+                updateFeverBar();
+                gameViewBorder.classList.remove('fever');
+                newCustomer();
+            }
+            
+            function updateFeverBar() {
+                const percentage = Math.min(100, (feverMeter / FEVER_THRESHOLD) * 100);
+                feverBar.style.width = `${percentage}%`;
+            }
+
+            // --- UI & Feedback ---
+            function showFeedback(isCorrect, text) {
+                const feedbackText = document.createElement('div');
+                feedbackText.textContent = text;
+                feedbackText.className = `feedback-item text-lg ${isCorrect ? 'text-green-500' : 'text-red-500'}`;
+                if(isCorrect) {
+                    for (let i = 0; i < 5; i++) {
+                        const heart = document.createElement('div');
+                        heart.textContent = '❤️';
+                        heart.className = 'feedback-item text-xl';
+                        heart.style.left = `${Math.random() * 80 - 40}px`;
+                        heart.style.top = `${Math.random() * 40 - 20}px`;
+                        heart.style.animationDelay = `${Math.random() * 0.3}s`;
+                        feedbackContainer.appendChild(heart);
+                        setTimeout(() => heart.remove(), 1000);
+                    }
+                }
+                feedbackContainer.appendChild(feedbackText);
+                setTimeout(() => feedbackText.remove(), 1000);
+            }
+
+            function updateTimer() {
+                if (!gameActive) return;
+                timeLeft--;
+                const duration = BASE_GAME_DURATION + upgrades.time.level * 2;
+                const percentage = (timeLeft / duration) * 100;
+                timerBar.style.width = `${percentage}%`;
+                timerBar.classList.toggle('pulsing', timeLeft <= 10 && !isFeverTime);
+                if (timeLeft <= 0) endGame();
+            }
+
+            function endGame() {
+                gameActive = false;
+                clearInterval(timer);
+                
+                let monCoinsEarned = Math.floor(score / 15);
+                if (isBonusGame) {
+                    monCoinsEarned *= 2;
+                    bonusTextEl.classList.remove('hidden');
+                } else {
+                    bonusTextEl.classList.add('hidden');
+                }
+                
+                mainGameState.monCoins += monCoinsEarned;
+                saveMainState();
+                
+                const heartsEarned = Math.floor(score / 2);
+                totalHearts += heartsEarned;
+                localStorage.setItem('monMilkyCafeHearts', totalHearts);
+                
+                finalScoreEl.textContent = score;
+                heartsEarnedEl.textContent = `❤️ +${heartsEarned}`;
+                monCoinsEarnedEl.textContent = `💰 +${monCoinsEarned}`;
+                
+                // ++ START: MODIFIED ENDGAME LOGIC ++
+                // Update the restart button text based on remaining play coins
+                if (mainGameState.playCoins > 0) {
+                    restartButton.textContent = `เล่นอีกครั้ง (ใช้ 1 เหรียญ)`;
+                } else {
+                    restartButton.textContent = 'เหรียญหมด (กลับหน้าหลัก)';
+                }
+                gameOverModal.classList.add('show');
+                // ++ END: MODIFIED ENDGAME LOGIC ++
+            }
+            
+            // --- Shop Logic ---
+            function renderShop() {
+                shopTotalHeartsEl.textContent = totalHearts;
+                upgradesListEl.innerHTML = '';
+                Object.keys(upgrades).forEach(key => {
+                    const up = upgrades[key];
+                    const level = up.level;
+                    const maxLevel = up.maxLevel;
+                    const isMaxed = level >= maxLevel;
+                    const cost = isMaxed ? 'เต็ม' : up.cost[level];
+                    
+                    const canAfford = !isMaxed && totalHearts >= cost;
+
+                    const el = document.createElement('div');
+                    el.className = 'bg-white/50 p-3 rounded-lg flex items-center justify-between';
+                    el.innerHTML = `
+                        <div>
+                            <p class="font-semibold text-left">${up.name} (Lv.${level})</p>
+                            <p class="text-sm text-rose-700 text-left">${up.effect(level)}</p>
+                        </div>
+                        <button data-key="${key}" class="action-button upgrade-button px-4 py-2" ${!canAfford || isMaxed ? 'disabled' : ''}>
+                           ${isMaxed ? 'สูงสุด' : `❤️ ${cost}`}
+                        </button>
+                    `;
+                    upgradesListEl.appendChild(el);
+                });
+                
+                document.querySelectorAll('.upgrade-button').forEach(button => {
+                    button.addEventListener('click', () => buyUpgrade(button.dataset.key));
+                });
+            }
+
+            function buyUpgrade(key) {
+                const up = upgrades[key];
+                const cost = up.cost[up.level];
+                if (totalHearts >= cost && up.level < up.maxLevel) {
+                    totalHearts -= cost;
+                    up.level++;
+                    saveUpgrades();
+                    localStorage.setItem('monMilkyCafeHearts', totalHearts);
+                    renderShop();
+                }
+            }
+            
+            // --- 3D & Visual Effects ---
+            function setupParallax() {
+                const mainContainer = document.getElementById('main-container');
+                const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                if (isMobile && window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', e => {
+                        const beta = e.beta || 0;
+                        const gamma = e.gamma || 0;
+                        const y = Math.max(-30, Math.min(30, beta / 3));
+                        const x = Math.max(-30, Math.min(30, gamma / 3));
+                        backgroundGradient.style.transform = `translate(${x}px, ${y}px)`;
+                    });
+                } else {
+                    window.addEventListener('mousemove', e => {
+                        const x = (e.clientX / window.innerWidth - 0.5) * -60;
+                        const y = (e.clientY / window.innerHeight - 0.5) * -60;
+                        backgroundGradient.style.transform = `translate(${x}px, ${y}px)`;
+
+                        const rect = mainContainer.getBoundingClientRect();
+                        if (!rect.width || !rect.height) return;
+                        const mouseX = e.clientX - rect.left;
+                        const mouseY = e.clientY - rect.top;
+                        const rotateY = (mouseX / rect.width - 0.5) * -20;
+                        const rotateX = (mouseY / rect.height - 0.5) * 20;
+                        mainContainer.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    });
+                }
+            }
+
+            function createStars() {
+                for (let i = 0; i < 20; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    const size = Math.random() * 3 + 1;
+                    star.style.width = `${size}px`;
+                    star.style.height = `${size}px`;
+                    star.style.top = `${Math.random() * 100}vh`;
+                    star.style.left = `${Math.random() * 100}vw`;
+                    star.style.animationDelay = `${Math.random() * 10}s`;
+                    star.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                    starsContainer.appendChild(star);
+                }
+            }
+
+            setupScreens();
+        });
+    </script>
+</body>
+</html>
