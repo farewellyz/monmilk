@@ -2,131 +2,252 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>เช็คอินสะสมวันแบบตาราง (มือถือรองรับ)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Check-in สะสม 1001 วัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
   body {
-    font-family: 'Kanit', sans-serif;
-    background: linear-gradient(#ffe4ec, #ffc1d3);
-    color: #d14776;
-    margin: 0;
-    padding: 20px;
-    text-align: center;
+    font-family: 'Mitr', sans-serif;
+    transition: background-color 0.5s ease;
   }
-  h1 {
-    margin-bottom: 20px;
-    font-size: 1.8em;
+
+  /* Custom scrollbar for a cute theme */
+  #daysGrid::-webkit-scrollbar {
+    width: 8px;
   }
-  #daysGrid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-gap: 10px;
-    max-width: 350px;
-    margin: 20px auto;
+  #daysGrid::-webkit-scrollbar-track {
+    background: var(--scrollbar-track, #fbcfe8);
   }
-  .day {
-    aspect-ratio: 1 / 1; /* ทำให้กล่องเป็นสี่เหลี่ยมจตุรัส */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 2px solid #ffc1d3;
-    border-radius: 50%;
-    color: #d14776;
-    font-weight: bold;
-    user-select: none;
-    cursor: default;
-    position: relative;
-    font-size: 1.1rem;
-    transition: background-color 0.3s, border-color 0.3s;
+  #daysGrid::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, #f472b6);
+    border-radius: 4px;
   }
-  .day.checked {
-    background-color: #ff4d88;
-    border-color: #ff4d88;
-    color: white;
+  #daysGrid::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover, #ec4899);
   }
-  .day.checked::after {
-    content: '👄';
+
+  /* Glow effects for reward days */
+  .reward-day:not(.checked) {
+    box-shadow: 0 0 12px 3px rgba(251, 191, 36, 0.8); /* amber-400 */
+    animation: pulse-amber 2s infinite;
+  }
+  .special-reward-day:not(.checked) {
+    box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.8); /* purple-500 */
+    animation: pulse-purple 2s infinite;
+  }
+  .super-reward-day:not(.checked) {
+    animation: pulse-rainbow 2.5s infinite;
+  }
+
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  .pop {
+    animation: pop 0.4s ease-out forwards;
+  }
+  
+  /* Animation for the number/emoji inside the circle */
+  @keyframes content-pop-in {
+    0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .content-animate {
+    display: inline-block;
+    animation: content-pop-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  }
+
+  @keyframes pulse-amber {
+    0%, 100% { box-shadow: 0 0 12px 3px rgba(251, 191, 36, 0.8); }
+    50% { box-shadow: 0 0 18px 5px rgba(251, 191, 36, 0.5); }
+  }
+  @keyframes pulse-purple {
+    0%, 100% { box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.8); }
+    50% { box-shadow: 0 0 22px 7px rgba(168, 85, 247, 0.5); }
+  }
+  @keyframes pulse-rainbow {
+    0%, 100% { box-shadow: 0 0 18px 4px #ef4444; } /* red-500 */
+    25% { box-shadow: 0 0 18px 4px #f59e0b; } /* amber-500 */
+    50% { box-shadow: 0 0 18px 4px #22c55e; } /* green-500 */
+    75% { box-shadow: 0 0 18px 4px #3b82f6; } /* blue-500 */
+  }
+
+  /* Particle effect container */
+  .particle {
     position: absolute;
-    top: 2px;
-    right: 3px;
-    font-size: 0.8rem;
+    border-radius: 50%;
+    animation: fly 1s ease-out forwards;
+    pointer-events: none;
   }
-  #checkinBtn {
-    background-color: #d14776;
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 30px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    margin-top: 10px;
-    width: 90%;
-    max-width: 320px;
+
+  /* --- REWARD EFFECTS --- */
+  @keyframes reward-glow {
+    0%, 100% { box-shadow: 0 0 25px 10px rgba(252, 211, 77, 0); }
+    50% { box-shadow: 0 0 60px 25px rgba(250, 204, 21, 0.7); } /* amber-400 */
   }
-  #checkinBtn:hover:not(:disabled) {
-    transform: scale(1.05);
-  }
-  #checkinBtn:disabled {
-    background-color: #e7a5be;
-    cursor: default;
-  }
-  #message {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    min-height: 48px;
-    padding: 0 10px;
-  }
-  /* สำหรับหน้าจอเล็กกว่าหรือเท่ากับ 400px */
-  @media (max-width: 400px) {
-    #daysGrid {
-      grid-template-columns: repeat(4, 1fr);
-      max-width: 280px;
-    }
-    .day {
-      font-size: 1rem;
-    }
-    #checkinBtn {
-      padding: 12px 24px;
-      font-size: 1rem;
-      max-width: 260px;
-    }
+  .reward-glow {
+    animation: reward-glow 0.8s ease-in-out;
   }
 </style>
 </head>
-<body>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
-<h1>เช็คอินสะสมวัน เพื่อรับรางวัลพิเศษ</h1>
-<div id="daysGrid"></div>
+  <div id="mainContainer" class="w-full max-w-md mx-auto bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl p-6 border opacity-0 transition-colors duration-500">
+    <header class="text-center mb-4">
+      <h1 id="headerText" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r">สะสมเช็คอิน 1001 วัน</h1>
+      <p id="subHeaderText" class="mt-2">💖 เช็คอินทุกวันเพื่อรางวัลสุดน่ารัก! 💖</p>
+    </header>
 
-<button id="checkinBtn">เช็คอินวันนี้</button>
-<div id="message"></div>
+    <div id="progressDisplay" class="text-center mb-4 p-3 rounded-xl border font-bold transition-colors duration-500">
+      <!-- Progress text will be generated by JavaScript -->
+    </div>
+
+    <div id="daysGrid" class="grid grid-cols-7 gap-2 max-h-72 overflow-y-auto p-4 rounded-xl border mb-6 scroll-smooth transition-colors duration-500">
+      <!-- Days will be generated by JavaScript -->
+    </div>
+
+    <div id="message" class="text-center text-lg min-h-[56px] flex items-center justify-center p-2 mb-6 text-slate-600">
+      <span>กดปุ่มเช็คอินได้เลย!</span>
+    </div>
+
+    <div class="px-4">
+      <button id="checkinBtn" class="w-full text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+        เช็คอินวันนี้ ✨
+      </button>
+    </div>
+  </div>
 
 <script>
+  const TOTAL_DAYS = 1001;
   const daysGrid = document.getElementById('daysGrid');
-  const btn = document.getElementById('checkinBtn');
+  const checkinBtn = document.getElementById('checkinBtn');
   const messageEl = document.getElementById('message');
+  const mainContainer = document.getElementById('mainContainer');
+  const progressDisplay = document.getElementById('progressDisplay');
 
-  let checkinCount = parseInt(localStorage.getItem('checkinCount')) || 0;
-  let lastCheckin = localStorage.getItem('lastCheckin') || null;
+  let checkinCount = parseInt(localStorage.getItem('dailyCheckinCount')) || 0;
+  let lastCheckin = localStorage.getItem('dailyLastCheckin') || null;
 
+  // --- Theme Management ---
+  const themes = {
+    // Sunday: Red ❤️
+    0: { name: "วันอาทิตย์", body: "bg-red-100", container: "border-red-200", header: "from-red-500 to-orange-500", subHeader: "text-red-500", progress: "bg-red-100 border-red-200 text-red-600", grid: "bg-red-50 border-red-200", button: "bg-gradient-to-r from-red-400 to-orange-400 focus:ring-red-300", scrollbar: { track: '#fee2e2', thumb: '#f87171', hover: '#ef4444' } },
+    // Monday: Yellow 💛
+    1: { name: "วันจันทร์", body: "bg-amber-50", container: "border-amber-200", header: "from-amber-500 to-yellow-500", subHeader: "text-amber-500", progress: "bg-amber-100 border-amber-200 text-amber-600", grid: "bg-amber-50 border-amber-200", button: "bg-gradient-to-r from-amber-400 to-yellow-400 focus:ring-amber-300", scrollbar: { track: '#fef3c7', thumb: '#fbbf24', hover: '#f59e0b' } },
+    // Tuesday: Pink 💖
+    2: { name: "วันอังคาร", body: "bg-pink-100", container: "border-pink-200", header: "from-pink-500 to-rose-500", subHeader: "text-pink-500", progress: "bg-pink-100 border-pink-200 text-pink-600", grid: "bg-pink-50 border-pink-200", button: "bg-gradient-to-r from-pink-400 to-rose-400 focus:ring-pink-300", scrollbar: { track: '#fbcfe8', thumb: '#f472b6', hover: '#ec4899' } },
+    // Wednesday: Green 💚
+    3: { name: "วันพุธ", body: "bg-green-50", container: "border-green-200", header: "from-green-500 to-emerald-500", subHeader: "text-green-500", progress: "bg-green-100 border-green-200 text-green-600", grid: "bg-green-50 border-green-200", button: "bg-gradient-to-r from-green-400 to-emerald-400 focus:ring-green-300", scrollbar: { track: '#d1fae5', thumb: '#34d399', hover: '#10b981' } },
+    // Thursday: Orange 🧡
+    4: { name: "วันพฤหัสบดี", body: "bg-orange-50", container: "border-orange-200", header: "from-orange-500 to-amber-500", subHeader: "text-orange-500", progress: "bg-orange-100 border-orange-200 text-orange-600", grid: "bg-orange-50 border-orange-200", button: "bg-gradient-to-r from-orange-400 to-amber-400 focus:ring-orange-300", scrollbar: { track: '#ffedd5', thumb: '#fb923c', hover: '#f97316' } },
+    // Friday: Blue 💙
+    5: { name: "วันศุกร์", body: "bg-sky-50", container: "border-sky-200", header: "from-sky-500 to-blue-500", subHeader: "text-sky-500", progress: "bg-sky-100 border-sky-200 text-sky-600", grid: "bg-sky-50 border-sky-200", button: "bg-gradient-to-r from-sky-400 to-blue-400 focus:ring-sky-300", scrollbar: { track: '#e0f2fe', thumb: '#38bdf8', hover: '#0ea5e9' } },
+    // Saturday: Purple 💜
+    6: { name: "วันเสาร์", body: "bg-purple-50", container: "border-purple-200", header: "from-purple-500 to-violet-500", subHeader: "text-purple-500", progress: "bg-purple-100 border-purple-200 text-purple-600", grid: "bg-purple-50 border-purple-200", button: "bg-gradient-to-r from-purple-400 to-violet-400 focus:ring-purple-300", scrollbar: { track: '#f3e8ff', thumb: '#c084fc', hover: '#a855f7' } }
+  };
+
+  function applyTheme(theme) {
+    const elements = {
+      body: document.body,
+      container: document.getElementById('mainContainer'),
+      header: document.getElementById('headerText'),
+      subHeader: document.getElementById('subHeaderText'),
+      progress: document.getElementById('progressDisplay'),
+      grid: document.getElementById('daysGrid'),
+      button: document.getElementById('checkinBtn')
+    };
+
+    // Reset all theme classes
+    Object.values(themes).forEach(t => {
+      elements.body.classList.remove(t.body);
+      elements.container.classList.remove(t.container);
+      elements.header.classList.remove(...t.header.split(' '));
+      elements.subHeader.classList.remove(t.subHeader);
+      elements.progress.classList.remove(...t.progress.split(' '));
+      elements.grid.classList.remove(...t.grid.split(' '));
+      elements.button.classList.remove(...t.button.split(' '));
+    });
+
+    // Apply new theme classes
+    elements.body.classList.add(theme.body);
+    elements.container.classList.add(theme.container);
+    elements.header.classList.add(...theme.header.split(' '));
+    elements.subHeader.classList.add(theme.subHeader);
+    elements.progress.classList.add(...theme.progress.split(' '));
+    elements.grid.classList.add(...theme.grid.split(' '));
+    elements.button.classList.add(...theme.button.split(' '));
+    
+    // Update subheader text
+    elements.subHeader.textContent = `💖 ธีม${theme.name} 💖`;
+
+    // Update scrollbar colors via CSS variables
+    const root = document.documentElement;
+    root.style.setProperty('--scrollbar-track', theme.scrollbar.track);
+    root.style.setProperty('--scrollbar-thumb', theme.scrollbar.thumb);
+    root.style.setProperty('--scrollbar-thumb-hover', theme.scrollbar.hover);
+  }
+
+
+  // --- UI Effects ---
+  function createParticles(event) { /* ... (no changes) ... */ }
+  function createStarfall() { /* ... (no changes) ... */ }
+  function triggerRewardEffect() { /* ... (no changes) ... */ }
+  
+  // --- Core Functions ---
   function isCheckedInToday() {
     if (!lastCheckin) return false;
-    const last = new Date(lastCheckin);
-    const now = new Date();
-    return last.getFullYear() === now.getFullYear() &&
-           last.getMonth() === now.getMonth() &&
-           last.getDate() === now.getDate();
+    const lastDate = new Date(lastCheckin);
+    const today = new Date();
+    return lastDate.getFullYear() === today.getFullYear() &&
+           lastDate.getMonth() === today.getMonth() &&
+           lastDate.getDate() === today.getDate();
   }
 
   function renderDays() {
     daysGrid.innerHTML = '';
-    for(let i = 1; i <= 28; i++) {
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
       const dayDiv = document.createElement('div');
-      dayDiv.classList.add('day');
-      dayDiv.textContent = i;
-      if(i <= checkinCount) {
+      dayDiv.id = `day-${i}`;
+      const dayClasses = ['day-item', 'aspect-square', 'flex', 'items-center', 'justify-center', 'font-bold', 'rounded-full', 'text-sm', 'transition-all', 'duration-300', 'cursor-default'];
+      
+      // Get current theme for day colors
+      const currentTheme = themes[new Date().getDay()];
+      const themeDayColor = currentTheme.progress.split(' ')[2]; // e.g., text-pink-600
+      const themeDayBg = currentTheme.progress.split(' ')[0]; // e.g., bg-pink-100
+
+      dayDiv.innerHTML = `<span>${i}</span>`;
+      dayDiv.classList.add(...dayClasses, themeDayBg.replace('bg-', 'bg-opacity-50'), themeDayColor);
+
+      if (i % 100 === 0) { dayDiv.classList.add('super-reward-day'); } 
+      else if (i % 28 === 0) { dayDiv.classList.add('special-reward-day'); } 
+      else if (i % 7 === 0) { dayDiv.classList.add('reward-day'); }
+
+      if (i <= checkinCount) {
+        dayDiv.innerHTML = `<span class="text-xl">✨</span>`;
+        dayDiv.classList.remove(themeDayBg.replace('bg-', 'bg-opacity-50'), themeDayColor);
+        if (i % 100 === 0) {
+            dayDiv.classList.add('bg-gradient-to-br', 'from-red-400', 'via-amber-400', 'to-sky-400', 'text-white', 'shadow-lg', 'shadow-amber-500/50');
+        } else if (i % 28 === 0) {
+            dayDiv.classList.add('bg-purple-500', 'text-white', 'shadow-lg', 'shadow-purple-500/50');
+        } else if (i % 7 === 0) {
+            dayDiv.classList.add('bg-amber-400', 'text-slate-900', 'shadow-lg', 'shadow-amber-400/50');
+        } else {
+            dayDiv.classList.add(...currentTheme.button.split(' ').filter(c => c.startsWith('bg-gradient') || c.startsWith('from-') || c.startsWith('to-')));
+        }
         dayDiv.classList.add('checked');
       }
       daysGrid.appendChild(dayDiv);
@@ -135,36 +256,131 @@
 
   function updateUI() {
     renderDays();
-
-    if (checkinCount >= 28) {
-      messageEl.textContent = "🎉 ยินดีด้วย! บี๋สะสมครบ 28 วัน ได้รับรางวัลพิเศษ! 🎁";
-      btn.disabled = true;
+    progressDisplay.innerHTML = `💖 เดินทางมาแล้ว <span class="text-2xl">${checkinCount}</span> / ${TOTAL_DAYS} วัน 💖`;
+    if (checkinCount >= TOTAL_DAYS) {
+      messageEl.innerHTML = '🎉 <span class="font-bold text-green-500">ยินดีด้วย!</span> คุณสะสมครบ 1001 วันแล้ว! 🎁';
+      checkinBtn.disabled = true;
       return;
     }
-
+    
     if (isCheckedInToday()) {
-      btn.disabled = true;
-      messageEl.textContent = "เบบี๋เช็คอินวันนี้แล้ว กลับมาใหม่พรุ่งนี้นะคะ 😊";
+      checkinBtn.disabled = true;
+      if (!messageEl.dataset.reward) {
+          messageEl.innerHTML = '<span class="text-slate-500">เช็คอินวันนี้แล้ว เจอกันพรุ่งนี้นะคะ 😊</span>';
+      }
     } else {
-      btn.disabled = false;
-      messageEl.textContent = "";
-    }
-
-    if ([7, 14, 21].includes(checkinCount)) {
-      messageEl.textContent = `🎉 ยินดีด้วย! บี๋สะสมครบ ${checkinCount} วัน ได้รับรางวัล! 🎁`;
+      checkinBtn.disabled = false;
+      messageEl.innerHTML = '<span class="text-slate-600">กดปุ่มเช็คอินได้เลย!</span>';
+      delete messageEl.dataset.reward;
     }
   }
 
-  btn.addEventListener('click', () => {
+  // --- Event Listeners ---
+  checkinBtn.addEventListener('click', (e) => {
     if (isCheckedInToday()) return;
+    
+    createParticles(e);
     checkinCount++;
     lastCheckin = new Date().toISOString();
-    localStorage.setItem('checkinCount', checkinCount);
-    localStorage.setItem('lastCheckin', lastCheckin);
+    localStorage.setItem('dailyCheckinCount', checkinCount);
+    localStorage.setItem('dailyLastCheckin', lastCheckin);
     updateUI();
+    const checkedDayEl = document.getElementById(`day-${checkinCount}`);
+    if (checkedDayEl) {
+        checkedDayEl.classList.add('pop');
+        const contentSpan = checkedDayEl.querySelector('span');
+        if(contentSpan) { contentSpan.classList.add('content-animate'); }
+    }
+    messageEl.dataset.reward = "true";
+    let isReward = false;
+    if (checkinCount % 100 === 0) {
+      messageEl.innerHTML = `🌈 <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-sky-500">รางวัลสุดยอด!</span> ครบ ${checkinCount} วัน! 🎁`;
+      isReward = true;
+    } else if (checkinCount % 28 === 0) {
+      messageEl.innerHTML = `🎉 <span class="font-bold text-purple-500">รางวัลใหญ่!</span> ครบ ${checkinCount} วัน รับรางวัล x2! 🎁`;
+      isReward = true;
+    } else if (checkinCount % 7 === 0) {
+      messageEl.innerHTML = `⭐ <span class="font-bold text-amber-500">ยินดีด้วย!</span> ครบ ${checkinCount} วัน รับรางวัล! 🎁`;
+      isReward = true;
+    } else {
+      messageEl.innerHTML = `<span class="text-green-500">เช็คอินสำเร็จ!</span> เดินทางมาแล้ว ${checkinCount} วัน`;
+      delete messageEl.dataset.reward;
+    }
+    if (isReward) {
+        setTimeout(() => { triggerRewardEffect(); }, 300);
+    }
   });
 
-  updateUI();
+  // --- Initial Load ---
+  window.addEventListener('load', () => {
+    const today = new Date().getDay();
+    const currentTheme = themes[today];
+    applyTheme(currentTheme);
+    
+    mainContainer.classList.add('fade-in');
+    updateUI();
+  });
+  
+  // --- Re-pasted functions to avoid being overwritten ---
+  function createStarfall() {
+    const starContainer = document.body;
+    for (let i = 0; i < 150; i++) {
+        const star = document.createElement('div');
+        star.style.position = 'absolute';
+        const size = Math.random() * 20 + 10;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}vw`;
+        star.style.top = `${Math.random() * -100 - 50}px`;
+        const colors = ['#f472b6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#22c55e', '#ef4444', '#ffffff'];
+        star.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        star.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+        star.style.opacity = '1';
+        star.style.pointerEvents = 'none';
+        starContainer.appendChild(star);
+        const fallDuration = Math.random() * 3 + 2.5;
+        const swingAmplitude = Math.random() * 100 + 50;
+        star.animate([
+            { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+            { transform: `translate(${Math.random() > 0.5 ? swingAmplitude : -swingAmplitude}px, 120vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+        ], { duration: fallDuration * 1000, easing: 'ease-out' });
+        setTimeout(() => { star.remove(); }, fallDuration * 1000);
+    }
+  }
+  function triggerRewardEffect() {
+    createStarfall();
+    const container = document.getElementById('mainContainer');
+    container.classList.add('reward-glow');
+    setTimeout(() => { container.classList.remove('reward-glow'); }, 800);
+  }
+  function createParticles(event) {
+    const btn = event.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        document.body.appendChild(particle);
+        const size = Math.random() * 10 + 5;
+        const angle = Math.random() * 360;
+        const distance = Math.random() * 80 + 50;
+        const particleX = rect.left + x;
+        const particleY = rect.top + y;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${particleX}px`;
+        particle.style.top = `${particleY}px`;
+        const colors = ['#ec4899', '#f472b6', '#f9a8d4', '#a855f7'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`, opacity: 0 }
+        ], { duration: Math.random() * 500 + 500, easing: 'ease-out' });
+        setTimeout(() => { particle.remove(); }, 1000);
+    }
+  }
+
 </script>
 
 </body>
