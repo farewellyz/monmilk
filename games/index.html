@@ -181,7 +181,7 @@
             
             <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
                 <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242 0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242_0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
                     ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
@@ -264,11 +264,12 @@
                 { text: 'ลงสตอรี่เกี่ยวกับม่อน (2 เหรียญ)', reward: 2 },
             ];
             
-            const shopItems = [
-                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', price: 200 },  
-                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', price: 600 }, 
-                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', price: 2000 }, 
-                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', price: 1000 }, 
+            // ++ เปลี่ยนเป็นข้อมูลพื้นฐานของร้านค้า ++
+            const shopItemDefinitions = [
+                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200 },  
+                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600 }, 
+                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000 }, 
+                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000 }, 
             ];
             
             const consumableItems = {
@@ -311,11 +312,22 @@
                 localStorage.setItem('monGameDataV14', JSON.stringify(state));
             }
 
+            // ++ อัปเดตฟังก์ชัน loadState เพื่อรองรับราคาสินค้าแบบไดนามิก ++
             function loadState() {
                 const savedData = localStorage.getItem('monGameDataV14');
                 if (savedData) {
                     state = JSON.parse(savedData);
+                    // เพิ่ม property ใหม่ (shopItemLevels) เข้าไปใน state เดิม ถ้ายังไม่มี
+                    if (!state.shopItemLevels) {
+                        state.shopItemLevels = {
+                            'ticket_random': 0,
+                            'ticket_trip': 0,
+                            'ticket_wish': 0,
+                            'ticket_command': 0
+                        };
+                    }
                 } else {
+                    // state เริ่มต้นสำหรับผู้เล่นใหม่
                     state = {
                         monCoins: 1000, 
                         playCoins: 0, 
@@ -324,7 +336,13 @@
                         lastMissionDate: null, 
                         inventory: {},
                         dailyBonusGameId: null,
-                        lastBonusGameDate: null
+                        lastBonusGameDate: null,
+                        shopItemLevels: {
+                            'ticket_random': 0,
+                            'ticket_trip': 0,
+                            'ticket_command': 0,
+                            'ticket_wish': 0
+                        }
                     };
                     generateNewMissions();
                 }
@@ -351,13 +369,11 @@
 
                     gameCardContainer.querySelectorAll('.game-card').forEach(card => {
                         card.classList.remove('bonus-game');
-                        // Construct the original href without query params
                         const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
                         if (gameData) {
                             card.href = gameData.file; 
                             if (card.dataset.gameId === state.dailyBonusGameId) {
                                 card.classList.add('bonus-game');
-                                // The actual URL with bonus is handled by the click event listener
                             }
                         }
                     });
@@ -489,24 +505,29 @@
                 });
             }
 
+            // ++ อัปเดตฟังก์ชัน renderShopItems เพื่อแสดงราคาที่เปลี่ยนไป ++
             function renderShopItems() {
                 shopItemsList.innerHTML = '';
-                shopItems.forEach(item => {
+                shopItemDefinitions.forEach(item => {
                     const itemEl = document.createElement('div');
+                    const currentLevel = state.shopItemLevels[item.id] || 0;
+                    const currentPrice = item.basePrice * Math.pow(2, currentLevel); // ราคา = ราคาพื้นฐาน * (2 ^ จำนวนครั้งที่ซื้อ)
+
                     itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
                     itemEl.innerHTML = `
                         <div>
                             <p class="text-lg font-semibold text-gray-700">${item.name}</p>
                             <p class="text-base font-bold text-amber-500 flex items-center">
-                                ${item.price} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">
+                                ${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">
                             </p>
                         </div>
-                        <button data-price="${item.price}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">
+                        <button data-price="${currentPrice}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">
                             ซื้อ
                         </button>`;
                     shopItemsList.appendChild(itemEl);
                 });
 
+                // ++ อัปเดต event listener ของปุ่มซื้อ ++
                 document.querySelectorAll('.buy-item-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const price = parseInt(e.currentTarget.dataset.price);
@@ -514,11 +535,18 @@
                         if (state.monCoins >= price) {
                             state.monCoins -= price;
                             state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
+                            
+                            // เพิ่ม level ของไอเทมเพื่อใช้คำนวณราคาครั้งถัดไป
+                            state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
+
                             updateCoinDisplays();
                             renderInventory(); 
                             saveState();
                             alert('ซื้อสำเร็จ! ไอเทมถูกเพิ่มในกระเป๋าแล้วค่ะ');
                             confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, scalar: 1.2 });
+                            
+                            // render ร้านค้าใหม่เพื่ออัปเดตราคาที่แสดง
+                            renderShopItems(); 
                         } else {
                             alert('อุ๊ย! เหรียญม่อนไม่พอจ้า!');
                         }
@@ -542,26 +570,30 @@
                 pickDailyBonusGame();
                 showScreen('menu'); 
 
-                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด (เวอร์ชันใหม่) ++
+                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด (เวอร์ชันแก้บัคเกมคาเฟ่) ++
                 document.querySelectorAll('.game-card').forEach(card => {
                     card.addEventListener('click', (event) => {
-                        event.preventDefault(); // หยุดการเปลี่ยนหน้าทันที
+                        event.preventDefault();
 
                         const gameId = card.dataset.gameId;
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
-                        // ตรวจสอบว่ามีเหรียญพอเล่นหรือไม่
                         if (state.playCoins > 0) {
-                            // ไม่ต้องหักเหรียญในหน้านี้แล้ว ปล่อยให้หน้าเกมจัดการเอง
+                            // โค้ดก่อนหน้าเอาส่วนหักเหรียญออกทั้งหมด ทำให้เกมที่ไม่มีระบบหักเหรียญในตัว (เช่น เกมคาเฟ่) ไม่หักเหรียญ
+                            // เราจะเพิ่มเงื่อนไขให้หักเหรียญสำหรับ 'เกมคาเฟ่' ที่หน้านี้โดยเฉพาะ
+                            // และจะไม่หักถ้าเกมคาเฟ่เป็นเกมโบนัส (เพราะหน้าเกมโบนัสจะจัดการเอง)
+                            if (gameId === 'cafe' && !isBonusGame) {
+                                state.playCoins--;
+                                updateCoinDisplays();
+                            }
                             
-                            // ถ้าเป็นเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL เหมือนเดิม
                             if (isBonusGame) {
                                 targetUrl += '?bonus=true';
                             }
                             
-                            // ไปยังหน้าเกมได้เลย
-                            window.location.href = targetUrl; 
+                            saveState(); // บันทึกข้อมูลล่าสุดก่อนเปลี่ยนหน้า
+                            window.location.href = targetUrl;
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
                         }
