@@ -147,14 +147,14 @@
                     <div class="text-center">
                         <p class="text-4xl font-bold text-amber-500 flex items-center justify-center">
                             <span id="mon-coin-display">0</span>
-                            <img src="mon_coin_icon.png" alt="Mon Coin" class="w-8 h-8 ml-2">
+                            <img src="mon_coin_icon.png" alt="Mon Coin" class="w-8 h-8 ml-2" onerror="this.style.display='none'">
                         </p>
                         <p class="text-sm font-medium text-gray-400">เหรียญม่อน ($)</p>
                     </div>
                     <div class="text-center">
                         <p class="text-4xl font-bold text-emerald-500 flex items-center justify-center">
                             <span id="play-coin-display">0</span>
-                            <img src="play_coin_icon.png" alt="Play Coin" class="w-8 h-8 ml-2">
+                            <img src="play_coin_icon.png" alt="Play Coin" class="w-8 h-8 ml-2" onerror="this.style.display='none'">
                         </p>
                         <p class="text-sm font-medium text-gray-400">เหรียญเล่นม่อน</p>
                     </div>
@@ -182,7 +182,7 @@
             <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
                 <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242 0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
-                   ภารกิจรายวัน
+                    ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
             </div>
@@ -498,7 +498,7 @@
                         <div>
                             <p class="text-lg font-semibold text-gray-700">${item.name}</p>
                             <p class="text-base font-bold text-amber-500 flex items-center">
-                                ${item.price} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1">
+                                ${item.price} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">
                             </p>
                         </div>
                         <button data-price="${item.price}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">
@@ -542,25 +542,31 @@
                 pickDailyBonusGame();
                 showScreen('menu'); 
 
-                // ++ เพิ่มโค้ดจัดการการคลิกเกมการ์ด ++
+                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด ++
                 document.querySelectorAll('.game-card').forEach(card => {
                     card.addEventListener('click', (event) => {
                         event.preventDefault(); // หยุดการเปลี่ยนหน้าทันที
 
                         const gameId = card.dataset.gameId;
                         let targetUrl = card.href;
+                        const isBonusGame = gameId === state.dailyBonusGameId;
 
                         if (state.playCoins > 0) {
-                            state.playCoins--;
-                            updateCoinDisplays();
-                            saveState();
+                            // สำหรับเกมปกติ ให้หักเหรียญก่อนไป
+                            if (!isBonusGame) {
+                                state.playCoins--;
+                                updateCoinDisplays();
+                                saveState();
+                            }
 
-                            // ถ้าเป็นเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL
-                            if (gameId === state.dailyBonusGameId) {
+                            // สำหรับเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL
+                            // เราสมมติว่าหน้าเกมโบนัสจะจัดการหักเหรียญเอง เพื่อป้องกันการหักซ้ำ
+                            if (isBonusGame) {
                                 targetUrl += '?bonus=true';
                             }
                             
-                            window.location.href = targetUrl; // ไปยังหน้าเกม
+                            // เมื่อจัดการเรื่องเหรียญแล้ว ก็ให้ไปที่หน้าเกมได้เลย
+                            window.location.href = targetUrl; 
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
                         }
