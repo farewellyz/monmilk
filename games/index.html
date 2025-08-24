@@ -31,7 +31,7 @@
             box-shadow: 0 5px 15px rgba(219, 39, 119, 0.1), inset 0 0 5px rgba(255,255,255,0.5);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .card-base:not(.bonus-game-card):hover { /* Added :not() to prevent double hover effect on bonus card */
+        .card-base:not(.bonus-game-card):hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 25px rgba(219, 39, 119, 0.15), inset 0 0 5px rgba(255,255,255,0.5);
         }
@@ -59,8 +59,17 @@
             50%  { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        /* Rainbow border for the main announcement card */
+        
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shaking {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
         #bonus-game-section {
             position: relative;
             border: 4px solid transparent;
@@ -73,7 +82,7 @@
             content: '';
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
-            z-index: 0; /* Changed to 0 to be behind content */
+            z-index: 0;
             margin: -4px; 
             border-radius: inherit; 
             background: linear-gradient(125deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3, #ff2400);
@@ -81,7 +90,6 @@
             animation: animated-rainbow-gradient 10s infinite linear;
         }
 
-        /* Ensure content is on top of the border pseudo-element */
         #bonus-game-section > * {
             position: relative;
             z-index: 1;
@@ -90,12 +98,11 @@
         .bonus-game-header {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #be185d; /* text-pink-700 */
+            color: #be185d;
             border-bottom: none;
             text-shadow: 1px 1px 2px rgba(255,255,255,0.7);
         }
 
-        /* Styling for the smaller game card that IS the bonus game */
         .game-card.bonus-game {
             border: 3px solid #fff;
             transform: scale(1.05);
@@ -116,6 +123,100 @@
             font-weight: 700;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.8);
         }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            width: 90%;
+            max-width: 380px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        /* CSGO Gacha Animation Styles */
+        #gacha-animation-csgo {
+            width: 100%;
+            height: 120px;
+            background-color: #e2e8f0;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            border: 4px solid #cbd5e1;
+        }
+        #gacha-animation-csgo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background-color: #ef4444;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+        }
+        #gacha-reel {
+            display: flex;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .gacha-item {
+            width: 120px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0.5rem;
+            border-right: 2px solid #cbd5e1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gacha-item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .rarity-common { background-color: #d1d5db; color: #1f2937; }
+        .rarity-rare { background: linear-gradient(145deg, #60a5fa, #3b82f6); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .rarity-epic { background: linear-gradient(145deg, #a855f7, #9333ea); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .rarity-legendary { background: linear-gradient(145deg, #f59e0b, #d97706); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        .winning-item {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+        .rarity-rare.winning-item { box-shadow: 0 0 20px 5px #60a5fa; }
+        .rarity-epic.winning-item { box-shadow: 0 0 20px 5px #a855f7; }
+        .rarity-legendary.winning-item { box-shadow: 0 0 25px 8px #f59e0b; }
     </style>
 </head>
 <body>
@@ -179,9 +280,21 @@
                 </button>
             </div>
             
+            <!-- Gacha Section -->
             <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
                 <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242_0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M12 3l0 2" /><path d="M3 12l2 0" /><path d="M12 21l0 -2" /><path d="M21 12l-2 0" /></svg>
+                    กาชาปองของม่อน
+                </h2>
+                <button id="gacha-pull-btn" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-500 to-indigo-600 border-purple-800 mb-2">
+                    สุ่มเลย! (50 <img src="mon_coin_icon.png" class="w-5 h-5 ml-1 inline-block" onerror="this.style.display='none'">)
+                </button>
+                <button id="gacha-rates-btn" class="w-full text-sm text-pink-500 hover:text-pink-700 font-semibold">ดูอัตราดรอป</button>
+            </div>
+
+            <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M18 22l3.35 -3.284a2.143 2.143 0 0 0 .005 -3.071a2.242 2.242 0 0 0 -3.129 -.006l-.224 .22l-.223 -.22a2.242 2.242 0 0 0 -3.128 -.006a2.143 2.143 0 0 0 -.006 3.071l3.355 3.296z" /></svg>
                     ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
@@ -238,8 +351,36 @@
             </header>
             <div id="shop-items-list" class="space-y-4"></div>
         </div>
-        
     </div>
+
+    <!-- Gacha Result Modal -->
+    <div id="gacha-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="gacha-title" class="text-3xl font-bold text-pink-500 mb-4">กำลังสุ่ม...</h2>
+            <div id="gacha-animation-csgo" class="mb-4">
+                <div id="gacha-reel"></div>
+            </div>
+            <div id="gacha-result" class="hidden">
+                <p class="text-lg text-gray-600 mb-2">คุณได้รับ:</p>
+                <p id="gacha-prize-text" class="text-2xl font-bold text-purple-600 mb-6"></p>
+            </div>
+            <button id="close-gacha-modal-btn" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 hidden">
+                ปิด
+            </button>
+        </div>
+    </div>
+    
+    <!-- Gacha Rates Modal -->
+    <div id="gacha-rates-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold text-pink-500 mb-4">อัตราดรอปกาชา</h2>
+            <div id="gacha-rates-list" class="text-left space-y-2 max-h-64 overflow-y-auto"></div>
+            <button id="close-gacha-rates-modal-btn" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 mt-6">
+                ปิด
+            </button>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -264,7 +405,6 @@
                 { text: 'ลงสตอรี่เกี่ยวกับม่อน (2 เหรียญ)', reward: 2 },
             ];
             
-            // ++ เปลี่ยนเป็นข้อมูลพื้นฐานของร้านค้า ++
             const shopItemDefinitions = [
                 { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200 },  
                 { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600 }, 
@@ -288,6 +428,19 @@
                 { id: 'cafe', name: 'เกมคาเฟ่', file: 'cafe.html' },
             ];
 
+            // Gacha Prize Pool with new rates and rarity
+            const gachaPrizes = [
+                { name: '1 เหรียญเล่นม่อน', type: 'play_coin', value: 1, probability: 39, rarity: 'common' },
+                { name: '2 เหรียญเล่นม่อน', type: 'play_coin', value: 2, probability: 24, rarity: 'common' },
+                { name: '3 เหรียญเล่นม่อน', type: 'play_coin', value: 3, probability: 10, rarity: 'common' },
+                { name: '4 เหรียญเล่นม่อน', type: 'play_coin', value: 4, probability: 5, rarity: 'rare' },
+                { name: '5 เหรียญเล่นม่อน', type: 'play_coin', value: 5, probability: 5, rarity: 'rare' },
+                { name: 'ตั๋วสุ่มวงล้อ', type: 'item', value: 'ticket_random', probability: 7, rarity: 'rare' },
+                { name: 'ตั๋วให้พาไปไหนก็ได้', type: 'item', value: 'ticket_trip', probability: 6, rarity: 'epic' },
+                { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', type: 'item', value: 'ticket_command', probability: 3, rarity: 'epic' },
+                { name: 'ตั๋วที่ขออะไรก็ได้', type: 'item', value: 'ticket_wish', probability: 1, rarity: 'legendary' },
+            ];
+
             const screens = {
                 menu: document.getElementById('menu-screen'),
                 shop: document.getElementById('shop-screen'),
@@ -296,6 +449,7 @@
                 mon: document.getElementById('mon-coin-display'),
                 play: document.getElementById('play-coin-display'),
             };
+            // Element selectors
             const checkInBtn = document.getElementById('check-in-btn');
             const dailyMissionsList = document.getElementById('daily-missions-list');
             const shopItemsList = document.getElementById('shop-items-list');
@@ -304,6 +458,20 @@
             const bonusGameSection = document.getElementById('bonus-game-section'); 
             const dailyBonusGameName = document.getElementById('daily-bonus-game-name'); 
             const gameCardContainer = document.getElementById('game-card-container');
+            
+            // Gacha elements
+            const gachaPullBtn = document.getElementById('gacha-pull-btn');
+            const gachaRatesBtn = document.getElementById('gacha-rates-btn');
+            const gachaModal = document.getElementById('gacha-modal');
+            const gachaTitle = document.getElementById('gacha-title');
+            const gachaReel = document.getElementById('gacha-reel');
+            const gachaResult = document.getElementById('gacha-result');
+            const gachaPrizeText = document.getElementById('gacha-prize-text');
+            const closeGachaModalBtn = document.getElementById('close-gacha-modal-btn');
+            const gachaRatesModal = document.getElementById('gacha-rates-modal');
+            const gachaRatesList = document.getElementById('gacha-rates-list');
+            const closeGachaRatesModalBtn = document.getElementById('close-gacha-rates-modal-btn');
+
 
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
             document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
@@ -312,22 +480,17 @@
                 localStorage.setItem('monGameDataV14', JSON.stringify(state));
             }
 
-            // ++ อัปเดตฟังก์ชัน loadState เพื่อรองรับราคาสินค้าแบบไดนามิก ++
             function loadState() {
                 const savedData = localStorage.getItem('monGameDataV14');
                 if (savedData) {
                     state = JSON.parse(savedData);
-                    // เพิ่ม property ใหม่ (shopItemLevels) เข้าไปใน state เดิม ถ้ายังไม่มี
                     if (!state.shopItemLevels) {
-                        state.shopItemLevels = {
-                            'ticket_random': 0,
-                            'ticket_trip': 0,
-                            'ticket_wish': 0,
-                            'ticket_command': 0
-                        };
+                        state.shopItemLevels = {};
+                        shopItemDefinitions.forEach(item => {
+                            state.shopItemLevels[item.id] = 0;
+                        });
                     }
                 } else {
-                    // state เริ่มต้นสำหรับผู้เล่นใหม่
                     state = {
                         monCoins: 1000, 
                         playCoins: 0, 
@@ -337,13 +500,11 @@
                         inventory: {},
                         dailyBonusGameId: null,
                         lastBonusGameDate: null,
-                        shopItemLevels: {
-                            'ticket_random': 0,
-                            'ticket_trip': 0,
-                            'ticket_command': 0,
-                            'ticket_wish': 0
-                        }
+                        shopItemLevels: {}
                     };
+                    shopItemDefinitions.forEach(item => {
+                        state.shopItemLevels[item.id] = 0;
+                    });
                     generateNewMissions();
                 }
             }
@@ -428,9 +589,7 @@
                 if (state.inventory[itemId] > 0) {
                     const itemDetails = consumableItems[itemId];
                     alert(`ใช้ไอเทม: ${itemDetails.name}!`);
-                    
                     state.inventory[itemId]--; 
-                    
                     saveState();
                     renderInventory(); 
                     updateCoinDisplays(); 
@@ -471,21 +630,10 @@
                 state.dailyMissions.forEach((mission, index) => {
                     const missionEl = document.createElement('div');
                     const isCompleted = mission.completed;
-                    
                     missionEl.className = `flex justify-between items-center bg-pink-50 p-3 rounded-lg border-l-4 border-pink-200 text-base text-gray-600 transition-opacity duration-300 ${isCompleted ? 'opacity-60' : ''}`;
-                    
-                    const btnClass = isCompleted 
-                        ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-600'
-                        : 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-600';
-                    
-                    const btnContent = isCompleted 
-                        ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>` 
-                        : 'เสร็จสิ้น';
-
-                    missionEl.innerHTML = `
-                        <p class="font-medium transition-all duration-300 ${isCompleted ? 'line-through' : ''}">${mission.text}</p>
-                        <button data-index="${index}" class="btn-base text-sm px-3 py-2 rounded-xl font-semibold text-white shadow-md flex items-center justify-center border-b-4 ml-2 ${btnClass}">${btnContent}</button>`;
-                    
+                    const btnClass = isCompleted ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-green-600' : 'bg-gradient-to-br from-pink-400 to-rose-400 border-pink-600';
+                    const btnContent = isCompleted ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>` : 'เสร็จสิ้น';
+                    missionEl.innerHTML = `<p class="font-medium transition-all duration-300 ${isCompleted ? 'line-through' : ''}">${mission.text}</p><button data-index="${index}" class="btn-base text-sm px-3 py-2 rounded-xl font-semibold text-white shadow-md flex items-center justify-center border-b-4 ml-2 ${btnClass}">${btnContent}</button>`;
                     dailyMissionsList.appendChild(missionEl);
                 });
 
@@ -505,29 +653,17 @@
                 });
             }
 
-            // ++ อัปเดตฟังก์ชัน renderShopItems เพื่อแสดงราคาที่เปลี่ยนไป ++
             function renderShopItems() {
                 shopItemsList.innerHTML = '';
                 shopItemDefinitions.forEach(item => {
                     const itemEl = document.createElement('div');
                     const currentLevel = state.shopItemLevels[item.id] || 0;
-                    const currentPrice = item.basePrice * Math.pow(2, currentLevel); // ราคา = ราคาพื้นฐาน * (2 ^ จำนวนครั้งที่ซื้อ)
-
+                    const currentPrice = item.basePrice * Math.pow(2, currentLevel);
                     itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
-                    itemEl.innerHTML = `
-                        <div>
-                            <p class="text-lg font-semibold text-gray-700">${item.name}</p>
-                            <p class="text-base font-bold text-amber-500 flex items-center">
-                                ${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">
-                            </p>
-                        </div>
-                        <button data-price="${currentPrice}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">
-                            ซื้อ
-                        </button>`;
+                    itemEl.innerHTML = `<div><p class="text-lg font-semibold text-gray-700">${item.name}</p><p class="text-base font-bold text-amber-500 flex items-center">${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p></div><button data-price="${currentPrice}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
                     shopItemsList.appendChild(itemEl);
                 });
 
-                // ++ อัปเดต event listener ของปุ่มซื้อ ++
                 document.querySelectorAll('.buy-item-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const price = parseInt(e.currentTarget.dataset.price);
@@ -535,17 +671,12 @@
                         if (state.monCoins >= price) {
                             state.monCoins -= price;
                             state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
-                            
-                            // เพิ่ม level ของไอเทมเพื่อใช้คำนวณราคาครั้งถัดไป
                             state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
-
                             updateCoinDisplays();
                             renderInventory(); 
                             saveState();
                             alert('ซื้อสำเร็จ! ไอเทมถูกเพิ่มในกระเป๋าแล้วค่ะ');
                             confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, scalar: 1.2 });
-                            
-                            // render ร้านค้าใหม่เพื่ออัปเดตราคาที่แสดง
                             renderShopItems(); 
                         } else {
                             alert('อุ๊ย! เหรียญม่อนไม่พอจ้า!');
@@ -553,6 +684,147 @@
                     });
                 });
             }
+
+            // --- Gacha Functions ---
+            function pullGacha() {
+                const rand = Math.random() * 100;
+                let cumulativeProbability = 0;
+                for (const prize of gachaPrizes) {
+                    cumulativeProbability += prize.probability;
+                    if (rand < cumulativeProbability) {
+                        return prize;
+                    }
+                }
+                return gachaPrizes[gachaPrizes.length - 1]; // Fallback
+            }
+
+            function givePrize(prize) {
+                switch (prize.type) {
+                    case 'play_coin':
+                        state.playCoins += prize.value;
+                        break;
+                    case 'item':
+                        if (consumableItems[prize.value]) {
+                           state.inventory[prize.value] = (state.inventory[prize.value] || 0) + 1;
+                        }
+                        break;
+                }
+            }
+
+            function showGachaModal(prize) {
+                gachaTitle.textContent = "กำลังสุ่ม...";
+                gachaResult.classList.add('hidden');
+                closeGachaModalBtn.classList.add('hidden');
+                
+                // Build the reel
+                const reelItems = [];
+                const reelLength = 50;
+                for (let i = 0; i < reelLength; i++) {
+                    if (i === reelLength - 3) {
+                        reelItems.push(prize);
+                    } else {
+                        reelItems.push(pullGacha());
+                    }
+                }
+                
+                gachaReel.innerHTML = reelItems.map(item => `
+                    <div class="gacha-item rarity-${item.rarity}">
+                        <div class="gacha-item-name">${item.name}</div>
+                    </div>
+                `).join('');
+
+                gachaModal.classList.add('visible');
+                
+                const itemWidth = 120;
+                const containerWidth = gachaReel.parentElement.offsetWidth;
+                const targetPosition = (reelLength - 3) * itemWidth;
+                const offset = (containerWidth / 2) - (itemWidth / 2);
+                const randomJitter = Math.random() * (itemWidth - 20) - ((itemWidth - 20) / 2);
+                const finalPosition = -(targetPosition - offset + randomJitter);
+
+                gachaReel.style.transition = 'none';
+                gachaReel.style.transform = `translateX(0px)`;
+                
+                gachaReel.offsetHeight; 
+
+                gachaReel.style.transition = 'transform 5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                gachaReel.style.transform = `translateX(${finalPosition}px)`;
+
+                gachaReel.addEventListener('transitionend', () => {
+                    const winningIndex = reelLength - 3;
+                    const winningEl = gachaReel.children[winningIndex];
+                    if (winningEl) {
+                        winningEl.classList.add('winning-item');
+                    }
+
+                    let confettiOptions = { particleCount: 100, spread: 70, origin: { y: 0.6 } };
+                    if (prize.rarity === 'rare') {
+                        confettiOptions = { ...confettiOptions, particleCount: 150, spread: 100, colors: ['#60a5fa', '#3b82f6', '#ffffff'] };
+                    } else if (prize.rarity === 'epic') {
+                        confettiOptions = { ...confettiOptions, particleCount: 200, spread: 120, colors: ['#a855f7', '#9333ea', '#ffffff', '#fcd34d'] };
+                    } else if (prize.rarity === 'legendary') {
+                        confettiOptions = { particleCount: 400, spread: 360, startVelocity: 30, decay: 0.9, gravity: 1, drift: 0, ticks: 200, origin: { y: 0.5 }, colors: ['#f59e0b', '#d97706', '#fefce8', '#ffffff'] };
+                    }
+                    
+                    setTimeout(() => {
+                        gachaTitle.textContent = "ยินดีด้วย!";
+                        gachaPrizeText.textContent = prize.name;
+                        gachaResult.classList.remove('hidden');
+                        closeGachaModalBtn.classList.remove('hidden');
+                        confetti(confettiOptions);
+                    }, 400); 
+
+                }, { once: true });
+            }
+
+
+            function hideGachaModal() {
+                gachaModal.classList.remove('visible');
+            }
+            
+            function showGachaRatesModal() {
+                gachaRatesList.innerHTML = '';
+                gachaPrizes.forEach(prize => {
+                    const rateEl = document.createElement('div');
+                    rateEl.className = 'flex justify-between items-center text-gray-700';
+                    rateEl.innerHTML = `<span>${prize.name}</span> <span class="font-bold text-pink-500">${prize.probability}%</span>`;
+                    gachaRatesList.appendChild(rateEl);
+                });
+                gachaRatesModal.classList.add('visible');
+            }
+
+            function hideGachaRatesModal() {
+                gachaRatesModal.classList.remove('visible');
+            }
+
+            gachaPullBtn.addEventListener('click', () => {
+                const gachaCost = 50;
+                if (state.monCoins >= gachaCost) {
+                    gachaPullBtn.classList.add('shaking');
+                    setTimeout(() => gachaPullBtn.classList.remove('shaking'), 820);
+
+                    state.monCoins -= gachaCost;
+                    
+                    const prize = pullGacha();
+                    givePrize(prize);
+                    
+                    saveState();
+                    updateCoinDisplays();
+                    renderInventory();
+                    
+                    showGachaModal(prize);
+                } else {
+                    alert('อุ๊ย! เหรียญม่อนไม่พอสำหรับสุ่มกาชา!');
+                }
+            });
+
+            closeGachaModalBtn.addEventListener('click', hideGachaModal);
+            gachaModal.addEventListener('click', (e) => { if (e.target === gachaModal) hideGachaModal(); });
+            
+            gachaRatesBtn.addEventListener('click', showGachaRatesModal);
+            closeGachaRatesModalBtn.addEventListener('click', hideGachaRatesModal);
+            gachaRatesModal.addEventListener('click', (e) => { if (e.target === gachaRatesModal) hideGachaRatesModal(); });
+
 
             function init() {
                 loadState();
@@ -570,29 +842,22 @@
                 pickDailyBonusGame();
                 showScreen('menu'); 
 
-                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด (เวอร์ชันแก้บัคเกมคาเฟ่) ++
                 document.querySelectorAll('.game-card').forEach(card => {
                     card.addEventListener('click', (event) => {
                         event.preventDefault();
-
                         const gameId = card.dataset.gameId;
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
                         if (state.playCoins > 0) {
-                            // โค้ดก่อนหน้าเอาส่วนหักเหรียญออกทั้งหมด ทำให้เกมที่ไม่มีระบบหักเหรียญในตัว (เช่น เกมคาเฟ่) ไม่หักเหรียญ
-                            // เราจะเพิ่มเงื่อนไขให้หักเหรียญสำหรับ 'เกมคาเฟ่' ที่หน้านี้โดยเฉพาะ
-                            // และจะไม่หักถ้าเกมคาเฟ่เป็นเกมโบนัส (เพราะหน้าเกมโบนัสจะจัดการเอง)
                             if (gameId === 'cafe' && !isBonusGame) {
                                 state.playCoins--;
                                 updateCoinDisplays();
                             }
-                            
                             if (isBonusGame) {
                                 targetUrl += '?bonus=true';
                             }
-                            
-                            saveState(); // บันทึกข้อมูลล่าสุดก่อนเปลี่ยนหน้า
+                            saveState();
                             window.location.href = targetUrl;
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
