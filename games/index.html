@@ -542,7 +542,7 @@
                 pickDailyBonusGame();
                 showScreen('menu'); 
 
-                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด ++
+                // ++ แก้ไขโค้ดจัดการการคลิกเกมการ์ด (เวอร์ชันใหม่) ++
                 document.querySelectorAll('.game-card').forEach(card => {
                     card.addEventListener('click', (event) => {
                         event.preventDefault(); // หยุดการเปลี่ยนหน้าทันที
@@ -551,21 +551,16 @@
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
+                        // ตรวจสอบว่ามีเหรียญพอเล่นหรือไม่
                         if (state.playCoins > 0) {
-                            // สำหรับเกมปกติ ให้หักเหรียญก่อนไป
-                            if (!isBonusGame) {
-                                state.playCoins--;
-                                updateCoinDisplays();
-                                saveState();
-                            }
-
-                            // สำหรับเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL
-                            // เราสมมติว่าหน้าเกมโบนัสจะจัดการหักเหรียญเอง เพื่อป้องกันการหักซ้ำ
+                            // ไม่ต้องหักเหรียญในหน้านี้แล้ว ปล่อยให้หน้าเกมจัดการเอง
+                            
+                            // ถ้าเป็นเกมโบนัส ให้เพิ่ม parameter เข้าไปใน URL เหมือนเดิม
                             if (isBonusGame) {
                                 targetUrl += '?bonus=true';
                             }
                             
-                            // เมื่อจัดการเรื่องเหรียญแล้ว ก็ให้ไปที่หน้าเกมได้เลย
+                            // ไปยังหน้าเกมได้เลย
                             window.location.href = targetUrl; 
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
