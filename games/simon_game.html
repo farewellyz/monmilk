@@ -122,13 +122,13 @@
 
             // --- LOCAL STORAGE (Only for this game's state and global coins) ---
             function saveState() {
-                localStorage.setItem('monGameDataV14', JSON.stringify(state));
+                localStorage.setItem('monGameDataV17', JSON.stringify(state));
             }
 
             // Fix: Load state robustly, including bonus game flags if present
             function loadState() {
                 try {
-                    const savedData = localStorage.getItem('monGameDataV14');
+                    const savedData = localStorage.getItem('monGameDataV17');
                     if (savedData) {
                         state = JSON.parse(savedData);
                         // Initialize bonus game specific properties if they don't exist in saved data
