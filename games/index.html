@@ -246,7 +246,7 @@
             right: 20px;
             z-index: 999;
             cursor: grab;
-            transition: transform 0.2s ease-out;
+            /* The transition is removed from here to prevent lag during dragging */
         }
         #floating-pet-container:active {
             cursor: grabbing;
@@ -260,6 +260,34 @@
         }
         @keyframes pet-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .pet-happy-animation { animation: pet-bounce 0.5s ease-in-out; }
+
+        /* Speech Bubble Style */
+        #pet-speech-bubble {
+            position: absolute;
+            bottom: 85px; /* Position it above the pet */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            white-space: nowrap;
+            z-index: 2;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #pet-speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
     </style>
 </head>
 <body>
@@ -323,7 +351,6 @@
                 </button>
             </div>
             
-            <!-- Gacha Section -->
             <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
                 <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mr-3" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M12 3l0 2" /><path d="M3 12l2 0" /><path d="M12 21l0 -2" /><path d="M21 12l-2 0" /></svg>
@@ -396,12 +423,11 @@
         </div>
     </div>
 
-    <!-- Floating Pet -->
     <div id="floating-pet-container" class="hidden">
+        <div id="pet-speech-bubble" class="hidden"></div>
         <img id="floating-pet-image" src="" alt="น้องม่อน">
     </div>
 
-    <!-- Modals -->
     <div id="pet-stats-modal" class="modal-overlay">
         <div class="modal-content">
             <div id="pet-section">
@@ -412,9 +438,7 @@
                 <div class="text-center mb-4">
                     <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-32 mx-auto">
                 </div>
-                <!-- Stats -->
                 <div class="space-y-3">
-                    <!-- EXP -->
                     <div>
                         <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
                             <span>EXP</span>
@@ -424,7 +448,6 @@
                             <div id="pet-exp-bar" class="progress-bar bg-gradient-to-r from-yellow-300 to-amber-400" style="width: 0%;"></div>
                         </div>
                     </div>
-                    <!-- Hunger -->
                     <div>
                         <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
                             <span>❤️ ความอิ่ม</span>
@@ -434,7 +457,6 @@
                             <div id="pet-hunger-bar" class="progress-bar bg-gradient-to-r from-red-400 to-rose-500" style="width: 0%;"></div>
                         </div>
                     </div>
-                    <!-- Happiness -->
                     <div>
                         <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
                             <span>😊 ความสุข</span>
@@ -445,7 +467,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Action Buttons -->
                 <div class="grid grid-cols-2 gap-4 mt-4">
                     <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
                     <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
@@ -460,7 +481,6 @@
             <div id="egg-stage">
                 <h2 class="text-2xl font-bold text-pink-500 mb-2">อุ๊ย! เจอไข่ปริศนา</h2>
                 <p class="text-gray-600 mb-4">มอบความรักโดยการแตะที่ไข่เพื่อฟักน้องม่อนออกมานะ!</p>
-                <!-- เปลี่ยน URL รูปไข่ได้ที่นี่ -->
                 <img id="egg-image" src="egg.png" alt="Egg" class="mx-auto cursor-pointer h-32 w-32">
                 <p class="mt-2 text-gray-500"><span id="egg-taps">0</span> / 20</p>
             </div>
@@ -610,6 +630,7 @@
             // Pet Elements
             const floatingPetContainer = document.getElementById('floating-pet-container');
             const floatingPetImage = document.getElementById('floating-pet-image');
+            const petSpeechBubble = document.getElementById('pet-speech-bubble');
             const petStatsModal = document.getElementById('pet-stats-modal');
             const closePetStatsModalBtn = document.getElementById('close-pet-stats-modal-btn');
             const petNameEl = document.getElementById('pet-name');
@@ -1026,24 +1047,41 @@
 
             function updatePetEmotion() {
                 if (!state.pet.exists) return;
+                
                 let currentEmotion = 'normal';
+                let isBubbleVisible = false;
+
+                // Check hunger first, then happiness
                 if (state.pet.hunger <= 50) {
                     currentEmotion = 'sad';
+                    petSpeechBubble.textContent = 'หิวแน้ววว';
+                    isBubbleVisible = true;
                 } else if (state.pet.happiness <= 50) {
                     currentEmotion = 'angry';
+                    petSpeechBubble.textContent = 'ไม่คิดถึงกันหรอ';
+                    isBubbleVisible = true;
                 }
+
+                // Show or hide bubble
+                if (isBubbleVisible) {
+                    petSpeechBubble.classList.remove('hidden');
+                } else {
+                    petSpeechBubble.classList.add('hidden');
+                }
+
                 const imageUrl = petEmotions[currentEmotion];
                 floatingPetImage.src = imageUrl;
                 petModalImageEl.src = imageUrl;
             }
 
+
             function renderFloatingPet() {
                  if (!state.pet.exists) {
-                    floatingPetContainer.classList.add('hidden');
-                    return;
-                }
-                floatingPetContainer.classList.remove('hidden');
-                updatePetEmotion();
+                     floatingPetContainer.classList.add('hidden');
+                     return;
+                 }
+                 floatingPetContainer.classList.remove('hidden');
+                 updatePetEmotion();
             }
 
             function renderPetStats() {
@@ -1169,15 +1207,14 @@
                 }
             }
 
-            // Drag and Click logic for floating pet
+            // --- CORRECTED Drag and Click logic for floating pet ---
             let isDragging = false;
-            let dragStartX, dragStartY, initialLeft, initialTop;
+            let dragStartX, dragStartY;
+            let lastTranslateX = 0, lastTranslateY = 0; // Store the last position
 
             function dragStart(e) {
                 isDragging = false;
-                initialLeft = floatingPetContainer.offsetLeft;
-                initialTop = floatingPetContainer.offsetTop;
-
+                
                 if (e.type === 'touchstart') {
                     dragStartX = e.touches[0].clientX;
                     dragStartY = e.touches[0].clientY;
@@ -1185,6 +1222,10 @@
                     dragStartX = e.clientX;
                     dragStartY = e.clientY;
                 }
+
+                // Apply initial scale for active state
+                floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1.1)`;
+                floatingPetContainer.style.transition = 'none'; // Disable transition during drag
 
                 document.addEventListener('mousemove', dragMove);
                 document.addEventListener('touchmove', dragMove);
@@ -1208,16 +1249,34 @@
                 const dx = currentX - dragStartX;
                 const dy = currentY - dragStartY;
 
-                floatingPetContainer.style.left = `${initialLeft + dx}px`;
-                floatingPetContainer.style.top = `${initialTop + dy}px`;
+                floatingPetContainer.style.transform = `translate(${lastTranslateX + dx}px, ${lastTranslateY + dy}px) scale(1.1)`;
             }
 
-            function dragEnd() {
+            function dragEnd(e) {
+                if (isDragging) {
+                     let finalX, finalY;
+                    if (e.type === 'touchend') {
+                        finalX = e.changedTouches[0].clientX;
+                        finalY = e.changedTouches[0].clientY;
+                    } else {
+                        finalX = e.clientX;
+                        finalY = e.clientY;
+                    }
+                    // Update the last position
+                    lastTranslateX += finalX - dragStartX;
+                    lastTranslateY += finalY - dragStartY;
+                }
+                
+                // Reset scale and transition
+                floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1)`;
+                floatingPetContainer.style.transition = 'transform 0.2s ease-out';
+                
                 document.removeEventListener('mousemove', dragMove);
                 document.removeEventListener('touchmove', dragMove);
                 document.removeEventListener('mouseup', dragEnd);
                 document.removeEventListener('touchend', dragEnd);
             }
+
 
             floatingPetContainer.addEventListener('mousedown', dragStart);
             floatingPetContainer.addEventListener('touchstart', dragStart);
@@ -1250,7 +1309,7 @@
                 if(state.lastMissionDate !== today) {
                     generateNewMissions();
                     state.lastMissionDate = today;
-                    saveState();    
+                    saveState();   
                 }
                 updateCoinDisplays();
                 updateCheckInButton();
@@ -1289,7 +1348,3 @@
     </script>
 </body>
 </html>
-
-
-
-
