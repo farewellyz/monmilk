@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เลือกที่สำรวจ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #fdf2f8; /* bg-pink-50 */
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .location-card {
+            border: 2px solid #FBCFE8;
+            background: linear-gradient(145deg, #fffafa, #ffe4e6);
+            box-shadow: 0 5px 15px rgba(219, 39, 119, 0.1), inset 0 0 5px rgba(255,255,255,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .location-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(219, 39, 119, 0.15), inset 0 0 5px rgba(255,255,255,0.5);
+        }
+        .location-card.locked { 
+            background: linear-gradient(145deg, #f9fafb, #f3f4f6);
+            border-color: #e5e7eb;
+            cursor: not-allowed;
+        }
+        .location-card.locked .location-name { color: #6b7280; }
+        .btn-base {
+            transform: translateY(0);
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .btn-base:hover { 
+            transform: translateY(-2px); 
+            filter: brightness(1.05);
+        }
+        .btn-base:active {
+            transform: translateY(1px);
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            width: 90%;
+            max-width: 380px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-pink-50">
+    <div class="max-w-md mx-auto min-h-screen p-4">
+        <header class="flex items-center mb-6 text-center relative">
+            <a href="./index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition absolute left-0 top-1/2 -translate-y-1/2">&larr;</a>
+            <h1 class="text-4xl font-bold text-pink-500 w-full bg-gradient-to-r from-fuchsia-500 to-pink-500 text-transparent bg-clip-text">
+                ส่งน้องม่อนไปสำรวจ
+            </h1>
+        </header>
+
+        <div id="location-list" class="space-y-4 text-left">
+            <!-- Location cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- Rewards Modal -->
+    <div id="rewards-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="rewards-modal-title" class="text-2xl font-bold text-pink-500 mb-4">ของที่อาจได้รับ</h2>
+            <div id="rewards-list" class="text-left space-y-2 max-h-64 overflow-y-auto">
+                <!-- Reward items will be generated here -->
+            </div>
+            <button id="close-rewards-modal-btn" class="btn-base w-full mt-6 px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700">
+                ปิด
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let state = {};
+
+            const explorationLocations = {
+                'garden': { 
+                    name: 'สวนหลังบ้าน', 
+                    duration: 30 * 60 * 1000, // 30 นาที
+                    staminaCost: 10, 
+                    levelReq: 1, 
+                    description: 'สำรวจรอบๆ บ้าน หาของเล็กๆ น้อยๆ',
+                    icon: '🏡',
+                    exp: 5,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
+                        { type: 'item', name: 'ขนมปัง', chance: 80 },
+                        { type: 'item', name: 'ของเล่นยาง', chance: 30 }
+                    ]
+                },
+                'market': { 
+                    name: 'ตลาดนัดของเล่น', 
+                    duration: 2 * 60 * 60 * 1000, // 2 ชั่วโมง
+                    staminaCost: 25, 
+                    levelReq: 5, 
+                    description: 'อาจจะเจอเหรียญตกอยู่หรือของเล่นถูกใจ',
+                    icon: '🧸',
+                    exp: 10,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
+                        { type: 'item', name: 'เค้ก', chance: 70 },
+                        { type: 'item', name: 'ลูกบอล', chance: 40 }
+                    ]
+                },
+                'beach': { 
+                    name: 'ชายหาดสายรุ้ง', 
+                    duration: 6 * 60 * 60 * 1000, // 6 ชั่วโมง
+                    staminaCost: 50, 
+                    levelReq: 15, 
+                    description: 'เดินเล่นริมหาด อาจเจอสมบัติที่คลื่นซัดมา',
+                    icon: '🏖️',
+                    exp: 20,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
+                        { type: 'item', name: 'ไอศกรีม', chance: 60 },
+                        { type: 'item', name: 'กีต้า', chance: 25 },
+                        { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 }
+                    ]
+                },
+                'forest': { 
+                    name: 'ป่ามหัศจรรย์', 
+                    duration: 12 * 60 * 60 * 1000, // 12 ชั่วโมง
+                    staminaCost: 80, 
+                    levelReq: 30, 
+                    description: 'การผจญภัยสุดท้าทาย รางวัลล้ำค่ารออยู่!',
+                    icon: '🌳',
+                    exp: 30,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
+                        { type: 'item', name: 'คอมพิวเตอร์', chance: 15 },
+                        { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
+                        { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 }
+                    ]
+                }
+            };
+
+            const rewardsModal = document.getElementById('rewards-modal');
+            const rewardsModalTitle = document.getElementById('rewards-modal-title');
+            const rewardsList = document.getElementById('rewards-list');
+            const closeRewardsModalBtn = document.getElementById('close-rewards-modal-btn');
+
+            function loadState() {
+                const savedData = localStorage.getItem('monGameDataV17');
+                if (savedData) {
+                    state = JSON.parse(savedData);
+                    if (!state.pet) {
+                        window.location.href = './index.html';
+                    }
+                } else {
+                    window.location.href = './index.html';
+                }
+            }
+
+            function saveState() {
+                localStorage.setItem('monGameDataV17', JSON.stringify(state));
+            }
+
+            function formatTime(ms) {
+                if (ms < 0) ms = 0;
+                let s = Math.floor(ms / 1000);
+                let m = Math.floor(s / 60);
+                let h = Math.floor(m / 60);
+                s %= 60;
+                m %= 60;
+                
+                if (h > 0) return `${h} ชม. ${m} นาที`;
+                if (m > 0) return `${m} นาที`;
+                return `${s} วินาที`;
+            }
+
+            function startExploration(locationId) {
+                if (state.pet.exploration && state.pet.exploration.endTime > Date.now()) {
+                    alert('น้องม่อนกำลังสำรวจอยู่แล้วจ้า!');
+                    return;
+                }
+
+                const location = explorationLocations[locationId];
+                if (state.pet.stamina < location.staminaCost) { 
+                    alert('พลังงานไม่พอจ้า!'); 
+                    return; 
+                }
+                if (state.pet.hunger < 20) { 
+                    alert('น้องม่อนหิวเกินไป ไม่มีแรงไปสำรวจ!'); 
+                    return; 
+                }
+                
+                state.pet.stamina -= location.staminaCost;
+                state.pet.exploration = { 
+                    locationId: locationId, 
+                    endTime: Date.now() + location.duration 
+                };
+                
+                saveState();
+                alert(`กำลังส่ง ${state.pet.name} ไปสำรวจที่ '${location.name}'!`);
+                window.location.href = './index.html';
+            }
+
+            function showRewardsModal(locationId) {
+                const location = explorationLocations[locationId];
+                rewardsModalTitle.textContent = `ของที่อาจได้รับจาก ${location.name}`;
+                rewardsList.innerHTML = '';
+
+                const expEl = document.createElement('div');
+                expEl.className = 'flex justify-between items-center bg-pink-50 p-3 rounded-lg';
+                expEl.innerHTML = `
+                    <span class="font-semibold text-gray-700">EXP</span>
+                    <span class="font-bold text-pink-500">${location.exp}</span>
+                `;
+                rewardsList.appendChild(expEl);
+
+                location.rewards.forEach(reward => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'flex justify-between items-center bg-pink-50 p-3 rounded-lg';
+                    let rewardName = reward.name;
+                    if (reward.type === 'mon_coin' || reward.type === 'play_coin') {
+                        rewardName += ` (${reward.amount})`;
+                    }
+                    itemEl.innerHTML = `
+                        <span class="font-semibold text-gray-700">${rewardName}</span>
+                        <span class="font-bold text-pink-500">${reward.chance}%</span>
+                    `;
+                    rewardsList.appendChild(itemEl);
+                });
+
+                rewardsModal.classList.add('visible');
+            }
+
+            function hideRewardsModal() {
+                rewardsModal.classList.remove('visible');
+            }
+
+            function renderExplorationLocations() {
+                const locationList = document.getElementById('location-list');
+                locationList.innerHTML = '';
+
+                if (!state.pet || !state.pet.exists) {
+                    locationList.innerHTML = '<p class="text-center text-gray-500">ยังไม่มีน้องม่อนให้ส่งไปสำรวจเลย</p>';
+                    return;
+                }
+
+                for (const [id, loc] of Object.entries(explorationLocations)) {
+                    const card = document.createElement('div');
+                    const isLocked = state.pet.level < loc.levelReq;
+                    const canAfford = state.pet.stamina >= loc.staminaCost;
+                    const isExploring = state.pet.exploration && state.pet.exploration.endTime > Date.now();
+                    const rewardsPreview = loc.rewards.map(r => r.name).join(', ');
+
+                    card.className = `location-card p-4 rounded-2xl ${isLocked ? 'locked opacity-70' : ''}`;
+                    card.innerHTML = `
+                        <div class="flex items-center mb-3">
+                            <div class="text-4xl mr-4">${loc.icon}</div>
+                            <div>
+                                <h4 class="location-name font-bold text-xl text-pink-600">${loc.name}</h4>
+                                <p class="text-sm text-gray-500">${isLocked ? `(ต้องการ Lv.${loc.levelReq})` : loc.description}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm text-gray-700 mb-4 pl-2 border-l-2 border-pink-200">
+                            <p><strong>🕒 ใช้เวลา:</strong> ${formatTime(loc.duration)}</p>
+                            <p><strong>⚡️ ใช้พลังงาน:</strong> ${loc.staminaCost}</p>
+                            <p><strong>✨ EXP:</strong> ${loc.exp}</p>
+                            <p><strong>🎁 อาจจะเจอ:</strong> ${rewardsPreview}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button 
+                                data-location-id="${id}" 
+                                class="show-rewards-btn btn-base w-full px-4 py-3 text-md font-bold text-white rounded-xl shadow-md border-b-4 bg-gradient-to-br from-sky-400 to-blue-500 border-sky-600">
+                                ดูโอกาส
+                            </button>
+                            <button 
+                                data-location-id="${id}" 
+                                class="start-explore-btn btn-base w-full px-4 py-3 text-md font-bold text-white rounded-xl shadow-md border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600 disabled:bg-gray-400 disabled:border-gray-500 disabled:cursor-not-allowed" 
+                                ${isLocked || !canAfford || isExploring ? 'disabled' : ''}>
+                                ${isExploring ? 'กำลังสำรวจ' : 'เริ่ม'}
+                            </button>
+                        </div>
+                    `;
+                    locationList.appendChild(card);
+                }
+
+                document.querySelectorAll('.start-explore-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => startExploration(e.currentTarget.dataset.locationId));
+                });
+                document.querySelectorAll('.show-rewards-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => showRewardsModal(e.currentTarget.dataset.locationId));
+                });
+            }
+            
+            closeRewardsModalBtn.addEventListener('click', hideRewardsModal);
+            rewardsModal.addEventListener('click', (e) => {
+                if (e.target === rewardsModal) {
+                    hideRewardsModal();
+                }
+            });
+
+            loadState();
+            renderExplorationLocations();
+        });
+    </script>
+</body>
+</html>
