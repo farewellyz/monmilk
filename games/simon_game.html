@@ -112,10 +112,10 @@
             let simonLevel = 0;
             let simonCanClick = false; 
             let simonTurnIndex = 0; 
-            let playerTurnTimeout; 
+            // let playerTurnTimeout; // REMOVED: No longer needed for timeout
             let lightDuration = 600; 
             let pauseDuration = 400; 
-            let playerResponseTime = 2000; 
+            // let playerResponseTime = 2000; // REMOVED: No longer needed for timeout
 
             // NEW: Variable to store if this is a bonus game, determined from URL
             let isCurrentGameBonus = false;
@@ -177,11 +177,11 @@
                 simonLevelDisplay.textContent = simonLevel;
                 simonMessageDisplay.textContent = '';
                 simonStartBtn.disabled = true; // Disable start button during game
-                clearTimeout(playerTurnTimeout); 
+                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
                 
                 lightDuration = 600; 
                 pauseDuration = 400;
-                playerResponseTime = 2000;
+                // playerResponseTime = 2000; // REMOVED: No longer needed for timeout
             }
 
             function nextLevel() {
@@ -191,17 +191,16 @@
                 simonTurnIndex = 0;
                 simonCanClick = false;
                 simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
-                clearTimeout(playerTurnTimeout); 
+                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
 
                 // --- DIFFICULTY LOGIC ---
+                // This logic is kept to make the light sequence faster at higher levels
                 if (simonLevel < 10) {
                     lightDuration = Math.max(200, lightDuration - 50); 
                     pauseDuration = Math.max(100, pauseDuration - 30); 
-                    playerResponseTime = Math.max(1000, playerResponseTime - 100); 
                 } else {
                     lightDuration = 100; 
                     pauseDuration = 50;  
-                    playerResponseTime = 700; 
                 }
 
                 const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
@@ -216,7 +215,6 @@
                     const button = document.getElementById(colorToLight);
                     
                     button.classList.add('active');
-                    // if (simonSoundMap[colorToLight]) simonSoundMap[colorToLight].play(); 
 
                     setTimeout(() => {
                         button.classList.remove('active');
@@ -227,21 +225,21 @@
                 } else {
                     simonCanClick = true;
                     simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
-                    playerTurnTimeout = setTimeout(() => {
-                        endGame('หมดเวลา! คุณตอบไม่ทัน');
-                    }, playerResponseTime * simonSequence.length); 
+                    // REMOVED: The timeout that would end the game if the player was too slow
+                    // playerTurnTimeout = setTimeout(() => {
+                    //     endGame('หมดเวลา! คุณตอบไม่ทัน');
+                    // }, playerResponseTime * simonSequence.length); 
                 }
             }
 
             function handlePlayerClick(event) {
                 if (!simonCanClick) return;
 
-                clearTimeout(playerTurnTimeout); 
+                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
 
                 const clickedColor = event.target.dataset.color;
                 
                 event.target.classList.add('active');
-                // if (simonSoundMap[clickedColor]) simonSoundMap[clickedColor].play(); 
                 setTimeout(() => {
                     event.target.classList.remove('active');
                 }, 150); 
@@ -254,11 +252,8 @@
                         simonCanClick = false; 
                         simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
                         setTimeout(nextLevel, 1000); 
-                    } else {
-                        playerTurnTimeout = setTimeout(() => {
-                            endGame('หมดเวลา! คุณตอบไม่ทัน');
-                        }, playerResponseTime); 
                     }
+                    // REMOVED: The `else` block that would set another timeout for the next click in the sequence
                 } else {
                     endGame('ผิด! ลองใหม่ไหม?');
                 }
@@ -268,7 +263,7 @@
                 simonCanClick = false;
                 simonMessageDisplay.textContent = message;
                 simonStartBtn.disabled = false; 
-                clearTimeout(playerTurnTimeout); 
+                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
 
                 let finalReward = simonLevel; // 1 Mon Coin per level
                 
