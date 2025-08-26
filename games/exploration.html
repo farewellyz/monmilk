@@ -80,7 +80,7 @@
 <body class="bg-pink-50">
     <div class="max-w-md mx-auto min-h-screen p-4">
         <header class="flex items-center mb-6 text-center relative">
-            <a href="./index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition absolute left-0 top-1/2 -translate-y-1/2">&larr;</a>
+            <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition absolute left-0 top-1/2 -translate-y-1/2">&larr;</a>
             <h1 class="text-4xl font-bold text-pink-500 w-full bg-gradient-to-r from-fuchsia-500 to-pink-500 text-transparent bg-clip-text">
                 ส่งน้องม่อนไปสำรวจ
             </h1>
@@ -121,7 +121,8 @@
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
                         { type: 'item', name: 'ขนมปัง', chance: 80 },
-                        { type: 'item', name: 'ของเล่นยาง', chance: 80 }
+                        { type: 'item', name: 'ของเล่นยาง', chance: 80 },
+                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 80 }
                     ]
                 },
                 'market': { 
@@ -136,7 +137,8 @@
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
                         { type: 'item', name: 'เค้ก', chance: 70 },
-                        { type: 'item', name: 'ลูกบอล', chance: 70 }
+                        { type: 'item', name: 'ลูกบอล', chance: 70 },
+                        { type: 'item', name: 'เมล็ดแครอท', chance: 70 }
                     ]
                 },
                 'beach': { 
@@ -151,6 +153,7 @@
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
                         { type: 'item', name: 'ไอศกรีม', chance: 60 },
                         { type: 'item', name: 'กีต้า', chance: 60 },
+                        { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 60 },
                         { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 }
                     ]
                 },
@@ -165,6 +168,7 @@
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
                         { type: 'item', name: 'คอมพิวเตอร์', chance: 30 },
+                        { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 30 },
                         { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
                         { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 }
                     ]
@@ -181,10 +185,10 @@
                 if (savedData) {
                     state = JSON.parse(savedData);
                     if (!state.pet) {
-                        window.location.href = './index.html';
+                        window.location.href = 'index.html';
                     }
                 } else {
-                    window.location.href = './index.html';
+                    window.location.href = 'index.html';
                 }
             }
 
@@ -229,7 +233,7 @@
                 
                 saveState();
                 alert(`กำลังส่ง ${state.pet.name} ไปสำรวจที่ '${location.name}'!`);
-                window.location.href = './index.html';
+                window.location.href = 'index.html';
             }
 
             function showRewardsModal(locationId) {
