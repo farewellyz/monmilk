@@ -146,14 +146,14 @@
 
         <div id="shop-screen" class="hidden game-view rounded-3xl p-6">
              <div class="flex justify-between items-center mb-4">
-                <h2 class="text-3xl font-bold text-violet-700">ร้านค้าอัปเกรด</h2>
-                <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2">
-                    <span class="text-2xl text-red-500">❤️</span>
-                    <p id="shop-total-hearts" class="text-2xl font-bold text-rose-600">0</p>
-                </div>
-            </div>
-            <div id="upgrades-list" class="space-y-3"></div>
-            <button id="btn-back-from-shop" class="action-button shop-button w-full p-3 text-lg font-semibold mt-6">กลับ</button>
+                 <h2 class="text-3xl font-bold text-violet-700">ร้านค้าอัปเกรด</h2>
+                 <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2">
+                     <span class="text-2xl text-red-500">❤️</span>
+                     <p id="shop-total-hearts" class="text-2xl font-bold text-rose-600">0</p>
+                 </div>
+             </div>
+             <div id="upgrades-list" class="space-y-3"></div>
+             <button id="btn-back-from-shop" class="action-button shop-button w-full p-3 text-lg font-semibold mt-6">กลับ</button>
         </div>
 
         <div id="game-screen" class="hidden">
@@ -295,14 +295,27 @@
             }
 
             function setupScreens() {
+                // ++ START: MODIFIED DIFFICULTY BUTTONS LOGIC ++
                 document.querySelectorAll('.difficulty-button').forEach(button => {
                     button.addEventListener('click', () => {
-                        difficulty = button.dataset.difficulty;
-                        startScreen.classList.add('hidden');
-                        gameScreen.classList.remove('hidden');
-                        initGame();
+                        loadMainState(); // โหลดข้อมูลเหรียญล่าสุดทุกครั้งที่กด
+
+                        if (mainGameState.playCoins > 0) {
+                            mainGameState.playCoins--; // หักเหรียญ 1 เหรียญ
+                            saveMainState(); // บันทึกจำนวนเหรียญใหม่
+
+                            difficulty = button.dataset.difficulty;
+                            startScreen.classList.add('hidden');
+                            gameScreen.classList.remove('hidden');
+                            initGame();
+                        } else {
+                            alert('เหรียญเล่นม่อนหมดแล้วจ้า กลับไปหน้าหลักนะ');
+                            window.location.href = 'index.html';
+                        }
                     });
-                });	
+                });
+                // ++ END: MODIFIED DIFFICULTY BUTTONS LOGIC ++
+
                 shopButton.addEventListener('click', () => {
                     startScreen.classList.add('hidden');
                     renderShop();
@@ -316,13 +329,12 @@
                     window.location.href = 'index.html';
                 });
 
-                // ++ START: MODIFIED BUTTONS LOGIC ++
                 backToMainFromModalButton.addEventListener('click', () => {
                     window.location.href = 'index.html';
                 });
 
                 restartButton.addEventListener('click', () => {
-                    loadMainState(); // Load latest state before checking coins
+                    loadMainState(); 
 
                     if (mainGameState.playCoins > 0) {
                         mainGameState.playCoins--;
@@ -336,7 +348,6 @@
                         window.location.href = 'index.html';
                     }
                 });
-                // ++ END: MODIFIED BUTTONS LOGIC ++
 
                 loadUpgrades();
                 loadMainState();
@@ -561,15 +572,12 @@
                 heartsEarnedEl.textContent = `❤️ +${heartsEarned}`;
                 monCoinsEarnedEl.textContent = `💰 +${monCoinsEarned}`;
                 
-                // ++ START: MODIFIED ENDGAME LOGIC ++
-                // Update the restart button text based on remaining play coins
                 if (mainGameState.playCoins > 0) {
                     restartButton.textContent = `เล่นอีกครั้ง (ใช้ 1 เหรียญ)`;
                 } else {
                     restartButton.textContent = 'เหรียญหมด (กลับหน้าหลัก)';
                 }
                 gameOverModal.classList.add('show');
-                // ++ END: MODIFIED ENDGAME LOGIC ++
             }
             
             // --- Shop Logic ---
