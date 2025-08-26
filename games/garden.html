@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แปลงผัก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #e8f5e9; /* A light, grassy green */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a5d6a7' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .app-container {
+            background-color: #f1f8e9;
+            border-radius: 2rem;
+            border: 10px solid #558b2f; /* Dark wood-like border */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.1);
+        }
+        .card-base {
+            border: 4px solid #a1887f; /* Lighter wood border */
+            background-color: #efebe9; /* Light parchment color */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .btn-base {
+            transform: translateY(0);
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .btn-base:hover { 
+            transform: translateY(-2px); 
+            filter: brightness(1.05);
+        }
+        .btn-base:active {
+            transform: translateY(1px);
+        }
+        .plot {
+            background-color: #6d4c41; /* Dark soil */
+            border: 2px solid #4e342e; /* Darker soil edge */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+            border-radius: 1rem;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .plot:hover {
+            transform: scale(1.05);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.7), 0 0 15px rgba(139, 69, 19, 0.5);
+        }
+        .plot.planted {
+             background-image: repeating-linear-gradient(45deg, #5d4037, #5d4037 10px, #6d4c41 10px, #6d4c41 20px);
+        }
+        .plot-timer {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: #fffef0; padding: 1.5rem; border-radius: 1.5rem;
+            text-align: center; width: 90%; max-width: 380px;
+            transform: scale(0.9); transition: transform 0.3s ease;
+            border: 4px solid #a1887f;
+        }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+    </style>
+</head>
+<body class="p-4">
+    <div class="app-container max-w-md mx-auto min-h-[95vh] p-4">
+        <header class="flex items-center mb-6 text-center relative">
+            <a href="index.html" class="text-3xl text-green-800 hover:text-green-900 transition absolute left-0 top-1/2 -translate-y-1/2">&larr;</a>
+            <h1 class="text-4xl font-bold text-green-800 w-full [text-shadow:1px_1px_2px_rgba(255,255,255,0.7)]">
+                แปลงผัก
+            </h1>
+        </header>
+
+        <div class="card-base p-4 rounded-2xl mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-lime-800">แปลงผัก</h2>
+            </div>
+            <div id="plots-grid" class="grid grid-cols-3 gap-4">
+                <!-- Garden plots will be generated here -->
+            </div>
+        </div>
+
+        <div class="card-base p-4 rounded-2xl">
+            <h2 class="text-2xl font-semibold text-lime-800 mb-4 text-center">เมล็ดพันธุ์ที่มี</h2>
+            <div id="seeds-inventory" class="space-y-2">
+                <p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์เลย! ลองไปสำรวจดูสิ</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plant Seed Modal -->
+    <div id="plant-seed-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-lime-700 mb-4">เลือกเมล็ดพันธุ์ที่จะปลูก</h2>
+            <div id="seed-options-list" class="space-y-3"></div>
+            <button id="close-plant-seed-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ยกเลิก</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let state = {};
+            let gardenInterval = null;
+
+            const seedData = {
+                'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', icon: '🌱', readyIcon: '🍅', exp: 15 },
+                'เมล็ดแครอท': { growTime: 4 * 60 * 60 * 1000, result: 'แครอท', icon: '🌱', readyIcon: '🥕', exp: 25 },
+                'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', icon: '🌱', readyIcon: '🥦', exp: 40 },
+                'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', icon: '🍓', readyIcon: '🍓', exp: 100 },
+            };
+
+            const plantSeedModal = document.getElementById('plant-seed-modal');
+            const seedOptionsList = document.getElementById('seed-options-list');
+            const closePlantSeedModalBtn = document.getElementById('close-plant-seed-modal-btn');
+
+            function loadState() {
+                const savedData = localStorage.getItem('monGameDataV17');
+                if (savedData) {
+                    state = JSON.parse(savedData);
+                    if (!state.garden) {
+                        state.garden = { plots: [null, null, null, null, null, null] };
+                    }
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+
+            function saveState() {
+                localStorage.setItem('monGameDataV17', JSON.stringify(state));
+            }
+            
+            function formatTime(ms) {
+                if (ms < 0) ms = 0;
+                let s = Math.floor(ms / 1000);
+                let m = Math.floor(s / 60);
+                let h = Math.floor(m / 60);
+                s %= 60;
+                m %= 60;
+                
+                if (h > 0) return `${h} ชม. ${m} นาที`;
+                if (m > 0) return `${m} นาที`;
+                return `${s} วินาที`;
+            }
+
+            function formatCountdown(ms) {
+                if (ms < 0) ms = 0;
+                let s = Math.floor(ms / 1000);
+                let m = Math.floor(s / 60);
+                let h = Math.floor(m / 60);
+                s %= 60; m %= 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+
+            function renderGarden() {
+                renderPlots();
+                renderSeedsInventory();
+            }
+
+            function renderPlots() {
+                const plotsGrid = document.getElementById('plots-grid');
+                plotsGrid.innerHTML = '';
+                if (gardenInterval) clearInterval(gardenInterval);
+
+                state.garden.plots.forEach((plot, index) => {
+                    const plotEl = document.createElement('div');
+                    plotEl.className = 'plot';
+                    
+                    if (plot) {
+                        const remainingTime = plot.plantTime + seedData[plot.seedName].growTime - Date.now();
+                        if (remainingTime > 0) {
+                            plotEl.classList.add('planted');
+                            plotEl.innerHTML = `
+                                <div class="text-center text-white">
+                                    <div class="text-4xl">${seedData[plot.seedName].icon}</div>
+                                </div>
+                                <div class="plot-timer" id="timer-${index}">${formatCountdown(remainingTime)}</div>
+                            `;
+                        } else {
+                            plotEl.classList.add('bg-green-400', 'border-green-600');
+                            plotEl.innerHTML = `<div class="text-4xl animate-bounce">${seedData[plot.seedName].readyIcon}</div>`;
+                            plotEl.onclick = () => harvest(index);
+                        }
+                    } else {
+                        plotEl.innerHTML = '<span class="text-white opacity-50">+</span>';
+                        plotEl.onclick = () => showPlantSeedModal(index);
+                    }
+                    plotsGrid.appendChild(plotEl);
+                });
+
+                gardenInterval = setInterval(updateTimers, 1000);
+            }
+
+            function updateTimers() {
+                state.garden.plots.forEach((plot, index) => {
+                    if (plot) {
+                        const timerEl = document.getElementById(`timer-${index}`);
+                        if (timerEl) {
+                            const remainingTime = plot.plantTime + seedData[plot.seedName].growTime - Date.now();
+                            if (remainingTime > 0) {
+                                timerEl.textContent = formatCountdown(remainingTime);
+                            } else {
+                                renderPlots(); // Re-render when a plant is ready
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderSeedsInventory() {
+                const seedsInventory = document.getElementById('seeds-inventory');
+                seedsInventory.innerHTML = '';
+                const ownedSeeds = Object.keys(state.inventory).filter(item => seedData[item] && state.inventory[item] > 0);
+
+                if (ownedSeeds.length > 0) {
+                    ownedSeeds.forEach(seedName => {
+                        const seedEl = document.createElement('div');
+                        seedEl.className = 'flex justify-between items-center bg-yellow-50 p-3 rounded-lg';
+                        seedEl.innerHTML = `
+                            <span class="font-semibold text-gray-700">${seedName}</span>
+                            <span class="font-bold text-lime-600">x${state.inventory[seedName]}</span>
+                        `;
+                        seedsInventory.appendChild(seedEl);
+                    });
+                } else {
+                    seedsInventory.innerHTML = '<p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์เลย! ลองไปสำรวจดูสิ</p>';
+                }
+            }
+
+            function showPlantSeedModal(plotIndex) {
+                seedOptionsList.innerHTML = '';
+                const ownedSeeds = Object.keys(state.inventory).filter(item => seedData[item] && state.inventory[item] > 0);
+
+                if (ownedSeeds.length === 0) {
+                    alert('คุณไม่มีเมล็ดพันธุ์สำหรับปลูกเลย!');
+                    return;
+                }
+
+                ownedSeeds.forEach(seedName => {
+                    const seed = seedData[seedName];
+                    const optionEl = document.createElement('button');
+                    optionEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-lime-50 rounded-lg border-l-4 border-lime-200';
+                    optionEl.innerHTML = `
+                        <span>${seedName} (โตใน ${formatTime(seed.growTime)})</span>
+                        <span class="font-bold text-gray-600">มี ${state.inventory[seedName]} เมล็ด</span>
+                    `;
+                    optionEl.onclick = () => plantSeed(plotIndex, seedName);
+                    seedOptionsList.appendChild(optionEl);
+                });
+                plantSeedModal.classList.add('visible');
+            }
+
+            function hidePlantSeedModal() {
+                plantSeedModal.classList.remove('visible');
+            }
+
+            function plantSeed(plotIndex, seedName) {
+                if (state.inventory[seedName] > 0) {
+                    state.inventory[seedName]--;
+                    state.garden.plots[plotIndex] = {
+                        seedName: seedName,
+                        plantTime: Date.now()
+                    };
+                    saveState();
+                    renderGarden();
+                    hidePlantSeedModal();
+                }
+            }
+
+            function harvest(plotIndex) {
+                const plot = state.garden.plots[plotIndex];
+                if (plot) {
+                    const seed = seedData[plot.seedName];
+                    state.inventory[seed.result] = (state.inventory[seed.result] || 0) + 1;
+                    state.pet.exp += seed.exp;
+                    state.garden.plots[plotIndex] = null;
+                    
+                    alert(`เก็บเกี่ยว ${seed.result} ได้สำเร็จ! ได้รับ ${seed.exp} EXP!`);
+                    saveState();
+                    renderGarden();
+                }
+            }
+
+            closePlantSeedModalBtn.addEventListener('click', hidePlantSeedModal);
+            
+            loadState();
+            renderGarden();
+        });
+    </script>
+</body>
+</html>
