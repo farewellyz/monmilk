@@ -306,7 +306,7 @@
                     🧭 สถานะการสำรวจ
                 </h2>
                 <div class="text-center">
-                    <p id="exploration-status-text" class="text-lg font-medium text-gray-700">น้องม่อนกำลังสำรวจที่ <strong id="exploration-location" class="text-pink-500"></strong></p>
+                    <p id="exploration-status-text" class="text-lg font-medium text-gray-700"></p>
                     <p class="text-3xl font-bold text-amber-500 my-2" id="exploration-timer">00:00:00</p>
                     <button id="claim-rewards-btn" class="btn-base w-full mt-2 px-4 py-3 text-lg font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600 hidden">รับของรางวัล</button>
                 </div>
@@ -378,6 +378,15 @@
                     ภารกิจรายวัน
                 </h2>
                 <div id="daily-missions-list" class="space-y-3"></div>
+            </div>
+
+            <div class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    🌱 แปลงผัก
+                </h2>
+                <a href="garden.html" class="btn-base w-full px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">
+                    ไปที่แปลงผัก
+                </a>
             </div>
 
             <div class="game-buttons-section mb-6">
@@ -492,12 +501,11 @@
                         </div>
                     </div>
                 </div>
-                <div id="pet-action-buttons">
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
-                        <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
-                    </div>
-                    <a href="./exploration.html" class="btn-base w-full mt-4 px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
+                <div id="pet-action-buttons" class="grid grid-cols-2 gap-4 mt-4">
+                    <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
+                    <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
+                    <a href="exploration.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
+                    <a href="garden.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
@@ -608,6 +616,14 @@
                 'ลูกบอล': { name: 'ลูกบอล' },
                 'กีต้า': { name: 'กีต้า' },
                 'คอมพิวเตอร์': { name: 'คอมพิวเตอร์' },
+                'เมล็ดมะเขือเทศ': { name: 'เมล็ดมะเขือเทศ' },
+                'มะเขือเทศ': { name: 'มะเขือเทศ' },
+                'เมล็ดแครอท': { name: 'เมล็ดแครอท' },
+                'แครอท': { name: 'แครอท' },
+                'เมล็ดบรอกโคลี': { name: 'เมล็ดบรอกโคลี' },
+                'บรอกโคลี': { name: 'บรอกโคลี' },
+                'เมล็ดสตรอว์เบอร์รี': { name: 'เมล็ดสตรอว์เบอร์รี' },
+                'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
             };
 
             const petToys = {
@@ -629,38 +645,46 @@
             const explorationLocations = {
                 'garden': { 
                     name: 'สวนหลังบ้าน', 
+                    exp: 5,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
                         { type: 'item', name: 'ขนมปัง', chance: 80 },
-                        { type: 'item', name: 'ของเล่นยาง', chance: 30 }
+                        { type: 'item', name: 'ของเล่นยาง', chance: 80 },
+                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 20 }
                     ]
                 },
                 'market': { 
                     name: 'ตลาดนัดของเล่น', 
+                    exp: 10,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
                         { type: 'item', name: 'เค้ก', chance: 70 },
-                        { type: 'item', name: 'ลูกบอล', chance: 40 }
+                        { type: 'item', name: 'ลูกบอล', chance: 70 },
+                        { type: 'item', name: 'เมล็ดแครอท', chance: 15 }
                     ]
                 },
                 'beach': { 
                     name: 'ชายหาดสายรุ้ง', 
+                    exp: 20,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
                         { type: 'item', name: 'ไอศกรีม', chance: 60 },
-                        { type: 'item', name: 'กีต้า', chance: 25 },
-                        { type: 'item', name: 'ticket_random', chance: 15 }
+                        { type: 'item', name: 'กีต้า', chance: 60 },
+                        { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 10 },
+                        { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 }
                     ]
                 },
                 'forest': { 
                     name: 'ป่ามหัศจรรย์', 
+                    exp: 30,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
-                        { type: 'item', name: 'คอมพิวเตอร์', chance: 15 },
-                        { type: 'item', name: 'ticket_trip', chance: 10 },
-                        { type: 'item', name: 'ticket_command', chance: 5 }
+                        { type: 'item', name: 'คอมพิวเตอร์', chance: 30 },
+                        { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 5 },
+                        { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
+                        { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 }
                     ]
                 }
             };
@@ -765,6 +789,10 @@
                 'ขนมปัง': { hunger: 15, exp: 5, cost: 10 },
                 'เค้ก': { hunger: 30, exp: 12, cost: 25 },
                 'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 },
+                'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 },
+                'แครอท': { hunger: 20, exp: 10, cost: 0 },
+                'บรอกโคลี': { hunger: 25, exp: 12, cost: 0 },
+                'สตรอว์เบอร์รี': { hunger: 30, exp: 20, cost: 0 },
             };
 
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
@@ -1289,7 +1317,7 @@
                             renderInventory();
                             renderPetStats();
                         };
-                    } else {
+                    } else if (food.cost > 0) { // Only show buy option for non-grown food
                         foodEl.innerHTML = `
                             <span>ซื้อ ${foodName} (+${food.hunger} ❤️)</span>
                             <span class="font-bold text-amber-600">${food.cost} เหรียญ</span>
@@ -1313,6 +1341,8 @@
                                 alert('เหรียญม่อนไม่พอจ้า!');
                             }
                         };
+                    } else {
+                        continue; // Don't show vegetables if we don't have them
                     }
                     foodList.appendChild(foodEl);
                 }
@@ -1409,6 +1439,10 @@
                 if (!location) return;
 
                 let foundRewards = [];
+                
+                // Add EXP from exploration
+                addPetExp(location.exp);
+                foundRewards.push(`${location.exp} EXP`);
 
                 location.rewards.forEach(reward => {
                     const roll = Math.random() * 100;
@@ -1450,12 +1484,11 @@
                 if (explorationInterval) clearInterval(explorationInterval);
 
                 const exploration = state.pet.exploration;
-                const exploreBtnInModal = petActionButtons.querySelector('a[href="./exploration.html"]');
+                const exploreBtnInModal = petActionButtons.querySelector('a[href="exploration.html"]');
 
                 if (exploration) {
                     const locationName = explorationLocations[exploration.locationId].name;
                     explorationStatusCard.classList.remove('hidden');
-                    explorationLocationEl.textContent = locationName;
                     petExplorationStatusInModal.classList.remove('hidden');
                     petExplorationLocationInModal.textContent = locationName;
 
@@ -1466,7 +1499,7 @@
 
                     if (exploration.endTime > Date.now()) {
                         // Still exploring
-                        explorationStatusText.innerHTML = `น้องม่อนกำลังสำรวจที่ <strong id="exploration-location" class="text-pink-500">${locationName}</strong>`;
+                        explorationStatusText.innerHTML = `${state.pet.name} กำลังสำรวจที่ <strong class="text-pink-500">${locationName}</strong>`;
                         explorationTimerEl.classList.remove('hidden');
                         claimRewardsBtn.classList.add('hidden');
 
