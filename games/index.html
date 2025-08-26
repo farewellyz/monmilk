@@ -441,14 +441,19 @@
     <div id="pet-stats-modal" class="modal-overlay">
         <div class="modal-content">
             <div id="pet-section">
-                <div class="flex items-center mb-4">
-                    <h2 id="pet-name" class="text-2xl font-bold text-pink-600"></h2>
-                    <span id="pet-level" class="ml-2 text-sm font-bold bg-pink-200 text-pink-600 px-2 py-0.5 rounded-full"></span>
+                <div id="pet-display-area" class="relative bg-cover bg-center rounded-xl p-4 mb-4 transition-all duration-500" style="box-shadow: inset 0 0 30px rgba(0,0,0,0.1);">
+                    <div class="flex items-center mb-4">
+                        <h2 id="pet-name" class="text-2xl font-bold text-white" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);"></h2>
+                        <span id="pet-level" class="ml-2 text-sm font-bold bg-black/30 text-white px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <div class="text-center">
+                        <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-32 mx-auto drop-shadow-lg">
+                    </div>
                 </div>
-                <div class="text-center mb-4">
-                    <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-32 mx-auto">
-                </div>
-                
+
+                <div id="pet-background-buff-display" class="text-center bg-pink-100 text-pink-700 font-semibold p-2 rounded-lg my-3 border border-pink-200 hidden">
+                    </div>
+
                 <div id="pet-exploration-status-in-modal" class="hidden text-center mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-400 rounded-lg">
                     <p class="font-semibold text-yellow-800">กำลังสำรวจที่ <span id="pet-exploration-location-in-modal"></span></p>
                     <p class="text-lg font-bold text-yellow-600" id="pet-exploration-timer-in-modal">00:00:00</p>
@@ -497,6 +502,12 @@
                     <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
                     <a href="exploration.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
                     <a href="garden.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
+                </div>
+                
+                <div id="pet-background-section" class="mt-6">
+                    <h3 class="text-xl font-bold text-pink-500 mb-2 text-left">เปลี่ยนพื้นหลัง</h3>
+                    <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-gray-100 rounded-lg">
+                        </div>
                 </div>
                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
@@ -589,10 +600,12 @@
             ];
             
             const shopItemDefinitions = [
-                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200 },  
-                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600 }, 
-                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000 }, 
-                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000 }, 
+                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200, type: 'ticket' },  
+                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600, type: 'ticket' }, 
+                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000, type: 'ticket' }, 
+                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000, type: 'ticket' },
+                { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background' },
+                { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background' },
             ];
             
             const consumableItems = {
@@ -615,6 +628,18 @@
                 'บรอกโคลี': { name: 'บรอกโคลี' },
                 'เมล็ดสตรอว์เบอร์รี': { name: 'เมล็ดสตรอว์เบอร์รี' },
                 'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
+            };
+
+            const petBackgroundDefinitions = {
+                'default': { name: 'ห้องธรรมดา', description: 'ไม่มีโบนัสพิเศษ', image: `room.jpg` },
+                'kitchen': { name: 'ห้องครัว', description: 'หิวช้าลง 10%', image: `kitchen.jpg` },
+                'library': { name: 'ห้องสมุด', description: 'ได้รับ EXP เพิ่มขึ้น 10%', image: `library.jpg` },
+                'beach': { name: 'ชายหาด', description: 'ใช้พลังงานน้อยลง 10%', image: `beach.jpg` },
+                'bedroom': { name: 'ห้องนอน', description: 'ความสุขลดช้าลง 10%', image: `bedroom.jpg` },
+                'restaurant': { name: 'ร้านอาหาร', description: 'ราคาอาหารลดลง 20%', image: `restaurant.jpg` },
+                'amusement_park': { name: 'สวนสนุก', description: 'เล่นด้วยได้ความสุขเพิ่ม 20%', image: `amusement_park.jpg` },
+                'vegetable_garden': { name: 'สวนผัก', description: 'ผักโตเร็วขึ้น 10%', image: `vegetable_garden.jpg` },
+                'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` }
             };
 
             const petToys = {
@@ -642,7 +667,9 @@
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
                         { type: 'item', name: 'ขนมปัง', chance: 80 },
                         { type: 'item', name: 'ของเล่นยาง', chance: 80 },
-                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 80 }
+                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 80 },
+                        { type: 'background', name: 'bedroom', chance: 10 },
+                        { type: 'background', name: 'beach', chance: 10 }
                     ]
                 },
                 'market': { 
@@ -653,7 +680,9 @@
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
                         { type: 'item', name: 'เค้ก', chance: 70 },
                         { type: 'item', name: 'ลูกบอล', chance: 70 },
-                        { type: 'item', name: 'เมล็ดแครอท', chance: 70 }
+                        { type: 'item', name: 'เมล็ดแครอท', chance: 70 },
+                        { type: 'background', name: 'restaurant', chance: 10 },
+                        { type: 'background', name: 'amusement_park', chance: 10 }
                     ]
                 },
                 'beach': { 
@@ -664,7 +693,8 @@
                         { type: 'item', name: 'ไอศกรีม', chance: 60 },
                         { type: 'item', name: 'กีต้า', chance: 60 },
                         { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 60 },
-                        { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 }
+                        { type: 'item', name: 'ticket_random', chance: 15 },
+                        { type: 'background', name: 'vegetable_garden', chance: 10 }
                     ]
                 },
                 'forest': { 
@@ -674,8 +704,9 @@
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
                         { type: 'item', name: 'คอมพิวเตอร์', chance: 30 },
                         { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 30 },
-                        { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
-                        { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 }
+                        { type: 'item', name: 'ticket_trip', chance: 10 },
+                        { type: 'item', name: 'ticket_command', chance: 5 },
+                        { type: 'background', name: 'forest', chance: 10 }
                     ]
                 }
             };
@@ -685,7 +716,7 @@
                 { name: '2 เหรียญเล่นม่อน', type: 'play_coin', value: 2, probability: 24, rarity: 'common' },
                 { name: '3 เหรียญเล่นม่อน', type: 'play_coin', value: 3, probability: 10, rarity: 'common' },
                 { name: '4 เหรียญเล่นม่อน', type: 'play_coin', value: 4, probability: 5, rarity: 'rare' },
-                { name: '5 เหรียญเล่นม่อน', type: 'play_coin', value: 5, rarity: 'rare' },
+                { name: '5 เหรียญเล่นม่อน', type: 'play_coin', value: 5, probability: 5, rarity: 'rare' },
                 { name: 'ตั๋วสุ่มวงล้อ', type: 'item', value: 'ticket_random', probability: 7, rarity: 'rare' },
                 { name: 'ตั๋วให้พาไปไหนก็ได้', type: 'item', value: 'ticket_trip', probability: 6, rarity: 'epic' },
                 { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', type: 'item', value: 'ticket_command', probability: 3, rarity: 'epic' },
@@ -733,6 +764,7 @@
             const petSpeechBubble = document.getElementById('pet-speech-bubble');
             const petStatsModal = document.getElementById('pet-stats-modal');
             const closePetStatsModalBtn = document.getElementById('close-pet-stats-modal-btn');
+            const petDisplayArea = document.getElementById('pet-display-area');
             const petNameEl = document.getElementById('pet-name');
             const petLevelEl = document.getElementById('pet-level');
             const petModalImageEl = document.getElementById('pet-modal-image');
@@ -750,6 +782,8 @@
             const petExplorationStatusInModal = document.getElementById('pet-exploration-status-in-modal');
             const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
             const petExplorationTimerInModal = document.getElementById('pet-exploration-timer-in-modal');
+            const petBackgroundList = document.getElementById('pet-background-list');
+            const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
 
             const hatchModal = document.getElementById('hatch-modal');
             const eggStage = document.getElementById('egg-stage');
@@ -809,12 +843,14 @@
                         if (!state.pet.hasOwnProperty('exploration')) state.pet.exploration = null;
                         if (!state.pet.hasOwnProperty('lastStatusUpdate')) state.pet.lastStatusUpdate = Date.now();
                         if (!state.pet.hasOwnProperty('lastPattedDate')) state.pet.lastPattedDate = null;
+                        if (!state.pet.ownedBackgrounds) state.pet.ownedBackgrounds = ['default'];
+                        if (!state.pet.activeBackground) state.pet.activeBackground = 'default';
                     }
 
                 } else {
                     state = {
-                        monCoins: 1000, 
-                        playCoins: 0, 
+                        monCoins: 100, 
+                        playCoins: 5, 
                         lastCheckinDate: null, 
                         dailyMissions: [],
                         lastMissionDate: null, 
@@ -825,7 +861,8 @@
                         pet: {
                             exists: false, name: '', level: 1, exp: 0, hunger: 100, happiness: 100,
                             stamina: 100, exploration: null,
-                            lastPattedDate: null, lastStatusUpdate: Date.now()
+                            lastPattedDate: null, lastStatusUpdate: Date.now(),
+                            ownedBackgrounds: ['default'], activeBackground: 'default'
                         }
                     };
                     shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
@@ -981,21 +1018,51 @@
                 shopItemsList.innerHTML = '';
                 shopItemDefinitions.forEach(item => {
                     const itemEl = document.createElement('div');
-                    const currentLevel = state.shopItemLevels[item.id] || 0;
-                    const currentPrice = item.basePrice * Math.pow(2, currentLevel);
                     itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
-                    itemEl.innerHTML = `<div><p class="text-lg font-semibold text-gray-700">${item.name}</p><p class="text-base font-bold text-amber-500 flex items-center">${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p></div><button data-price="${currentPrice}" data-id="${item.id}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
+                    
+                    if (item.type === 'background') {
+                        const isOwned = state.pet.ownedBackgrounds.includes(item.id);
+                        itemEl.innerHTML = `
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700">${item.name}</p>
+                                <p class="text-base font-bold text-amber-500 flex items-center">${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p>
+                            </div>
+                            <button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 ml-3 ${isOwned ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700'}">
+                                ${isOwned ? 'มีแล้ว' : 'ซื้อ'}
+                            </button>`;
+                    } else { // Ticket items
+                          const currentLevel = state.shopItemLevels[item.id] || 0;
+                          const currentPrice = item.basePrice * Math.pow(2, currentLevel);
+                          itemEl.innerHTML = `
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700">${item.name}</p>
+                                <p class="text-base font-bold text-amber-500 flex items-center">${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p>
+                            </div>
+                            <button data-price="${currentPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
+                    }
                     shopItemsList.appendChild(itemEl);
                 });
 
                 document.querySelectorAll('.buy-item-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        const price = parseInt(e.currentTarget.dataset.price);
-                        const itemId = e.currentTarget.dataset.id;
+                        const target = e.currentTarget;
+                        const price = parseInt(target.dataset.price);
+                        const itemId = target.dataset.id;
+                        const itemType = target.dataset.type;
+
+                        if (target.textContent.trim() === 'มีแล้ว') return;
+
                         if (state.monCoins >= price) {
                             state.monCoins -= price;
-                            state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
-                            state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
+                            if (itemType === 'background') {
+                                if (!state.pet.ownedBackgrounds.includes(itemId)) {
+                                    state.pet.ownedBackgrounds.push(itemId);
+                                }
+                            } else {
+                                state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
+                                state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
+                            }
+                            
                             updateCoinDisplays();
                             renderInventory(); 
                             saveState();
@@ -1012,9 +1079,11 @@
             function pullGacha() {
                 const rand = Math.random() * 100;
                 let cumulativeProbability = 0;
+                let totalProbability = gachaPrizes.reduce((sum, p) => sum + p.probability, 0);
+                
                 for (const prize of gachaPrizes) {
                     cumulativeProbability += prize.probability;
-                    if (rand < cumulativeProbability) {
+                    if (rand < (cumulativeProbability / totalProbability * 100) ) {
                         return prize;
                     }
                 }
@@ -1155,8 +1224,14 @@
                 const elapsedMinutes = Math.floor((now - state.pet.lastStatusUpdate) / (1000 * 60));
 
                 if (elapsedMinutes > 0) {
-                    const hungerLoss = Math.floor(elapsedMinutes / 15);
-                    const happinessLoss = Math.floor(elapsedMinutes / 20);
+                    let hungerMultiplier = 1.0;
+                    let happinessMultiplier = 1.0;
+
+                    if (state.pet.activeBackground === 'kitchen') hungerMultiplier = 0.9;
+                    if (state.pet.activeBackground === 'bedroom') happinessMultiplier = 0.9;
+                    
+                    const hungerLoss = Math.floor(elapsedMinutes / 15 * hungerMultiplier);
+                    const happinessLoss = Math.floor(elapsedMinutes / 20 * happinessMultiplier);
                     const staminaGain = Math.floor(elapsedMinutes / 5);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
@@ -1228,12 +1303,29 @@
                 
                 petStaminaText.textContent = `${pet.stamina} / 100`;
                 petStaminaBar.style.width = `${pet.stamina}%`;
+
+                const activeBg = state.pet.activeBackground;
+                const bgInfo = petBackgroundDefinitions[activeBg];
+
+                if(bgInfo) {
+                    petDisplayArea.style.backgroundImage = `url('${bgInfo.image}')`;
+                    petBackgroundBuffDisplay.textContent = `โบนัส: ${bgInfo.description}`;
+                    petBackgroundBuffDisplay.classList.remove('hidden');
+                } else {
+                    petBackgroundBuffDisplay.classList.add('hidden');
+                }
                 
-                renderExplorationStatus(); // Update status in modal as well
+                renderPetBackgroundsUI();
+                renderExplorationStatus();
             }
             
             function addPetExp(amount) {
                 const pet = state.pet;
+                
+                if (state.pet.activeBackground === 'library') {
+                    amount = Math.round(amount * 1.1);
+                }
+
                 const maxExp = pet.level * 100;
                 pet.exp += amount;
 
@@ -1268,7 +1360,9 @@
                         stamina: 100,
                         exploration: null,
                         lastPattedDate: null,
-                        lastStatusUpdate: Date.now()
+                        lastStatusUpdate: Date.now(),
+                        ownedBackgrounds: ['default'],
+                        activeBackground: 'default'
                     };
                     saveState();
                     hatchModal.classList.remove('visible');
@@ -1280,10 +1374,15 @@
 
             function showFeedModal() {
                 foodList.innerHTML = '';
+                
+                let costMultiplier = 1.0;
+                if (state.pet.activeBackground === 'restaurant') {
+                    costMultiplier = 0.8;
+                }
 
                 for (const foodName in petFoodDefinitions) {
                     const food = petFoodDefinitions[foodName];
-                    const hasItem = state.inventory[foodName] > 0;
+                    const hasItem = (state.inventory[foodName] || 0) > 0;
                     
                     const foodEl = document.createElement('button');
                     foodEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-rose-50 rounded-lg border-l-4 border-rose-200';
@@ -1308,14 +1407,15 @@
                             renderInventory();
                             renderPetStats();
                         };
-                    } else if (food.cost > 0) { // Only show buy option for non-grown food
+                    } else if (food.cost > 0) {
+                        const finalCost = Math.round(food.cost * costMultiplier);
                         foodEl.innerHTML = `
                             <span>ซื้อ ${foodName} (+${food.hunger} ❤️)</span>
-                            <span class="font-bold text-amber-600">${food.cost} เหรียญ</span>
+                            <span class="font-bold text-amber-600">${finalCost} เหรียญ</span>
                         `;
                         foodEl.onclick = () => {
-                            if (state.monCoins >= food.cost) {
-                                state.monCoins -= food.cost;
+                            if (state.monCoins >= finalCost) {
+                                state.monCoins -= finalCost;
                                 state.pet.hunger = Math.min(100, state.pet.hunger + food.hunger);
                                 addPetExp(food.exp);
                                 updateCoinDisplays();
@@ -1333,7 +1433,7 @@
                             }
                         };
                     } else {
-                        continue; // Don't show vegetables if we don't have them
+                        continue;
                     }
                     foodList.appendChild(foodEl);
                 }
@@ -1349,7 +1449,6 @@
                 const today = new Date().toDateString();
                 const canPat = state.pet.lastPattedDate !== today;
 
-                // Pat action
                 const patEl = document.createElement('button');
                 patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
                 patEl.innerHTML = `
@@ -1363,7 +1462,6 @@
                 }
                 playOptionsList.appendChild(patEl);
 
-                // Toy actions
                 for (const toyName in petToys) {
                     if (state.inventory[toyName] > 0) {
                         const toy = petToys[toyName];
@@ -1385,11 +1483,17 @@
             }
 
             function handlePlayAction(action) {
+                let happinessMultiplier = 1.0;
+                if (state.pet.activeBackground === 'amusement_park') {
+                    happinessMultiplier = 1.2;
+                }
+
                 if (action === 'pat') {
                     const today = new Date().toDateString();
                     if (state.pet.lastPattedDate !== today) {
                         state.pet.lastPattedDate = today;
-                        state.pet.happiness = Math.min(100, state.pet.happiness + 50);
+                        const happinessGain = Math.round(50 * happinessMultiplier);
+                        state.pet.happiness = Math.min(100, state.pet.happiness + happinessGain);
                         
                         const reward = 1 + Math.floor(state.pet.level / 5);
                         state.playCoins += reward;
@@ -1400,7 +1504,8 @@
                     }
                 } else if (petToys[action] && state.inventory[action] > 0) {
                     state.inventory[action]--;
-                    state.pet.happiness = Math.min(100, state.pet.happiness + petToys[action].happiness);
+                    const happinessGain = Math.round(petToys[action].happiness * happinessMultiplier);
+                    state.pet.happiness = Math.min(100, state.pet.happiness + happinessGain);
                     alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
                 }
 
@@ -1431,16 +1536,20 @@
 
                 let foundRewards = [];
                 
-                // Add EXP from exploration
                 addPetExp(location.exp);
                 foundRewards.push(`${location.exp} EXP`);
 
+                let bonusDropChance = 0;
+                if (state.pet.activeBackground === 'forest') {
+                    bonusDropChance = 5; 
+                }
+
                 location.rewards.forEach(reward => {
                     const roll = Math.random() * 100;
-                    if (roll < reward.chance) {
+                    if (roll < (reward.chance + bonusDropChance)) {
                         const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
                         const [min, max] = amountRange;
-                        const amount = min + Math.floor((max - min + 1) * (Math.random() * Math.random()));
+                        const amount = min + Math.floor((max - min + 1) * Math.random());
 
                         if (reward.type === 'mon_coin') {
                             state.monCoins += amount;
@@ -1449,9 +1558,15 @@
                             state.playCoins += amount;
                             foundRewards.push(`${amount} เหรียญเล่นม่อน`);
                         } else if (reward.type === 'item') {
-                            const itemName = consumableItems[reward.name] ? consumableItems[reward.name].name : reward.name;
+                            const itemName = consumableItems[reward.name]?.name || reward.name;
                             state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
                             foundRewards.push(itemName);
+                        } else if (reward.type === 'background') {
+                            if (!state.pet.ownedBackgrounds.includes(reward.name)) {
+                                state.pet.ownedBackgrounds.push(reward.name);
+                                const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
+                                foundRewards.push(`พื้นหลัง: ${bgName}`);
+                            }
                         }
                     }
                 });
@@ -1489,7 +1604,6 @@
                     }
 
                     if (exploration.endTime > Date.now()) {
-                        // Still exploring
                         explorationStatusText.innerHTML = `${state.pet.name} กำลังสำรวจที่ <strong class="text-pink-500">${locationName}</strong>`;
                         explorationTimerEl.classList.remove('hidden');
                         claimRewardsBtn.classList.add('hidden');
@@ -1497,7 +1611,7 @@
                         const updateTimer = () => {
                             const remaining = exploration.endTime - Date.now();
                             if (remaining <= 0) {
-                                renderExplorationStatus(); // Re-render to show claim button
+                                renderExplorationStatus();
                             } else {
                                 const countdownText = formatCountdown(remaining);
                                 explorationTimerEl.textContent = countdownText;
@@ -1507,14 +1621,12 @@
                         explorationInterval = setInterval(updateTimer, 1000);
                         updateTimer();
                     } else {
-                        // Exploration finished, waiting for claim
                         explorationStatusText.innerHTML = `${state.pet.name} กลับมาจากการสำรวจที่ <strong class="text-pink-500">${locationName}</strong> แล้ว!`;
                         explorationTimerEl.classList.add('hidden');
                         claimRewardsBtn.classList.remove('hidden');
                         petExplorationTimerInModal.textContent = "เสร็จสิ้น!";
                     }
                 } else {
-                    // Not exploring
                     explorationStatusCard.classList.add('hidden');
                     petExplorationStatusInModal.classList.add('hidden');
                     if (exploreBtnInModal) {
@@ -1522,6 +1634,31 @@
                         exploreBtnInModal.style.pointerEvents = 'auto';
                     }
                 }
+            }
+
+            function renderPetBackgroundsUI() {
+                petBackgroundList.innerHTML = '';
+                state.pet.ownedBackgrounds.forEach(bgId => {
+                    const bgInfo = petBackgroundDefinitions[bgId];
+                    if (!bgInfo) return;
+
+                    const bgEl = document.createElement('div');
+                    const isActive = state.pet.activeBackground === bgId;
+                    bgEl.className = `cursor-pointer rounded-md p-1 border-2 transition-all ${isActive ? 'border-pink-500 scale-105 shadow-lg' : 'border-transparent'}`;
+                    bgEl.innerHTML = `
+                        <div class="h-16 bg-cover bg-center rounded" style="background-image: url('${bgInfo.image}')"></div>
+                        <p class="text-xs font-semibold mt-1 text-center text-gray-700">${bgInfo.name}</p>
+                    `;
+                    bgEl.title = bgInfo.description;
+                    bgEl.onclick = () => setActiveBackground(bgId);
+                    petBackgroundList.appendChild(bgEl);
+                });
+            }
+
+            function setActiveBackground(bgId) {
+                state.pet.activeBackground = bgId;
+                saveState();
+                renderPetStats(); // Re-render to update UI
             }
 
             let isDragging = false;
@@ -1567,15 +1704,15 @@
             function dragEnd(e) {
                 if (isDragging) {
                      let finalX, finalY;
-                    if (e.type === 'touchend') {
-                        finalX = e.changedTouches[0].clientX;
-                        finalY = e.changedTouches[0].clientY;
-                    } else {
-                        finalX = e.clientX;
-                        finalY = e.clientY;
-                    }
-                    lastTranslateX += finalX - dragStartX;
-                    lastTranslateY += finalY - dragStartY;
+                     if (e.type === 'touchend') {
+                         finalX = e.changedTouches[0].clientX;
+                         finalY = e.changedTouches[0].clientY;
+                     } else {
+                         finalX = e.clientX;
+                         finalY = e.clientY;
+                     }
+                     lastTranslateX += finalX - dragStartX;
+                     lastTranslateY += finalY - dragStartY;
                 }
                 
                 floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1)`;
@@ -1626,7 +1763,7 @@
                 if(state.lastMissionDate !== today) {
                     generateNewMissions();
                     state.lastMissionDate = today;
-                    saveState();   
+                    saveState();    
                 }
                 updateCoinDisplays();
                 updateCheckInButton();
@@ -1643,11 +1780,13 @@
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
-                        if (state.playCoins > 0) {
-                            if (gameId === 'cafe' && !isBonusGame) {
-                                state.playCoins--;
-                                updateCoinDisplays();
-                            }
+                        // --- EDIT START: ALL GAMES COST 1 COIN ---
+                        const gameCost = 0;
+
+                        if (state.playCoins >= gameCost) {
+                            state.playCoins -= gameCost; // Always deduct 1 coin
+                            updateCoinDisplays();
+                            
                             if (isBonusGame) {
                                 targetUrl += '?bonus=true';
                             }
@@ -1656,6 +1795,7 @@
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
                         }
+                        // --- EDIT END ---
                     });
                 });
             }
