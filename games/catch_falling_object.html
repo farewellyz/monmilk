@@ -446,7 +446,7 @@
             }
 
             function loadGlobalState() {
-                const savedData = localStorage.getItem('monGameDataV14');
+                const savedData = localStorage.getItem('monGameDataV17');
                 if (savedData) {
                     globalState = JSON.parse(savedData);
                     if (typeof globalState.highScore === 'undefined' || globalState.highScore === null) {
@@ -973,4 +973,5 @@
         });
     </script>
 </body>
+
 </html>
