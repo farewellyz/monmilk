@@ -246,7 +246,6 @@
             right: 20px;
             z-index: 999;
             cursor: grab;
-            /* The transition is removed from here to prevent lag during dragging */
         }
         #floating-pet-container:active {
             cursor: grabbing;
@@ -255,8 +254,8 @@
         #floating-pet-image {
             width: 96px; /* 6rem */
             height: 96px; /* 6rem */
-            -webkit-user-drag: none; /* Prevents image ghosting on drag */
-            user-select: none; /* Prevents text selection */
+            -webkit-user-drag: none;
+            user-select: none;
         }
         @keyframes pet-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .pet-happy-animation { animation: pet-bounce 0.5s ease-in-out; }
@@ -264,7 +263,7 @@
         /* Speech Bubble Style */
         #pet-speech-bubble {
             position: absolute;
-            bottom: 85px; /* Position it above the pet */
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%);
             background-color: white;
@@ -301,6 +300,17 @@
                 </h1>
                 <p class="text-lg text-pink-500 font-medium mt-1">มาเล่นกันเถอะ!</p>
             </header>
+
+            <div id="exploration-status-card" class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6 hidden">
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4 text-center pb-2 border-b border-dashed border-pink-200 flex items-center justify-center">
+                    🧭 สถานะการสำรวจ
+                </h2>
+                <div class="text-center">
+                    <p id="exploration-status-text" class="text-lg font-medium text-gray-700">น้องม่อนกำลังสำรวจที่ <strong id="exploration-location" class="text-pink-500"></strong></p>
+                    <p class="text-3xl font-bold text-amber-500 my-2" id="exploration-timer">00:00:00</p>
+                    <button id="claim-rewards-btn" class="btn-base w-full mt-2 px-4 py-3 text-lg font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600 hidden">รับของรางวัล</button>
+                </div>
+            </div>
 
             <div id="bonus-game-section" class="card-base bg-white p-5 rounded-3xl shadow-lg mb-6 hidden">
                 <h2 class="bonus-game-header text-2xl font-semibold mb-4 text-center pb-2 flex items-center justify-center">
@@ -376,27 +386,27 @@
                     เล่นเกมกัน!
                 </h2>
                 <div id="game-card-container" class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
-                    <a href="rps_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-pink-400 to-red-400 border-pink-600 hover:transform hover:-translate-y-1" data-game-id="rps">
+                    <a href="./rps_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-pink-400 to-red-400 border-pink-600 hover:transform hover:-translate-y-1" data-game-id="rps">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เป่ายิ้งฉุบ</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="memory_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600 hover:transform hover:-translate-y-1" data-game-id="memory">
+                    <a href="./memory_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-600 hover:transform hover:-translate-y-1" data-game-id="memory">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">จับคู่ภาพ</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="simon_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600 hover:transform hover:-translate-y-1" data-game-id="simon">
+                    <a href="./simon_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600 hover:transform hover:-translate-y-1" data-game-id="simon">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมกดตามม่อน</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="whac_a_mole_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-800 border-indigo-800 hover:transform hover:-translate-y-1" data-game-id="whac_a_mole">
+                    <a href="./whac_a_mole_game.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-800 border-indigo-800 hover:transform hover:-translate-y-1" data-game-id="whac_a_mole">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมตีหัวม่อน</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="catch_falling_object.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-rose-400 to-pink-500 border-rose-600 hover:transform hover:-translate-y-1" data-game-id="catch_object">
+                    <a href="./catch_falling_object.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-rose-400 to-pink-500 border-rose-600 hover:transform hover:-translate-y-1" data-game-id="catch_object">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมรับม่อนด้วย</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
-                    <a href="cafe.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-amber-400 to-yellow-600 border-amber-600 hover:transform hover:-translate-y-1" data-game-id="cafe">
+                    <a href="./cafe.html" class="game-card block p-4 rounded-2xl shadow-md text-center transition-all duration-300 border-b-4 relative overflow-hidden bg-gradient-to-br from-amber-400 to-yellow-600 border-amber-600 hover:transform hover:-translate-y-1" data-game-id="cafe">
                         <h3 class="text-white text-xl font-bold mb-1 relative z-10 [text-shadow:1px_1px_2px_rgba(0,0,0,0.3)]">เกมคาเฟ่</h3>
                         <p class="text-white text-sm opacity-90 relative z-10">ใช้ 1 เหรียญ</p>
                     </a>
@@ -438,6 +448,12 @@
                 <div class="text-center mb-4">
                     <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-32 mx-auto">
                 </div>
+                
+                <div id="pet-exploration-status-in-modal" class="hidden text-center mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-400 rounded-lg">
+                    <p class="font-semibold text-yellow-800">กำลังสำรวจที่ <span id="pet-exploration-location-in-modal"></span></p>
+                    <p class="text-lg font-bold text-yellow-600" id="pet-exploration-timer-in-modal">00:00:00</p>
+                </div>
+
                 <div class="space-y-3">
                     <div>
                         <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
@@ -466,12 +482,24 @@
                             <div id="pet-happiness-bar" class="progress-bar bg-gradient-to-r from-sky-400 to-cyan-400" style="width: 0%;"></div>
                         </div>
                     </div>
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
+                            <span>⚡️ พลังงาน</span>
+                            <span id="pet-stamina-text">0/100</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="pet-stamina-bar" class="progress-bar bg-gradient-to-r from-lime-400 to-green-500" style="width: 0%;"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
-                    <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
+                <div id="pet-action-buttons">
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
+                        <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
+                    </div>
+                    <a href="./exploration.html" class="btn-base w-full mt-4 px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
                 </div>
-                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+                <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
         </div>
     </div>
@@ -499,6 +527,14 @@
              <h2 class="text-2xl font-bold text-pink-500 mb-4">เลือกอาหารให้น้องม่อน</h2>
              <div id="food-list" class="space-y-3"></div>
              <button id="close-feed-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
+
+    <div id="play-modal" class="modal-overlay">
+        <div class="modal-content">
+             <h2 class="text-2xl font-bold text-pink-500 mb-4">เล่นกับน้องม่อน</h2>
+             <div id="play-options-list" class="space-y-3"></div>
+             <button id="close-play-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
         </div>
     </div>
 
@@ -532,6 +568,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let state = {};
+            let explorationInterval = null;
 
             const allMissions = [
                 { text: 'ถ่ายรูปหน้าส่งให้ม่อน (1 เหรียญ)', reward: 1 }, 
@@ -564,6 +601,20 @@
                 'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้' },
                 'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้' },
                 'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้' },
+                'ขนมปัง': { name: 'ขนมปัง' },
+                'เค้ก': { name: 'เค้ก' },
+                'ไอศกรีม': { name: 'ไอศกรีม' },
+                'ของเล่นยาง': { name: 'ของเล่นยาง' },
+                'ลูกบอล': { name: 'ลูกบอล' },
+                'กีต้า': { name: 'กีต้า' },
+                'คอมพิวเตอร์': { name: 'คอมพิวเตอร์' },
+            };
+
+            const petToys = {
+                'ของเล่นยาง': { happiness: 20 },
+                'ลูกบอล': { happiness: 25 },
+                'กีต้า': { happiness: 40 },
+                'คอมพิวเตอร์': { happiness: 50 },
             };
 
             const allPlayableGames = [
@@ -574,8 +625,46 @@
                 { id: 'catch_object', name: 'รับม่อนด้วย!', file: 'catch_falling_object.html' },
                 { id: 'cafe', name: 'เกมคาเฟ่', file: 'cafe.html' },
             ];
+            
+            const explorationLocations = {
+                'garden': { 
+                    name: 'สวนหลังบ้าน', 
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
+                        { type: 'item', name: 'ขนมปัง', chance: 80 },
+                        { type: 'item', name: 'ของเล่นยาง', chance: 30 }
+                    ]
+                },
+                'market': { 
+                    name: 'ตลาดนัดของเล่น', 
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
+                        { type: 'item', name: 'เค้ก', chance: 70 },
+                        { type: 'item', name: 'ลูกบอล', chance: 40 }
+                    ]
+                },
+                'beach': { 
+                    name: 'ชายหาดสายรุ้ง', 
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
+                        { type: 'item', name: 'ไอศกรีม', chance: 60 },
+                        { type: 'item', name: 'กีต้า', chance: 25 },
+                        { type: 'item', name: 'ticket_random', chance: 15 }
+                    ]
+                },
+                'forest': { 
+                    name: 'ป่ามหัศจรรย์', 
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
+                        { type: 'item', name: 'คอมพิวเตอร์', chance: 15 },
+                        { type: 'item', name: 'ticket_trip', chance: 10 },
+                        { type: 'item', name: 'ticket_command', chance: 5 }
+                    ]
+                }
+            };
 
-            // Gacha Prize Pool with new rates and rarity
             const gachaPrizes = [
                 { name: '1 เหรียญเล่นม่อน', type: 'play_coin', value: 1, probability: 39, rarity: 'common' },
                 { name: '2 เหรียญเล่นม่อน', type: 'play_coin', value: 2, probability: 24, rarity: 'common' },
@@ -588,12 +677,11 @@
                 { name: 'ตั๋วที่ขออะไรก็ได้', type: 'item', value: 'ticket_wish', probability: 1, rarity: 'legendary' },
             ];
 
-            // Pet Emotion Images - เปลี่ยน URL รูปได้ที่นี่
             const petEmotions = {
-                normal: 'idle.gif', // ปกติ
-                happy: 'happy.png',  // ยิ้ม
-                sad: 'cry.png',    // ร้องไห้ (หิว)
-                angry: 'angry.png',   // โกรธ (ไม่มีความสุข)
+                normal: 'idle.gif',
+                happy: 'happy.png',
+                sad: 'cry.png',
+                angry: 'angry.png',
             };
 
             const screens = {
@@ -604,7 +692,6 @@
                 mon: document.getElementById('mon-coin-display'),
                 play: document.getElementById('play-coin-display'),
             };
-            // Element selectors
             const checkInBtn = document.getElementById('check-in-btn');
             const dailyMissionsList = document.getElementById('daily-missions-list');
             const shopItemsList = document.getElementById('shop-items-list');
@@ -614,7 +701,6 @@
             const dailyBonusGameName = document.getElementById('daily-bonus-game-name'); 
             const gameCardContainer = document.getElementById('game-card-container');
             
-            // Gacha elements
             const gachaPullBtn = document.getElementById('gacha-pull-btn');
             const gachaRatesBtn = document.getElementById('gacha-rates-btn');
             const gachaModal = document.getElementById('gacha-modal');
@@ -627,7 +713,6 @@
             const gachaRatesList = document.getElementById('gacha-rates-list');
             const closeGachaRatesModalBtn = document.getElementById('close-gacha-rates-modal-btn');
 
-            // Pet Elements
             const floatingPetContainer = document.getElementById('floating-pet-container');
             const floatingPetImage = document.getElementById('floating-pet-image');
             const petSpeechBubble = document.getElementById('pet-speech-bubble');
@@ -642,10 +727,15 @@
             const petHungerBar = document.getElementById('pet-hunger-bar');
             const petHappinessText = document.getElementById('pet-happiness-text');
             const petHappinessBar = document.getElementById('pet-happiness-bar');
+            const petStaminaText = document.getElementById('pet-stamina-text');
+            const petStaminaBar = document.getElementById('pet-stamina-bar');
             const feedPetBtn = document.getElementById('feed-pet-btn');
             const playWithPetBtn = document.getElementById('play-with-pet-btn');
+            const petActionButtons = document.getElementById('pet-action-buttons');
+            const petExplorationStatusInModal = document.getElementById('pet-exploration-status-in-modal');
+            const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
+            const petExplorationTimerInModal = document.getElementById('pet-exploration-timer-in-modal');
 
-            // Hatch Modal Elements
             const hatchModal = document.getElementById('hatch-modal');
             const eggStage = document.getElementById('egg-stage');
             const nameStage = document.getElementById('name-stage');
@@ -654,29 +744,38 @@
             const petNameInput = document.getElementById('pet-name-input');
             const confirmNameBtn = document.getElementById('confirm-name-btn');
             
-            // Feed Modal Elements
             const feedModal = document.getElementById('feed-modal');
             const foodList = document.getElementById('food-list');
             const closeFeedModalBtn = document.getElementById('close-feed-modal-btn');
 
+            const playModal = document.getElementById('play-modal');
+            const playOptionsList = document.getElementById('play-options-list');
+            const closePlayModalBtn = document.getElementById('close-play-modal-btn');
+
+            const explorationStatusCard = document.getElementById('exploration-status-card');
+            const explorationLocationEl = document.getElementById('exploration-location');
+            const explorationTimerEl = document.getElementById('exploration-timer');
+            const explorationStatusText = document.getElementById('exploration-status-text');
+            const claimRewardsBtn = document.getElementById('claim-rewards-btn');
+
             let eggTaps = 0;
             const TAPS_TO_HATCH = 20;
 
-            const petFood = [
-                { name: 'ขนมปัง', cost: 10, hunger: 15, exp: 5 },
-                { name: 'เค้ก', cost: 25, hunger: 30, exp: 12 },
-                { name: 'ไอศกรีม', cost: 40, hunger: 50, exp: 20 },
-            ];
+            const petFoodDefinitions = {
+                'ขนมปัง': { hunger: 15, exp: 5, cost: 10 },
+                'เค้ก': { hunger: 30, exp: 12, cost: 25 },
+                'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 },
+            };
 
             document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
             document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
 
             function saveState() {
-                localStorage.setItem('monGameDataV17', JSON.stringify(state)); // Updated version
+                localStorage.setItem('monGameDataV17', JSON.stringify(state));
             }
 
             function loadState() {
-                const savedData = localStorage.getItem('monGameDataV17'); // Updated version
+                const savedData = localStorage.getItem('monGameDataV17');
                 if (savedData) {
                     state = JSON.parse(savedData);
                     if (!state.shopItemLevels) {
@@ -684,11 +783,15 @@
                         shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
                     }
                     if (!state.pet) { 
-                        state.pet = {
-                            exists: false, name: '', level: 1, exp: 0, hunger: 100, happiness: 100,
-                            lastPlayedDate: null, lastStatusUpdate: Date.now()
-                        };
+                        state.pet = { exists: false };
                     }
+                    if (state.pet.exists) {
+                        if (!state.pet.hasOwnProperty('stamina')) state.pet.stamina = 100;
+                        if (!state.pet.hasOwnProperty('exploration')) state.pet.exploration = null;
+                        if (!state.pet.hasOwnProperty('lastStatusUpdate')) state.pet.lastStatusUpdate = Date.now();
+                        if (!state.pet.hasOwnProperty('lastPattedDate')) state.pet.lastPattedDate = null;
+                    }
+
                 } else {
                     state = {
                         monCoins: 1000, 
@@ -702,7 +805,8 @@
                         shopItemLevels: {},
                         pet: {
                             exists: false, name: '', level: 1, exp: 0, hunger: 100, happiness: 100,
-                            lastPlayedDate: null, lastStatusUpdate: Date.now()
+                            stamina: 100, exploration: null,
+                            lastPattedDate: null, lastStatusUpdate: Date.now()
                         }
                     };
                     shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
@@ -733,7 +837,7 @@
                         card.classList.remove('bonus-game');
                         const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
                         if (gameData) {
-                            card.href = gameData.file; 
+                            card.href = `./${gameData.file}`; 
                             if (card.dataset.gameId === state.dailyBonusGameId) {
                                 card.classList.add('bonus-game');
                             }
@@ -886,7 +990,6 @@
                 });
             }
 
-            // --- Gacha Functions ---
             function pullGacha() {
                 const rand = Math.random() * 100;
                 let cumulativeProbability = 0;
@@ -896,7 +999,7 @@
                         return prize;
                     }
                 }
-                return gachaPrizes[gachaPrizes.length - 1]; // Fallback
+                return gachaPrizes[gachaPrizes.length - 1];
             }
 
             function givePrize(prize) {
@@ -917,7 +1020,6 @@
                 gachaResult.classList.add('hidden');
                 closeGachaModalBtn.classList.add('hidden');
                 
-                // Build the reel
                 const reelItems = [];
                 const reelLength = 50;
                 for (let i = 0; i < reelLength; i++) {
@@ -1036,9 +1138,13 @@
                 if (elapsedMinutes > 0) {
                     const hungerLoss = Math.floor(elapsedMinutes / 15);
                     const happinessLoss = Math.floor(elapsedMinutes / 20);
+                    const staminaGain = Math.floor(elapsedMinutes / 5);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
                     state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
+                    if (!state.pet.exploration || state.pet.exploration.endTime < now) {
+                        state.pet.stamina = Math.min(100, state.pet.stamina + staminaGain);
+                    }
                     
                     state.pet.lastStatusUpdate = now;
                     saveState();
@@ -1051,7 +1157,6 @@
                 let currentEmotion = 'normal';
                 let isBubbleVisible = false;
 
-                // Check hunger first, then happiness
                 if (state.pet.hunger <= 50) {
                     currentEmotion = 'sad';
                     petSpeechBubble.textContent = 'หิวแน้ววว';
@@ -1062,7 +1167,6 @@
                     isBubbleVisible = true;
                 }
 
-                // Show or hide bubble
                 if (isBubbleVisible) {
                     petSpeechBubble.classList.remove('hidden');
                 } else {
@@ -1102,15 +1206,11 @@
 
                 petHappinessText.textContent = `${pet.happiness} / 100`;
                 petHappinessBar.style.width = `${pet.happiness}%`;
-
-                const today = new Date().toDateString();
-                if (pet.lastPlayedDate === today) {
-                    playWithPetBtn.disabled = true;
-                    playWithPetBtn.classList.add('disabled:bg-gray-300', 'disabled:border-gray-400', 'disabled:cursor-not-allowed');
-                } else {
-                    playWithPetBtn.disabled = false;
-                    playWithPetBtn.classList.remove('disabled:bg-gray-300', 'disabled:border-gray-400', 'disabled:cursor-not-allowed');
-                }
+                
+                petStaminaText.textContent = `${pet.stamina} / 100`;
+                petStaminaBar.style.width = `${pet.stamina}%`;
+                
+                renderExplorationStatus(); // Update status in modal as well
             }
             
             function addPetExp(amount) {
@@ -1139,11 +1239,18 @@
             function confirmPetName() {
                 const name = petNameInput.value.trim();
                 if (name) {
-                    state.pet.exists = true;
-                    state.pet.name = name;
-                    state.pet.hunger = 50; // Set initial hunger
-                    state.pet.happiness = 60; // Set initial happiness
-                    state.pet.lastStatusUpdate = Date.now(); // Set initial timestamp
+                    state.pet = {
+                        exists: true,
+                        name: name,
+                        level: 1,
+                        exp: 0,
+                        hunger: 50,
+                        happiness: 60,
+                        stamina: 100,
+                        exploration: null,
+                        lastPattedDate: null,
+                        lastStatusUpdate: Date.now()
+                    };
                     saveState();
                     hatchModal.classList.remove('visible');
                     renderFloatingPet();
@@ -1154,63 +1261,248 @@
 
             function showFeedModal() {
                 foodList.innerHTML = '';
-                petFood.forEach(food => {
+
+                for (const foodName in petFoodDefinitions) {
+                    const food = petFoodDefinitions[foodName];
+                    const hasItem = state.inventory[foodName] > 0;
+                    
                     const foodEl = document.createElement('button');
                     foodEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-rose-50 rounded-lg border-l-4 border-rose-200';
-                    foodEl.innerHTML = `
-                        <span>${food.name} (+${food.hunger} ❤️)</span>
-                        <span class="font-bold text-amber-600">${food.cost} เหรียญ</span>
-                    `;
-                    foodEl.onclick = () => {
-                        if (state.monCoins >= food.cost) {
-                            state.monCoins -= food.cost;
+                    
+                    if (hasItem) {
+                        foodEl.innerHTML = `
+                            <span>ใช้ ${foodName} (+${food.hunger} ❤️)</span>
+                            <span class="font-bold text-gray-600">มี ${state.inventory[foodName]} ชิ้น</span>
+                        `;
+                        foodEl.onclick = () => {
+                            state.inventory[foodName]--;
                             state.pet.hunger = Math.min(100, state.pet.hunger + food.hunger);
                             addPetExp(food.exp);
-                            updateCoinDisplays();
                             
-                            // Show happy emotion temporarily
                             floatingPetImage.src = petEmotions.happy;
                             petModalImageEl.src = petEmotions.happy;
-                            setTimeout(renderPetStats, 2000); // Revert to normal state after 2 seconds
+                            setTimeout(renderPetStats, 2000);
 
-                            feedModal.classList.remove('visible');
-                            alert(`คุณป้อน ${food.name} ให้ ${state.pet.name}!`);
-                        } else {
-                            alert('เหรียญม่อนไม่พอจ้า!');
-                        }
-                    };
+                            hideFeedModal();
+                            alert(`คุณป้อน ${foodName} ให้ ${state.pet.name}!`);
+                            saveState();
+                            renderInventory();
+                            renderPetStats();
+                        };
+                    } else {
+                        foodEl.innerHTML = `
+                            <span>ซื้อ ${foodName} (+${food.hunger} ❤️)</span>
+                            <span class="font-bold text-amber-600">${food.cost} เหรียญ</span>
+                        `;
+                        foodEl.onclick = () => {
+                            if (state.monCoins >= food.cost) {
+                                state.monCoins -= food.cost;
+                                state.pet.hunger = Math.min(100, state.pet.hunger + food.hunger);
+                                addPetExp(food.exp);
+                                updateCoinDisplays();
+                                
+                                floatingPetImage.src = petEmotions.happy;
+                                petModalImageEl.src = petEmotions.happy;
+                                setTimeout(renderPetStats, 2000);
+
+                                hideFeedModal();
+                                alert(`คุณซื้อและป้อน ${foodName} ให้ ${state.pet.name}!`);
+                                saveState();
+                                renderPetStats();
+                            } else {
+                                alert('เหรียญม่อนไม่พอจ้า!');
+                            }
+                        };
+                    }
                     foodList.appendChild(foodEl);
-                });
+                }
                 feedModal.classList.add('visible');
             }
-
-            function playWithPet() {
+            
+            function hideFeedModal() {
+                feedModal.classList.remove('visible');
+            }
+            
+            function showPlayModal() {
+                playOptionsList.innerHTML = '';
                 const today = new Date().toDateString();
-                if (state.pet.lastPlayedDate !== today) {
-                    state.pet.lastPlayedDate = today;
-                    state.pet.happiness = 100; // Refill to full
-                    
-                    // Reward increases with level
-                    const reward = 1 + Math.floor(state.pet.level / 5); 
-                    state.playCoins += reward;
-                    
-                    addPetExp(10);
-                    updateCoinDisplays();
-                    renderPetStats();
-                    
-                    floatingPetImage.classList.add('pet-happy-animation');
-                    floatingPetImage.addEventListener('animationend', () => {
-                        floatingPetImage.classList.remove('pet-happy-animation');
-                    }, { once: true });
+                const canPat = state.pet.lastPattedDate !== today;
 
-                    alert(`${state.pet.name} ดูมีความสุขมาก! คุณได้รับ ${reward} เหรียญเล่นม่อน`);
+                // Pat action
+                const patEl = document.createElement('button');
+                patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
+                patEl.innerHTML = `
+                    <span>ลูบหัว (+50 😊)</span>
+                    <span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>
+                `;
+                if (canPat) {
+                    patEl.onclick = () => handlePlayAction('pat');
+                } else {
+                    patEl.disabled = true;
+                }
+                playOptionsList.appendChild(patEl);
+
+                // Toy actions
+                for (const toyName in petToys) {
+                    if (state.inventory[toyName] > 0) {
+                        const toy = petToys[toyName];
+                        const toyEl = document.createElement('button');
+                        toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
+                        toyEl.innerHTML = `
+                            <span>ใช้ ${toyName} (+${toy.happiness} 😊)</span>
+                            <span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>
+                        `;
+                        toyEl.onclick = () => handlePlayAction(toyName);
+                        playOptionsList.appendChild(toyEl);
+                    }
+                }
+                playModal.classList.add('visible');
+            }
+            
+            function hidePlayModal() {
+                playModal.classList.remove('visible');
+            }
+
+            function handlePlayAction(action) {
+                if (action === 'pat') {
+                    const today = new Date().toDateString();
+                    if (state.pet.lastPattedDate !== today) {
+                        state.pet.lastPattedDate = today;
+                        state.pet.happiness = Math.min(100, state.pet.happiness + 50);
+                        
+                        const reward = 1 + Math.floor(state.pet.level / 5);
+                        state.playCoins += reward;
+                        addPetExp(10);
+
+                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${reward} เหรียญเล่นม่อน และ 10 EXP!`);
+                        updateCoinDisplays();
+                    }
+                } else if (petToys[action] && state.inventory[action] > 0) {
+                    state.inventory[action]--;
+                    state.pet.happiness = Math.min(100, state.pet.happiness + petToys[action].happiness);
+                    alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
+                }
+
+                floatingPetImage.classList.add('pet-happy-animation');
+                floatingPetImage.addEventListener('animationend', () => {
+                    floatingPetImage.classList.remove('pet-happy-animation');
+                }, { once: true });
+
+                saveState();
+                renderPetStats();
+                renderInventory();
+                hidePlayModal();
+            }
+
+            function formatCountdown(ms) {
+                if (ms < 0) ms = 0;
+                let s = Math.floor(ms / 1000);
+                let m = Math.floor(s / 60);
+                let h = Math.floor(m / 60);
+                s %= 60;
+                m %= 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+
+            function handleExplorationCompletion(locationId) {
+                const location = explorationLocations[locationId];
+                if (!location) return;
+
+                let foundRewards = [];
+
+                location.rewards.forEach(reward => {
+                    const roll = Math.random() * 100;
+                    if (roll < reward.chance) {
+                        const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
+                        const [min, max] = amountRange;
+                        const amount = min + Math.floor((max - min + 1) * (Math.random() * Math.random()));
+
+                        if (reward.type === 'mon_coin') {
+                            state.monCoins += amount;
+                            foundRewards.push(`${amount} เหรียญม่อน`);
+                        } else if (reward.type === 'play_coin') {
+                            state.playCoins += amount;
+                            foundRewards.push(`${amount} เหรียญเล่นม่อน`);
+                        } else if (reward.type === 'item') {
+                            const itemName = consumableItems[reward.name] ? consumableItems[reward.name].name : reward.name;
+                            state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
+                            foundRewards.push(itemName);
+                        }
+                    }
+                });
+                
+                let alertMessage = `การสำรวจที่ ${location.name} เสร็จสิ้น! ${state.pet.name} กลับมาแล้ว`;
+                if (foundRewards.length > 0) {
+                    alertMessage += `\n\n${state.pet.name} เจอ:\n- ${foundRewards.join('\n- ')}`;
+                } else {
+                    alertMessage += `\nแต่น่าเสียดายที่ ${state.pet.name} ไม่เจออะไรเลย...`;
+                }
+                alert(alertMessage);
+
+                state.pet.exploration = null;
+                saveState();
+                updateCoinDisplays();
+                renderInventory();
+                renderExplorationStatus();
+            }
+
+            function renderExplorationStatus() {
+                if (explorationInterval) clearInterval(explorationInterval);
+
+                const exploration = state.pet.exploration;
+                const exploreBtnInModal = petActionButtons.querySelector('a[href="./exploration.html"]');
+
+                if (exploration) {
+                    const locationName = explorationLocations[exploration.locationId].name;
+                    explorationStatusCard.classList.remove('hidden');
+                    explorationLocationEl.textContent = locationName;
+                    petExplorationStatusInModal.classList.remove('hidden');
+                    petExplorationLocationInModal.textContent = locationName;
+
+                    if (exploreBtnInModal) {
+                        exploreBtnInModal.classList.add('opacity-50', 'cursor-not-allowed');
+                        exploreBtnInModal.style.pointerEvents = 'none';
+                    }
+
+                    if (exploration.endTime > Date.now()) {
+                        // Still exploring
+                        explorationStatusText.innerHTML = `น้องม่อนกำลังสำรวจที่ <strong id="exploration-location" class="text-pink-500">${locationName}</strong>`;
+                        explorationTimerEl.classList.remove('hidden');
+                        claimRewardsBtn.classList.add('hidden');
+
+                        const updateTimer = () => {
+                            const remaining = exploration.endTime - Date.now();
+                            if (remaining <= 0) {
+                                renderExplorationStatus(); // Re-render to show claim button
+                            } else {
+                                const countdownText = formatCountdown(remaining);
+                                explorationTimerEl.textContent = countdownText;
+                                petExplorationTimerInModal.textContent = countdownText;
+                            }
+                        };
+                        explorationInterval = setInterval(updateTimer, 1000);
+                        updateTimer();
+                    } else {
+                        // Exploration finished, waiting for claim
+                        explorationStatusText.innerHTML = `${state.pet.name} กลับมาจากการสำรวจที่ <strong class="text-pink-500">${locationName}</strong> แล้ว!`;
+                        explorationTimerEl.classList.add('hidden');
+                        claimRewardsBtn.classList.remove('hidden');
+                        petExplorationTimerInModal.textContent = "เสร็จสิ้น!";
+                    }
+                } else {
+                    // Not exploring
+                    explorationStatusCard.classList.add('hidden');
+                    petExplorationStatusInModal.classList.add('hidden');
+                    if (exploreBtnInModal) {
+                        exploreBtnInModal.classList.remove('opacity-50', 'cursor-not-allowed');
+                        exploreBtnInModal.style.pointerEvents = 'auto';
+                    }
                 }
             }
 
-            // --- CORRECTED Drag and Click logic for floating pet ---
             let isDragging = false;
             let dragStartX, dragStartY;
-            let lastTranslateX = 0, lastTranslateY = 0; // Store the last position
+            let lastTranslateX = 0, lastTranslateY = 0;
 
             function dragStart(e) {
                 isDragging = false;
@@ -1222,10 +1514,8 @@
                     dragStartX = e.clientX;
                     dragStartY = e.clientY;
                 }
-
-                // Apply initial scale for active state
                 floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1.1)`;
-                floatingPetContainer.style.transition = 'none'; // Disable transition during drag
+                floatingPetContainer.style.transition = 'none';
 
                 document.addEventListener('mousemove', dragMove);
                 document.addEventListener('touchmove', dragMove);
@@ -1245,10 +1535,8 @@
                     currentX = e.clientX;
                     currentY = e.clientY;
                 }
-
                 const dx = currentX - dragStartX;
                 const dy = currentY - dragStartY;
-
                 floatingPetContainer.style.transform = `translate(${lastTranslateX + dx}px, ${lastTranslateY + dy}px) scale(1.1)`;
             }
 
@@ -1262,12 +1550,10 @@
                         finalX = e.clientX;
                         finalY = e.clientY;
                     }
-                    // Update the last position
                     lastTranslateX += finalX - dragStartX;
                     lastTranslateY += finalY - dragStartY;
                 }
                 
-                // Reset scale and transition
                 floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1)`;
                 floatingPetContainer.style.transition = 'transform 0.2s ease-out';
                 
@@ -1292,17 +1578,24 @@
             confirmNameBtn.addEventListener('click', confirmPetName);
             feedPetBtn.addEventListener('click', showFeedModal);
             closeFeedModalBtn.addEventListener('click', () => feedModal.classList.remove('visible'));
-            playWithPetBtn.addEventListener('click', playWithPet);
+            playWithPetBtn.addEventListener('click', showPlayModal);
+            closePlayModalBtn.addEventListener('click', hidePlayModal);
+            claimRewardsBtn.addEventListener('click', () => {
+                if (state.pet.exploration) {
+                    handleExplorationCompletion(state.pet.exploration.locationId);
+                }
+            });
 
 
             function init() {
                 loadState();
-                updatePetStatusOverTime(); // Update pet stats on load
-
+                
                 if (!state.pet.exists) {
                     hatchModal.classList.add('visible');
                 } else {
+                    updatePetStatusOverTime();
                     renderFloatingPet();
+                    renderExplorationStatus();
                 }
 
                 const today = new Date().toDateString();
