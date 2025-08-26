@@ -254,7 +254,7 @@
             };
             
             function loadMainState() {
-                const savedData = localStorage.getItem('monGameDataV14');
+                const savedData = localStorage.getItem('monGameDataV17');
                 if (savedData) {
                     mainGameState = JSON.parse(savedData);
                 } else {
@@ -264,7 +264,7 @@
             }
 
             function saveMainState() {
-                localStorage.setItem('monGameDataV14', JSON.stringify(mainGameState));
+                localStorage.setItem('monGameDataV17', JSON.stringify(mainGameState));
             }
 
             // --- Setup & Initialization ---
@@ -664,4 +664,5 @@
         });
     </script>
 </body>
+
 </html>
