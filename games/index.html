@@ -146,7 +146,7 @@
         }
         .modal-content {
             background: white;
-            padding: 1.25rem; /* p-5 -> p-4 */
+            padding: 1.25rem;
             border-radius: 1.5rem;
             text-align: center;
             width: 90%;
@@ -233,7 +233,7 @@
             background-color: #e5e7eb;
             border-radius: 9999px;
             overflow: hidden;
-            height: 1.1rem; /* Reduced height */
+            height: 1.1rem;
         }
         .progress-bar {
             height: 100%;
@@ -252,8 +252,8 @@
             transform: scale(1.1);
         }
         #floating-pet-image {
-            width: 96px; /* 6rem */
-            height: 96px; /* 6rem */
+            width: 96px;
+            height: 96px;
             -webkit-user-drag: none;
             user-select: none;
         }
@@ -504,36 +504,50 @@
                     <a href="garden.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                     <button id="change-bg-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
-                        เปลี่ยนพื้นหลัง
+                <div class="grid grid-cols-3 gap-2 mt-3">
+                     <button id="change-bg-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
+                        พื้นหลัง
                     </button>
-                     <button id="use-item-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-teal-400 to-cyan-500 border-teal-600">
+                     <button id="use-item-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-teal-400 to-cyan-500 border-teal-600">
                         ใช้ไอเทม
                     </button>
+                     <button id="upgrade-pet-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-orange-400 to-red-500 border-orange-600">
+                        อัปเกรด
+                    </button>
                 </div>
-
                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-3 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
         </div>
     </div>
+    
     <div id="background-modal" class="modal-overlay">
         <div class="modal-content">
              <h2 class="text-2xl font-bold text-pink-500 mb-4">เลือกพื้นหลัง</h2>
              <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-100 rounded-lg">
-                </div>
+             </div>
              <button id="close-background-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
         </div>
     </div>
-    
+
     <div id="use-item-modal" class="modal-overlay">
         <div class="modal-content">
              <h2 class="text-2xl font-bold text-pink-500 mb-4">ใช้ไอเทมฟื้นฟู</h2>
              <div id="item-use-list" class="space-y-3">
-                </div>
+             </div>
              <button id="close-use-item-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
         </div>
     </div>
+
+    <div id="upgrade-modal" class="modal-overlay">
+        <div class="modal-content">
+             <h2 class="text-2xl font-bold text-pink-500 mb-4">อัปเกรดบ้าน</h2>
+             <div id="upgrade-list" class="space-y-4 text-left">
+             </div>
+             <button id="close-upgrade-modal-btn" class="btn-base w-full mt-6 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
+
+
     <div id="hatch-modal" class="modal-overlay">
         <div class="modal-content">
             <div id="egg-stage">
@@ -619,32 +633,30 @@
                 { text: 'ลงสตอรี่เกี่ยวกับม่อน (2 เหรียญ)', reward: 2 },
             ];
             
-            // === EDIT START: Added categories and new items to shop definitions ===
             const shopItemDefinitions = [
-                // Category: Tickets
                 { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200, type: 'ticket', category: 'ตั๋วพิเศษ' },  
                 { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
                 { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
                 { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000, type: 'ticket', category: 'ตั๋วพิเศษ' },
-                // Category: Recovery Items
+                // === EDIT START: Added stamina items to shop list ===
                 { id: 'item_m150', name: 'M150', basePrice: 60, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
                 { id: 'item_latte', name: 'ลาเต้', basePrice: 90, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
                 { id: 'item_americano', name: 'อเมริกาโน่', basePrice: 150, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
-                // Category: Backgrounds
+                // === EDIT END ===
                 { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
                 { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
             ];
-            // === EDIT END ===
             
-            // === EDIT START: Added new stamina items to consumable list ===
             const consumableItems = {
                 'ticket_random': { name: 'ตั๋วสุ่มวงล้อ' },
                 'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้' },
                 'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้' },
                 'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้' },
+                // === EDIT START: Added new stamina items ===
                 'item_m150': { name: 'M150' },
                 'item_latte': { name: 'ลาเต้' },
                 'item_americano': { name: 'อเมริกาโน่' },
+                // === EDIT END ===
                 'ขนมปัง': { name: 'ขนมปัง' },
                 'เค้ก': { name: 'เค้ก' },
                 'ไอศกรีม': { name: 'ไอศกรีม' },
@@ -661,7 +673,6 @@
                 'เมล็ดสตรอว์เบอร์รี': { name: 'เมล็ดสตรอว์เบอร์รี' },
                 'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
             };
-            // === EDIT END ===
 
             const petBackgroundDefinitions = {
                 'default': { name: 'ห้องธรรมดา', description: 'ไม่มีโบนัสพิเศษ', image: `room.jpg` },
@@ -674,14 +685,12 @@
                 'vegetable_garden': { name: 'สวนผัก', description: 'ผักโตเร็วขึ้น 10%', image: `vegetable_garden.jpg` },
                 'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` }
             };
-            
-            // === EDIT START: Added new object for stamina item effects ===
+
             const staminaItems = {
                 'item_m150': { stamina: 20 },
                 'item_latte': { stamina: 30 },
                 'item_americano': { stamina: 50 },
             };
-            // === EDIT END ===
 
             const petToys = {
                 'ของเล่นยาง': { happiness: 20 },
@@ -700,56 +709,10 @@
             ];
             
             const explorationLocations = {
-                'garden': { 
-                    name: 'สวนหลังบ้าน', 
-                    exp: 5,
-                    rewards: [
-                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
-                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
-                        { type: 'item', name: 'ขนมปัง', chance: 80 },
-                        { type: 'item', name: 'ของเล่นยาง', chance: 80 },
-                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 80 },
-                        { type: 'background', name: 'bedroom', chance: 10 },
-                        { type: 'background', name: 'beach', chance: 10 }
-                    ]
-                },
-                'market': { 
-                    name: 'ตลาดนัดของเล่น', 
-                    exp: 10,
-                    rewards: [
-                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
-                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
-                        { type: 'item', name: 'เค้ก', chance: 70 },
-                        { type: 'item', name: 'ลูกบอล', chance: 70 },
-                        { type: 'item', name: 'เมล็ดแครอท', chance: 70 },
-                        { type: 'background', name: 'restaurant', chance: 10 },
-                        { type: 'background', name: 'amusement_park', chance: 10 }
-                    ]
-                },
-                'beach': { 
-                    name: 'ชายหาดสายรุ้ง', 
-                    exp: 20,
-                    rewards: [
-                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
-                        { type: 'item', name: 'ไอศกรีม', chance: 60 },
-                        { type: 'item', name: 'กีต้า', chance: 60 },
-                        { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 60 },
-                        { type: 'item', name: 'ticket_random', chance: 15 },
-                        { type: 'background', name: 'vegetable_garden', chance: 10 }
-                    ]
-                },
-                'forest': { 
-                    name: 'ป่ามหัศจรรย์', 
-                    exp: 30,
-                    rewards: [
-                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
-                        { type: 'item', name: 'คอมพิวเตอร์', chance: 30 },
-                        { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 30 },
-                        { type: 'item', name: 'ticket_trip', chance: 10 },
-                        { type: 'item', name: 'ticket_command', chance: 5 },
-                        { type: 'background', name: 'forest', chance: 10 }
-                    ]
-                }
+                'garden': { name: 'สวนหลังบ้าน', exp: 5, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 } ]},
+                'market': { name: 'ตลาดนัดของเล่น', exp: 10, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 } ]},
+                'beach': { name: 'ชายหาดสายรุ้ง', exp: 20, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 } ]},
+                'forest': { name: 'ป่ามหัศจรรย์', exp: 30, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 } ]}
             };
 
             const gachaPrizes = [
@@ -770,6 +733,9 @@
                 sad: 'cry.png',
                 angry: 'angry.png',
             };
+            
+            const upgradeCosts = [100, 200, 400, 800, 1000];
+            const maxUpgradeLevel = 5;
 
             const screens = {
                 menu: document.getElementById('menu-screen'),
@@ -828,10 +794,13 @@
             const backgroundModal = document.getElementById('background-modal');
             const closeBackgroundModalBtn = document.getElementById('close-background-modal-btn');
             const petBackgroundList = document.getElementById('pet-background-list');
-
             const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
-            
-            // === EDIT START: Variables for new "Use Item" modal ===
+
+            // === EDIT START: Corrected variable declarations ===
+            const upgradePetBtn = document.getElementById('upgrade-pet-btn');
+            const upgradeModal = document.getElementById('upgrade-modal');
+            const closeUpgradeModalBtn = document.getElementById('close-upgrade-modal-btn');
+            const upgradeList = document.getElementById('upgrade-list');
             const useItemBtn = document.getElementById('use-item-btn');
             const useItemModal = document.getElementById('use-item-modal');
             const closeUseItemModalBtn = document.getElementById('close-use-item-modal-btn');
@@ -898,6 +867,9 @@
                         if (!state.pet.hasOwnProperty('lastPattedDate')) state.pet.lastPattedDate = null;
                         if (!state.pet.ownedBackgrounds) state.pet.ownedBackgrounds = ['default'];
                         if (!state.pet.activeBackground) state.pet.activeBackground = 'default';
+                        if (!state.pet.upgradeLevels) {
+                            state.pet.upgradeLevels = { bed: 0, bowl: 0, toy_shelf: 0 };
+                        }
                     }
 
                 } else {
@@ -915,7 +887,8 @@
                             exists: false, name: '', level: 1, exp: 0, hunger: 100, happiness: 100,
                             stamina: 100, exploration: null,
                             lastPattedDate: null, lastStatusUpdate: Date.now(),
-                            ownedBackgrounds: ['default'], activeBackground: 'default'
+                            ownedBackgrounds: ['default'], activeBackground: 'default',
+                            upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
                         }
                     };
                     shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
@@ -1067,12 +1040,10 @@
                 });
             }
 
-            // === EDIT START: Reworked shop rendering to support categories ===
             function renderShopItems() {
                 shopItemsList.innerHTML = '';
                 const categories = {};
                 
-                // Group items by category
                 shopItemDefinitions.forEach(item => {
                     if (!categories[item.category]) {
                         categories[item.category] = [];
@@ -1080,7 +1051,6 @@
                     categories[item.category].push(item);
                 });
 
-                // Render items for each category
                 for (const categoryName in categories) {
                     const categoryHeader = document.createElement('h3');
                     categoryHeader.className = 'text-xl font-bold text-pink-500 mb-2 mt-4 first:mt-0';
@@ -1103,7 +1073,7 @@
                             const currentPrice = item.basePrice * Math.pow(2, currentLevel);
                             priceText = `${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
                             buttonHtml = `<button data-price="${currentPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
-                        } else { // Consumable items
+                        } else { 
                             priceText = `${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
                             buttonHtml = `<button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
                         }
@@ -1134,9 +1104,9 @@
                                 if (!state.pet.ownedBackgrounds.includes(itemId)) {
                                     state.pet.ownedBackgrounds.push(itemId);
                                 }
-                            } else { // Tickets and other consumables
+                            } else {
                                 state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
-                                if (itemType === 'ticket') { // Only increase price for tickets
+                                if (itemType === 'ticket') {
                                      state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
                                 }
                             }
@@ -1153,7 +1123,6 @@
                     });
                 });
             }
-            // === EDIT END ===
 
             function pullGacha() {
                 const rand = Math.random() * 100;
@@ -1309,11 +1278,14 @@
                     if (state.pet.activeBackground === 'kitchen') hungerMultiplier = 0.9;
                     if (state.pet.activeBackground === 'bedroom') happinessMultiplier = 0.9;
                     
-                    // === EDIT: Halved the time for status decay (doubled the rate) ===
                     const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
                     const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
                     
-                    const staminaGain = Math.floor(elapsedMinutes / 5);
+                    const bedLevel = state.pet.upgradeLevels.bed;
+                    const baseRegenInterval = 10;
+                    const timeReduction = bedLevel * 0.5;
+                    const finalRegenInterval = Math.max(1, baseRegenInterval - timeReduction);
+                    const staminaGain = Math.floor(elapsedMinutes / finalRegenInterval);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
                     state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
@@ -1442,7 +1414,8 @@
                         lastPattedDate: null,
                         lastStatusUpdate: Date.now(),
                         ownedBackgrounds: ['default'],
-                        activeBackground: 'default'
+                        activeBackground: 'default',
+                        upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
                     };
                     saveState();
                     hatchModal.classList.remove('visible');
@@ -1464,17 +1437,21 @@
                     const food = petFoodDefinitions[foodName];
                     const hasItem = (state.inventory[foodName] || 0) > 0;
                     
+                    const bowlLevel = state.pet.upgradeLevels.bowl;
+                    const hungerBonus = 1 + (bowlLevel * 0.02);
+                    const finalHungerGain = Math.round(food.hunger * hungerBonus);
+
                     const foodEl = document.createElement('button');
                     foodEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-rose-50 rounded-lg border-l-4 border-rose-200';
                     
                     if (hasItem) {
                         foodEl.innerHTML = `
-                            <span>ใช้ ${foodName} (+${food.hunger} ❤️)</span>
+                            <span>ใช้ ${foodName} (+${finalHungerGain} ❤️)</span>
                             <span class="font-bold text-gray-600">มี ${state.inventory[foodName]} ชิ้น</span>
                         `;
                         foodEl.onclick = () => {
                             state.inventory[foodName]--;
-                            state.pet.hunger = Math.min(100, state.pet.hunger + food.hunger);
+                            state.pet.hunger = Math.min(100, state.pet.hunger + finalHungerGain);
                             addPetExp(food.exp);
                             
                             floatingPetImage.src = petEmotions.happy;
@@ -1490,13 +1467,13 @@
                     } else if (food.cost > 0) {
                         const finalCost = Math.round(food.cost * costMultiplier);
                         foodEl.innerHTML = `
-                            <span>ซื้อ ${foodName} (+${food.hunger} ❤️)</span>
+                            <span>ซื้อ ${foodName} (+${finalHungerGain} ❤️)</span>
                             <span class="font-bold text-amber-600">${finalCost} เหรียญ</span>
                         `;
                         foodEl.onclick = () => {
                             if (state.monCoins >= finalCost) {
                                 state.monCoins -= finalCost;
-                                state.pet.hunger = Math.min(100, state.pet.hunger + food.hunger);
+                                state.pet.hunger = Math.min(100, state.pet.hunger + finalHungerGain);
                                 addPetExp(food.exp);
                                 updateCoinDisplays();
                                 
@@ -1523,8 +1500,66 @@
             function hideFeedModal() {
                 feedModal.classList.remove('visible');
             }
+            
+            function showPlayModal() {
+                playOptionsList.innerHTML = '';
+                const today = new Date().toDateString();
+                const canPat = state.pet.lastPattedDate !== today;
 
-            // === EDIT START: Added function to show the new "Use Item" modal ===
+                for (const toyName in petToys) {
+                    if (state.inventory[toyName] > 0) {
+                        const toy = petToys[toyName];
+                        
+                        const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
+                        const happinessBonus = 1 + (toyShelfLevel * 0.02);
+                        const finalHappinessGain = Math.round(toy.happiness * happinessBonus);
+
+                        const toyEl = document.createElement('button');
+                        toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
+                        toyEl.innerHTML = `
+                            <span>ใช้ ${toyName} (+${finalHappinessGain} 😊)</span>
+                            <span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>
+                        `;
+                        toyEl.onclick = () => handlePlayAction(toyName);
+                        playOptionsList.appendChild(toyEl);
+                    }
+                }
+                playModal.classList.add('visible');
+            }
+            
+            function hidePlayModal() {
+                playModal.classList.remove('visible');
+            }
+
+            function handlePlayAction(action) {
+                let happinessMultiplier = 1.0;
+                if (state.pet.activeBackground === 'amusement_park') {
+                    happinessMultiplier = 1.2;
+                }
+                
+                const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
+                const happinessBonus = 1 + (toyShelfLevel * 0.02);
+
+                if (petToys[action] && state.inventory[action] > 0) {
+                    state.inventory[action]--;
+                    const baseHappiness = petToys[action].happiness;
+                    const finalHappinessGain = Math.round(baseHappiness * happinessBonus * happinessMultiplier);
+                    state.pet.happiness = Math.min(100, state.pet.happiness + finalHappinessGain);
+                    alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
+                }
+
+                floatingPetImage.classList.add('pet-happy-animation');
+                floatingPetImage.addEventListener('animationend', () => {
+                    floatingPetImage.classList.remove('pet-happy-animation');
+                }, { once: true });
+
+                saveState();
+                renderPetStats();
+                renderInventory();
+                hidePlayModal();
+            }
+            
+            // === EDIT START: Added and corrected "Use Item" modal functions ===
             function showUseItemModal() {
                 itemUseList.innerHTML = '';
                 let hasStaminaItem = false;
@@ -1568,81 +1603,77 @@
                 useItemModal.classList.remove('visible');
             }
             // === EDIT END ===
-            
-            function showPlayModal() {
-                playOptionsList.innerHTML = '';
-                const today = new Date().toDateString();
-                const canPat = state.pet.lastPattedDate !== today;
 
-                const patEl = document.createElement('button');
-                patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
-                patEl.innerHTML = `
-                    <span>ลูบหัว (+50 😊)</span>
-                    <span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>
-                `;
-                if (canPat) {
-                    patEl.onclick = () => handlePlayAction('pat');
+            function renderUpgradesUI() {
+                upgradeList.innerHTML = '';
+                const upgrades = [
+                    { id: 'bed', name: 'เตียงนอน', icon: '🛏️', description: 'ฟื้นฟูพลังงานเร็วขึ้น' },
+                    { id: 'bowl', name: 'ชามข้าว', icon: '🍚', description: 'อาหารเพิ่มความหิวมากขึ้น' },
+                    { id: 'toy_shelf', name: 'ชั้นของเล่น', icon: '🧸', description: 'เล่นแล้วมีความสุขมากขึ้น' }
+                ];
+
+                upgrades.forEach(upgrade => {
+                    const currentLevel = state.pet.upgradeLevels[upgrade.id];
+                    const isMaxLevel = currentLevel >= maxUpgradeLevel;
+                    
+                    let effectText, nextEffectText;
+                    if(upgrade.id === 'bed') {
+                        const timeReduction = (currentLevel * 30);
+                        effectText = `ลดเวลาฟื้นฟู: ${timeReduction} วินาที`;
+                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: ลดเวลา ${timeReduction + 30} วิ`;
+                    } else if (upgrade.id === 'bowl') {
+                        const bonus = currentLevel * 2;
+                        effectText = `โบนัสความหิว: +${bonus}%`;
+                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: +${bonus + 2}%`;
+                    } else { // toy_shelf
+                        const bonus = currentLevel * 2;
+                        effectText = `โบนัสความสุข: +${bonus}%`;
+                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: +${bonus + 2}%`;
+                    }
+                    
+                    const cost = isMaxLevel ? -1 : upgradeCosts[currentLevel];
+                    const canAfford = state.monCoins >= cost;
+                    
+                    const el = document.createElement('div');
+                    el.className = 'bg-gray-100 p-3 rounded-lg';
+                    el.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-800 flex items-center">${upgrade.icon} ${upgrade.name} (Lv. ${currentLevel})</h4>
+                                <p class="text-sm text-gray-600">${upgrade.description}</p>
+                                <p class="text-sm font-semibold text-green-600">${effectText}</p>
+                            </div>
+                            <button data-id="${upgrade.id}" class="upgrade-btn btn-base text-white font-bold py-2 px-4 rounded-lg border-b-4 ${isMaxLevel || !canAfford ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-green-500 border-green-700'}">
+                                ${isMaxLevel ? 'MAX' : `${cost} $`}
+                            </button>
+                        </div>
+                        <div class="text-center text-xs text-gray-500 mt-2 bg-white p-1 rounded">ผลเลเวลถัดไป: ${nextEffectText}</div>
+                    `;
+                    upgradeList.appendChild(el);
+                });
+
+                document.querySelectorAll('.upgrade-btn').forEach(btn => {
+                    btn.addEventListener('click', handleUpgrade);
+                });
+            }
+            
+            function handleUpgrade(event) {
+                const upgradeId = event.target.dataset.id;
+                const currentLevel = state.pet.upgradeLevels[upgradeId];
+
+                if (currentLevel >= maxUpgradeLevel) return;
+
+                const cost = upgradeCosts[currentLevel];
+                if (state.monCoins >= cost) {
+                    state.monCoins -= cost;
+                    state.pet.upgradeLevels[upgradeId]++;
+                    saveState();
+                    updateCoinDisplays();
+                    renderUpgradesUI();
+                    alert('อัปเกรดสำเร็จ!');
                 } else {
-                    patEl.disabled = true;
+                    alert('เหรียญม่อนไม่พอจ้า!');
                 }
-                playOptionsList.appendChild(patEl);
-
-                for (const toyName in petToys) {
-                    if (state.inventory[toyName] > 0) {
-                        const toy = petToys[toyName];
-                        const toyEl = document.createElement('button');
-                        toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
-                        toyEl.innerHTML = `
-                            <span>ใช้ ${toyName} (+${toy.happiness} 😊)</span>
-                            <span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>
-                        `;
-                        toyEl.onclick = () => handlePlayAction(toyName);
-                        playOptionsList.appendChild(toyEl);
-                    }
-                }
-                playModal.classList.add('visible');
-            }
-            
-            function hidePlayModal() {
-                playModal.classList.remove('visible');
-            }
-
-            function handlePlayAction(action) {
-                let happinessMultiplier = 1.0;
-                if (state.pet.activeBackground === 'amusement_park') {
-                    happinessMultiplier = 1.2;
-                }
-
-                if (action === 'pat') {
-                    const today = new Date().toDateString();
-                    if (state.pet.lastPattedDate !== today) {
-                        state.pet.lastPattedDate = today;
-                        const happinessGain = Math.round(50 * happinessMultiplier);
-                        state.pet.happiness = Math.min(100, state.pet.happiness + happinessGain);
-                        
-                        const reward = 1 + Math.floor(state.pet.level / 5);
-                        state.playCoins += reward;
-                        addPetExp(10);
-
-                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${reward} เหรียญเล่นม่อน และ 10 EXP!`);
-                        updateCoinDisplays();
-                    }
-                } else if (petToys[action] && state.inventory[action] > 0) {
-                    state.inventory[action]--;
-                    const happinessGain = Math.round(petToys[action].happiness * happinessMultiplier);
-                    state.pet.happiness = Math.min(100, state.pet.happiness + happinessGain);
-                    alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
-                }
-
-                floatingPetImage.classList.add('pet-happy-animation');
-                floatingPetImage.addEventListener('animationend', () => {
-                    floatingPetImage.classList.remove('pet-happy-animation');
-                }, { once: true });
-
-                saveState();
-                renderPetStats();
-                renderInventory();
-                hidePlayModal();
             }
 
             function formatCountdown(ms) {
@@ -1660,41 +1691,40 @@
                 if (!location) return;
 
                 let foundRewards = [];
-                
                 addPetExp(location.exp);
                 foundRewards.push(`${location.exp} EXP`);
-
                 let bonusDropChance = 0;
                 if (state.pet.activeBackground === 'forest') {
                     bonusDropChance = 5; 
                 }
-
-                location.rewards.forEach(reward => {
-                    const roll = Math.random() * 100;
-                    if (roll < (reward.chance + bonusDropChance)) {
-                        const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
-                        const [min, max] = amountRange;
-                        const amount = min + Math.floor((max - min + 1) * Math.random());
-
-                        if (reward.type === 'mon_coin') {
-                            state.monCoins += amount;
-                            foundRewards.push(`${amount} เหรียญม่อน`);
-                        } else if (reward.type === 'play_coin') {
-                            state.playCoins += amount;
-                            foundRewards.push(`${amount} เหรียญเล่นม่อน`);
-                        } else if (reward.type === 'item') {
-                            const itemName = consumableItems[reward.name]?.name || reward.name;
-                            state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
-                            foundRewards.push(itemName);
-                        } else if (reward.type === 'background') {
-                            if (!state.pet.ownedBackgrounds.includes(reward.name)) {
-                                state.pet.ownedBackgrounds.push(reward.name);
-                                const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
-                                foundRewards.push(`พื้นหลัง: ${bgName}`);
-                            }
+                const fullRewards = JSON.parse(localStorage.getItem('fullExplorationRewards'));
+                if (fullRewards && fullRewards[locationId]) {
+                    fullRewards[locationId].forEach(reward => {
+                        const roll = Math.random() * 100;
+                        if (roll < (reward.chance + bonusDropChance)) {
+                             const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
+                             const [min, max] = amountRange;
+                             const amount = min + Math.floor((max - min + 1) * Math.random());
+                             if (reward.type === 'mon_coin') {
+                                 state.monCoins += amount;
+                                 foundRewards.push(`${amount} เหรียญม่อน`);
+                             } else if (reward.type === 'play_coin') {
+                                 state.playCoins += amount;
+                                 foundRewards.push(`${amount} เหรียญเล่นม่อน`);
+                             } else if (reward.type === 'item') {
+                                 const itemName = consumableItems[reward.name]?.name || reward.name;
+                                 state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
+                                 foundRewards.push(itemName);
+                             } else if (reward.type === 'background') {
+                                 if (!state.pet.ownedBackgrounds.includes(reward.name)) {
+                                     state.pet.ownedBackgrounds.push(reward.name);
+                                     const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
+                                     foundRewards.push(`พื้นหลัง: ${bgName}`);
+                                 }
+                             }
                         }
-                    }
-                });
+                    });
+                }
                 
                 let alertMessage = `การสำรวจที่ ${location.name} เสร็จสิ้น! ${state.pet.name} กลับมาแล้ว`;
                 if (foundRewards.length > 0) {
@@ -1783,8 +1813,8 @@
             function setActiveBackground(bgId) {
                 state.pet.activeBackground = bgId;
                 saveState();
-                renderPetStats(); // Re-render to update UI
-                backgroundModal.classList.remove('visible'); // Close modal after selection
+                renderPetStats();
+                backgroundModal.classList.remove('visible');
             }
 
             let isDragging = false;
@@ -1879,10 +1909,14 @@
             });
             closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
             
-            // === EDIT START: Event listeners for new "Use Item" modal ===
+            upgradePetBtn.addEventListener('click', () => {
+                renderUpgradesUI();
+                upgradeModal.classList.add('visible');
+            });
+            closeUpgradeModalBtn.addEventListener('click', () => upgradeModal.classList.remove('visible'));
+            
             useItemBtn.addEventListener('click', showUseItemModal);
             closeUseItemModalBtn.addEventListener('click', hideUseItemModal);
-            // === EDIT END ===
 
             function init() {
                 loadState();
