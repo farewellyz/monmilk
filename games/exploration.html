@@ -114,11 +114,14 @@
                 'forest': { name: 'พื้นหลัง: ป่า' }
             };
 
+            // === EDIT START: Adjusted exploration costs ===
             const explorationLocations = {
                 'garden': { 
                     name: 'สวนหลังบ้าน', 
                     duration: 30 * 60 * 1000, // 30 นาที
-                    staminaCost: 10, 
+                    staminaCost: 10,
+                    hungerCost: 10,
+                    happinessCost: 10,
                     levelReq: 1, 
                     description: 'สำรวจรอบๆ บ้าน หาของเล็กๆ น้อยๆ',
                     icon: '🏡',
@@ -137,6 +140,8 @@
                     name: 'ตลาดนัดของเล่น', 
                     duration: 2 * 60 * 60 * 1000, // 2 ชั่วโมง
                     staminaCost: 25, 
+                    hungerCost: 20,
+                    happinessCost: 20,
                     levelReq: 5, 
                     description: 'อาจจะเจอเหรียญตกอยู่หรือของเล่นถูกใจ',
                     icon: '🧸',
@@ -155,6 +160,8 @@
                     name: 'ชายหาดสายรุ้ง', 
                     duration: 6 * 60 * 60 * 1000, // 6 ชั่วโมง
                     staminaCost: 50, 
+                    hungerCost: 35,
+                    happinessCost: 35,
                     levelReq: 15, 
                     description: 'เดินเล่นริมหาด อาจเจอสมบัติที่คลื่นซัดมา',
                     icon: '🏖️',
@@ -172,6 +179,8 @@
                     name: 'ป่ามหัศจรรย์', 
                     duration: 12 * 60 * 60 * 1000, // 12 ชั่วโมง
                     staminaCost: 80, 
+                    hungerCost: 50,
+                    happinessCost: 50,
                     levelReq: 30, 
                     description: 'การผจญภัยสุดท้าทาย รางวัลล้ำค่ารออยู่!',
                     icon: '🌳',
@@ -186,6 +195,7 @@
                     ]
                 }
             };
+            // === EDIT END ===
 
             const rewardsModal = document.getElementById('rewards-modal');
             const rewardsModalTitle = document.getElementById('rewards-modal-title');
@@ -223,6 +233,7 @@
                 return `${s} วินาที`;
             }
 
+            // === EDIT START: Updated startExploration to use new costs ===
             function startExploration(locationId) {
                 if (state.pet.exploration && state.pet.exploration.endTime > Date.now()) {
                     alert('น้องม่อนกำลังสำรวจอยู่แล้วจ้า!');
@@ -230,25 +241,22 @@
                 }
 
                 const location = explorationLocations[locationId];
-
-                // --- ตรวจสอบเงื่อนไข ---
                 if (state.pet.stamina < location.staminaCost) { 
                     alert('พลังงานไม่พอจ้า!'); 
                     return; 
                 }
-                if (state.pet.hunger < 10) { 
-                    alert('น้องม่อนหิวเกินไป ไม่มีแรงไปสำรวจ! (ต้องการ 10 หน่วย)'); 
+                if (state.pet.hunger < location.hungerCost) { 
+                    alert(`น้องม่อนหิวเกินไป! (ต้องการความหิว ${location.hungerCost} หน่วย)`); 
                     return; 
                 }
-                if (state.pet.happiness < 10) { 
-                    alert('น้องม่อนไม่มีความสุขพอที่จะไปสำรวจ! (ต้องการ 10 หน่วย)'); 
+                if (state.pet.happiness < location.happinessCost) { 
+                    alert(`น้องม่อนไม่มีความสุขพอ! (ต้องการความสุข ${location.happinessCost} หน่วย)`); 
                     return; 
                 }
                 
-                // --- หักค่าสถานะ ---
                 state.pet.stamina -= location.staminaCost;
-                state.pet.hunger -= 10;
-                state.pet.happiness -= 10;
+                state.pet.hunger -= location.hungerCost;
+                state.pet.happiness -= location.happinessCost;
 
                 state.pet.exploration = { 
                     locationId: locationId, 
@@ -259,6 +267,7 @@
                 alert(`กำลังส่ง ${state.pet.name} ไปสำรวจที่ '${location.name}'!`);
                 window.location.href = 'index.html';
             }
+            // === EDIT END ===
 
             function showRewardsModal(locationId) {
                 const location = explorationLocations[locationId];
@@ -297,7 +306,8 @@
             function hideRewardsModal() {
                 rewardsModal.classList.remove('visible');
             }
-
+            
+            // === EDIT START: Updated render function to show all costs ===
             function renderExplorationLocations() {
                 const locationList = document.getElementById('location-list');
                 locationList.innerHTML = '';
@@ -310,7 +320,7 @@
                 for (const [id, loc] of Object.entries(explorationLocations)) {
                     const card = document.createElement('div');
                     const isLocked = state.pet.level < loc.levelReq;
-                    const canAfford = state.pet.stamina >= loc.staminaCost;
+                    const canAfford = state.pet.stamina >= loc.staminaCost && state.pet.hunger >= loc.hungerCost && state.pet.happiness >= loc.happinessCost;
                     const isExploring = state.pet.exploration && state.pet.exploration.endTime > Date.now();
                     
                     const rewardsPreview = loc.rewards.map(r => {
@@ -332,8 +342,8 @@
                         <div class="space-y-2 text-sm text-gray-700 mb-4 pl-2 border-l-2 border-pink-200">
                             <p><strong>🕒 ใช้เวลา:</strong> ${formatTime(loc.duration)}</p>
                             <p><strong>⚡️ ใช้พลังงาน:</strong> ${loc.staminaCost}</p>
-                            <p><strong>🍔 ใช้ความหิว:</strong> 10</p>
-                            <p><strong>😊 ใช้ความสุข:</strong> 10</p>
+                            <p><strong>🍔 ใช้ความหิว:</strong> ${loc.hungerCost}</p>
+                            <p><strong>😊 ใช้ความสุข:</strong> ${loc.happinessCost}</p>
                             <p><strong>✨ EXP:</strong> ${loc.exp}</p>
                             <p><strong>🎁 อาจจะเจอ:</strong> ${rewardsPreview}</p>
                         </div>
@@ -361,6 +371,7 @@
                     btn.addEventListener('click', (e) => showRewardsModal(e.currentTarget.dataset.locationId));
                 });
             }
+            // === EDIT END ===
             
             closeRewardsModalBtn.addEventListener('click', hideRewardsModal);
             rewardsModal.addEventListener('click', (e) => {
