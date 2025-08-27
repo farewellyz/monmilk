@@ -146,7 +146,7 @@
         }
         .modal-content {
             background: white;
-            padding: 1.5rem;
+            padding: 1.25rem; /* p-5 -> p-4 */
             border-radius: 1.5rem;
             text-align: center;
             width: 90%;
@@ -233,7 +233,7 @@
             background-color: #e5e7eb;
             border-radius: 9999px;
             overflow: hidden;
-            height: 1.25rem;
+            height: 1.1rem; /* Reduced height */
         }
         .progress-bar {
             height: 100%;
@@ -441,27 +441,27 @@
     <div id="pet-stats-modal" class="modal-overlay">
         <div class="modal-content">
             <div id="pet-section">
-                <div id="pet-display-area" class="relative bg-cover bg-center rounded-xl p-4 mb-4 transition-all duration-500" style="box-shadow: inset 0 0 30px rgba(0,0,0,0.1);">
-                    <div class="flex items-center mb-4">
-                        <h2 id="pet-name" class="text-2xl font-bold text-white" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);"></h2>
-                        <span id="pet-level" class="ml-2 text-sm font-bold bg-black/30 text-white px-2 py-0.5 rounded-full"></span>
+                <div id="pet-display-area" class="relative bg-cover bg-center rounded-xl p-3 mb-3 transition-all duration-500" style="box-shadow: inset 0 0 30px rgba(0,0,0,0.1);">
+                    <div class="flex items-center mb-2">
+                        <h2 id="pet-name" class="text-xl font-bold text-white" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);"></h2>
+                        <span id="pet-level" class="ml-2 text-xs font-bold bg-black/30 text-white px-2 py-0.5 rounded-full"></span>
                     </div>
                     <div class="text-center">
-                        <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-32 mx-auto drop-shadow-lg">
+                        <img id="pet-modal-image" src="" alt="น้องม่อน" class="h-28 mx-auto drop-shadow-lg">
                     </div>
                 </div>
 
-                <div id="pet-background-buff-display" class="text-center bg-pink-100 text-pink-700 font-semibold p-2 rounded-lg my-3 border border-pink-200 hidden">
-                    </div>
-
-                <div id="pet-exploration-status-in-modal" class="hidden text-center mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-400 rounded-lg">
-                    <p class="font-semibold text-yellow-800">กำลังสำรวจที่ <span id="pet-exploration-location-in-modal"></span></p>
-                    <p class="text-lg font-bold text-yellow-600" id="pet-exploration-timer-in-modal">00:00:00</p>
+                <div id="pet-background-buff-display" class="text-center bg-pink-100 text-pink-700 font-semibold p-2 rounded-lg my-2 border border-pink-200 hidden text-sm">
                 </div>
 
-                <div class="space-y-3">
+                <div id="pet-exploration-status-in-modal" class="hidden text-center mb-3 p-2 bg-yellow-100 border-l-4 border-yellow-400 rounded-lg">
+                    <p class="font-semibold text-yellow-800 text-sm">กำลังสำรวจที่ <span id="pet-exploration-location-in-modal"></span></p>
+                    <p class="text-md font-bold text-yellow-600" id="pet-exploration-timer-in-modal">00:00:00</p>
+                </div>
+
+                <div class="space-y-2">
                     <div>
-                        <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
+                        <div class="flex justify-between text-xs font-semibold text-gray-500 mb-1">
                             <span>EXP</span>
                             <span id="pet-exp-text">0/100</span>
                         </div>
@@ -470,7 +470,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
+                        <div class="flex justify-between text-xs font-semibold text-gray-500 mb-1">
                             <span>❤️ ความอิ่ม</span>
                             <span id="pet-hunger-text">0/100</span>
                         </div>
@@ -479,7 +479,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
+                        <div class="flex justify-between text-xs font-semibold text-gray-500 mb-1">
                             <span>😊 ความสุข</span>
                             <span id="pet-happiness-text">0/100</span>
                         </div>
@@ -488,7 +488,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-sm font-semibold text-gray-500 mb-1">
+                        <div class="flex justify-between text-xs font-semibold text-gray-500 mb-1">
                             <span>⚡️ พลังงาน</span>
                             <span id="pet-stamina-text">0/100</span>
                         </div>
@@ -497,29 +497,41 @@
                         </div>
                     </div>
                 </div>
-                <div id="pet-action-buttons" class="grid grid-cols-2 gap-4 mt-4">
-                    <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
-                    <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
-                    <a href="exploration.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
-                    <a href="garden.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
+                <div id="pet-action-buttons" class="grid grid-cols-2 gap-2 mt-3">
+                    <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
+                    <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
+                    <a href="exploration.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
+                    <a href="garden.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 
-                <div class="mt-6">
-                     <button id="change-bg-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                     <button id="change-bg-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
                         เปลี่ยนพื้นหลัง
                     </button>
+                     <button id="use-item-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-teal-400 to-cyan-500 border-teal-600">
+                        ใช้ไอเทม
+                    </button>
                 </div>
-                <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+
+                <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-3 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
         </div>
     </div>
-    
     <div id="background-modal" class="modal-overlay">
         <div class="modal-content">
              <h2 class="text-2xl font-bold text-pink-500 mb-4">เลือกพื้นหลัง</h2>
              <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-100 rounded-lg">
                 </div>
              <button id="close-background-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
+    
+    <div id="use-item-modal" class="modal-overlay">
+        <div class="modal-content">
+             <h2 class="text-2xl font-bold text-pink-500 mb-4">ใช้ไอเทมฟื้นฟู</h2>
+             <div id="item-use-list" class="space-y-3">
+                </div>
+             <button id="close-use-item-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
         </div>
     </div>
     <div id="hatch-modal" class="modal-overlay">
@@ -607,20 +619,32 @@
                 { text: 'ลงสตอรี่เกี่ยวกับม่อน (2 เหรียญ)', reward: 2 },
             ];
             
+            // === EDIT START: Added categories and new items to shop definitions ===
             const shopItemDefinitions = [
-                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200, type: 'ticket' },  
-                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600, type: 'ticket' }, 
-                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000, type: 'ticket' }, 
-                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000, type: 'ticket' },
-                { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background' },
-                { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background' },
+                // Category: Tickets
+                { id: 'ticket_random', name: 'ตั๋วสุ่มวงล้อ', basePrice: 200, type: 'ticket', category: 'ตั๋วพิเศษ' },  
+                { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
+                { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
+                { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000, type: 'ticket', category: 'ตั๋วพิเศษ' },
+                // Category: Recovery Items
+                { id: 'item_m150', name: 'M150', basePrice: 60, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
+                { id: 'item_latte', name: 'ลาเต้', basePrice: 90, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
+                { id: 'item_americano', name: 'อเมริกาโน่', basePrice: 150, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
+                // Category: Backgrounds
+                { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
+                { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
             ];
+            // === EDIT END ===
             
+            // === EDIT START: Added new stamina items to consumable list ===
             const consumableItems = {
                 'ticket_random': { name: 'ตั๋วสุ่มวงล้อ' },
                 'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้' },
                 'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้' },
                 'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้' },
+                'item_m150': { name: 'M150' },
+                'item_latte': { name: 'ลาเต้' },
+                'item_americano': { name: 'อเมริกาโน่' },
                 'ขนมปัง': { name: 'ขนมปัง' },
                 'เค้ก': { name: 'เค้ก' },
                 'ไอศกรีม': { name: 'ไอศกรีม' },
@@ -637,6 +661,7 @@
                 'เมล็ดสตรอว์เบอร์รี': { name: 'เมล็ดสตรอว์เบอร์รี' },
                 'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
             };
+            // === EDIT END ===
 
             const petBackgroundDefinitions = {
                 'default': { name: 'ห้องธรรมดา', description: 'ไม่มีโบนัสพิเศษ', image: `room.jpg` },
@@ -649,6 +674,14 @@
                 'vegetable_garden': { name: 'สวนผัก', description: 'ผักโตเร็วขึ้น 10%', image: `vegetable_garden.jpg` },
                 'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` }
             };
+            
+            // === EDIT START: Added new object for stamina item effects ===
+            const staminaItems = {
+                'item_m150': { stamina: 20 },
+                'item_latte': { stamina: 30 },
+                'item_americano': { stamina: 50 },
+            };
+            // === EDIT END ===
 
             const petToys = {
                 'ของเล่นยาง': { happiness: 20 },
@@ -791,14 +824,19 @@
             const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
             const petExplorationTimerInModal = document.getElementById('pet-exploration-timer-in-modal');
             
-            // === EDIT START: Variables for new background modal ===
             const changeBgBtn = document.getElementById('change-bg-btn');
             const backgroundModal = document.getElementById('background-modal');
             const closeBackgroundModalBtn = document.getElementById('close-background-modal-btn');
             const petBackgroundList = document.getElementById('pet-background-list');
-            // === EDIT END ===
 
             const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
+            
+            // === EDIT START: Variables for new "Use Item" modal ===
+            const useItemBtn = document.getElementById('use-item-btn');
+            const useItemModal = document.getElementById('use-item-modal');
+            const closeUseItemModalBtn = document.getElementById('close-use-item-modal-btn');
+            const itemUseList = document.getElementById('item-use-list');
+            // === EDIT END ===
 
             const hatchModal = document.getElementById('hatch-modal');
             const eggStage = document.getElementById('egg-stage');
@@ -1029,34 +1067,57 @@
                 });
             }
 
+            // === EDIT START: Reworked shop rendering to support categories ===
             function renderShopItems() {
                 shopItemsList.innerHTML = '';
+                const categories = {};
+                
+                // Group items by category
                 shopItemDefinitions.forEach(item => {
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
-                    
-                    if (item.type === 'background') {
-                        const isOwned = state.pet.ownedBackgrounds.includes(item.id);
+                    if (!categories[item.category]) {
+                        categories[item.category] = [];
+                    }
+                    categories[item.category].push(item);
+                });
+
+                // Render items for each category
+                for (const categoryName in categories) {
+                    const categoryHeader = document.createElement('h3');
+                    categoryHeader.className = 'text-xl font-bold text-pink-500 mb-2 mt-4 first:mt-0';
+                    categoryHeader.textContent = categoryName;
+                    shopItemsList.appendChild(categoryHeader);
+
+                    categories[categoryName].forEach(item => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'card-base flex justify-between items-center bg-white p-4 rounded-2xl border-l-8 border-amber-300';
+                        
+                        let buttonHtml = '';
+                        let priceText = '';
+                        
+                        if (item.type === 'background') {
+                            const isOwned = state.pet.ownedBackgrounds.includes(item.id);
+                            priceText = `${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
+                            buttonHtml = `<button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 ml-3 ${isOwned ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700'}">${isOwned ? 'มีแล้ว' : 'ซื้อ'}</button>`;
+                        } else if (item.type === 'ticket') {
+                            const currentLevel = state.shopItemLevels[item.id] || 0;
+                            const currentPrice = item.basePrice * Math.pow(2, currentLevel);
+                            priceText = `${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
+                            buttonHtml = `<button data-price="${currentPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
+                        } else { // Consumable items
+                            priceText = `${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
+                            buttonHtml = `<button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
+                        }
+
                         itemEl.innerHTML = `
                             <div>
                                 <p class="text-lg font-semibold text-gray-700">${item.name}</p>
-                                <p class="text-base font-bold text-amber-500 flex items-center">${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p>
+                                <p class="text-base font-bold text-amber-500 flex items-center">${priceText}</p>
                             </div>
-                            <button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 ml-3 ${isOwned ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700'}">
-                                ${isOwned ? 'มีแล้ว' : 'ซื้อ'}
-                            </button>`;
-                    } else { // Ticket items
-                          const currentLevel = state.shopItemLevels[item.id] || 0;
-                          const currentPrice = item.basePrice * Math.pow(2, currentLevel);
-                          itemEl.innerHTML = `
-                            <div>
-                                <p class="text-lg font-semibold text-gray-700">${item.name}</p>
-                                <p class="text-base font-bold text-amber-500 flex items-center">${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'"></p>
-                            </div>
-                            <button data-price="${currentPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
-                    }
-                    shopItemsList.appendChild(itemEl);
-                });
+                            ${buttonHtml}`;
+                        
+                        shopItemsList.appendChild(itemEl);
+                    });
+                }
 
                 document.querySelectorAll('.buy-item-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
@@ -1073,9 +1134,11 @@
                                 if (!state.pet.ownedBackgrounds.includes(itemId)) {
                                     state.pet.ownedBackgrounds.push(itemId);
                                 }
-                            } else {
+                            } else { // Tickets and other consumables
                                 state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
-                                state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
+                                if (itemType === 'ticket') { // Only increase price for tickets
+                                     state.shopItemLevels[itemId] = (state.shopItemLevels[itemId] || 0) + 1;
+                                }
                             }
                             
                             updateCoinDisplays();
@@ -1090,6 +1153,7 @@
                     });
                 });
             }
+            // === EDIT END ===
 
             function pullGacha() {
                 const rand = Math.random() * 100;
@@ -1245,11 +1309,10 @@
                     if (state.pet.activeBackground === 'kitchen') hungerMultiplier = 0.9;
                     if (state.pet.activeBackground === 'bedroom') happinessMultiplier = 0.9;
                     
-                    // === EDIT START: Halved the time for status decay (doubled the rate) ===
+                    // === EDIT: Halved the time for status decay (doubled the rate) ===
                     const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
                     const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
-                    // === EDIT END ===
-
+                    
                     const staminaGain = Math.floor(elapsedMinutes / 5);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
@@ -1333,7 +1396,6 @@
                     petBackgroundBuffDisplay.classList.add('hidden');
                 }
                 
-                // Note: The actual rendering of the list is now triggered by the modal button
                 renderExplorationStatus();
             }
             
@@ -1461,6 +1523,51 @@
             function hideFeedModal() {
                 feedModal.classList.remove('visible');
             }
+
+            // === EDIT START: Added function to show the new "Use Item" modal ===
+            function showUseItemModal() {
+                itemUseList.innerHTML = '';
+                let hasStaminaItem = false;
+
+                for (const itemId in staminaItems) {
+                    if (state.inventory[itemId] > 0) {
+                        hasStaminaItem = true;
+                        const itemEffect = staminaItems[itemId];
+                        const itemDetails = consumableItems[itemId];
+
+                        const itemEl = document.createElement('button');
+                        itemEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-teal-50 rounded-lg border-l-4 border-teal-200';
+                        itemEl.innerHTML = `
+                            <span>ใช้ ${itemDetails.name} (+${itemEffect.stamina} ⚡️)</span>
+                            <span class="font-bold text-gray-600">มี ${state.inventory[itemId]} ชิ้น</span>
+                        `;
+                        itemEl.onclick = () => {
+                            if (state.pet.stamina >= 100) {
+                                alert('พลังงานเต็มแล้วจ้า!');
+                                return;
+                            }
+                            state.inventory[itemId]--;
+                            state.pet.stamina = Math.min(100, state.pet.stamina + itemEffect.stamina);
+                            
+                            hideUseItemModal();
+                            alert(`คุณใช้ ${itemDetails.name} ฟื้นฟูพลังงาน!`);
+                            saveState();
+                            renderInventory();
+                            renderPetStats();
+                        };
+                        itemUseList.appendChild(itemEl);
+                    }
+                }
+                if (!hasStaminaItem) {
+                    itemUseList.innerHTML = `<p class="text-gray-500">ไม่มีไอเทมฟื้นฟูพลังงานเลย</p>`;
+                }
+                useItemModal.classList.add('visible');
+            }
+
+            function hideUseItemModal() {
+                useItemModal.classList.remove('visible');
+            }
+            // === EDIT END ===
             
             function showPlayModal() {
                 playOptionsList.innerHTML = '';
@@ -1766,12 +1873,15 @@
                 }
             });
 
-            // === EDIT START: Event listeners for new background modal ===
             changeBgBtn.addEventListener('click', () => {
-                renderPetBackgroundsUI(); // Render the list right before showing
+                renderPetBackgroundsUI();
                 backgroundModal.classList.add('visible');
             });
             closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
+            
+            // === EDIT START: Event listeners for new "Use Item" modal ===
+            useItemBtn.addEventListener('click', showUseItemModal);
+            closeUseItemModalBtn.addEventListener('click', hideUseItemModal);
             // === EDIT END ===
 
             function init() {
@@ -1806,11 +1916,10 @@
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
-                        // --- EDIT START: ALL GAMES COST 1 COIN ---
                         const gameCost = 0;
 
                         if (state.playCoins >= gameCost) {
-                            state.playCoins -= gameCost; // Always deduct 1 coin
+                            state.playCoins -= gameCost;
                             updateCoinDisplays();
                             
                             if (isBonusGame) {
@@ -1821,7 +1930,6 @@
                         } else {
                             alert('เหรียญเล่นม่อนไม่พอจ้า! เช็คอินหรือทำภารกิจรายวันก่อนนะ');
                         }
-                        // --- EDIT END ---
                     });
                 });
             }
