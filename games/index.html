@@ -504,16 +504,24 @@
                     <a href="garden.html" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 
-                <div id="pet-background-section" class="mt-6">
-                    <h3 class="text-xl font-bold text-pink-500 mb-2 text-left">เปลี่ยนพื้นหลัง</h3>
-                    <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-gray-100 rounded-lg">
-                        </div>
+                <div class="mt-6">
+                     <button id="change-bg-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
+                        เปลี่ยนพื้นหลัง
+                    </button>
                 </div>
                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
         </div>
     </div>
-
+    
+    <div id="background-modal" class="modal-overlay">
+        <div class="modal-content">
+             <h2 class="text-2xl font-bold text-pink-500 mb-4">เลือกพื้นหลัง</h2>
+             <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-100 rounded-lg">
+                </div>
+             <button id="close-background-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
     <div id="hatch-modal" class="modal-overlay">
         <div class="modal-content">
             <div id="egg-stage">
@@ -782,7 +790,14 @@
             const petExplorationStatusInModal = document.getElementById('pet-exploration-status-in-modal');
             const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
             const petExplorationTimerInModal = document.getElementById('pet-exploration-timer-in-modal');
+            
+            // === EDIT START: Variables for new background modal ===
+            const changeBgBtn = document.getElementById('change-bg-btn');
+            const backgroundModal = document.getElementById('background-modal');
+            const closeBackgroundModalBtn = document.getElementById('close-background-modal-btn');
             const petBackgroundList = document.getElementById('pet-background-list');
+            // === EDIT END ===
+
             const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
 
             const hatchModal = document.getElementById('hatch-modal');
@@ -1230,8 +1245,11 @@
                     if (state.pet.activeBackground === 'kitchen') hungerMultiplier = 0.9;
                     if (state.pet.activeBackground === 'bedroom') happinessMultiplier = 0.9;
                     
-                    const hungerLoss = Math.floor(elapsedMinutes / 15 * hungerMultiplier);
-                    const happinessLoss = Math.floor(elapsedMinutes / 20 * happinessMultiplier);
+                    // === EDIT START: Halved the time for status decay (doubled the rate) ===
+                    const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
+                    const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
+                    // === EDIT END ===
+
                     const staminaGain = Math.floor(elapsedMinutes / 5);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
@@ -1315,7 +1333,7 @@
                     petBackgroundBuffDisplay.classList.add('hidden');
                 }
                 
-                renderPetBackgroundsUI();
+                // Note: The actual rendering of the list is now triggered by the modal button
                 renderExplorationStatus();
             }
             
@@ -1659,6 +1677,7 @@
                 state.pet.activeBackground = bgId;
                 saveState();
                 renderPetStats(); // Re-render to update UI
+                backgroundModal.classList.remove('visible'); // Close modal after selection
             }
 
             let isDragging = false;
@@ -1747,6 +1766,13 @@
                 }
             });
 
+            // === EDIT START: Event listeners for new background modal ===
+            changeBgBtn.addEventListener('click', () => {
+                renderPetBackgroundsUI(); // Render the list right before showing
+                backgroundModal.classList.add('visible');
+            });
+            closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
+            // === EDIT END ===
 
             function init() {
                 loadState();
