@@ -287,6 +287,23 @@
             border-style: solid;
             border-color: white transparent transparent transparent;
         }
+        
+        /* Achievement Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background-color: #ef4444; /* red-500 */
+            border-radius: 9999px;
+            border: 2px solid white;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
     </style>
 </head>
 <body>
@@ -504,15 +521,22 @@
                     <a href="garden.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-2 mt-3">
-                     <button id="change-bg-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                     <button id="change-bg-btn" class="btn-base w-full px-2 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-purple-400 to-fuchsia-500 border-purple-600">
                         พื้นหลัง
                     </button>
-                     <button id="use-item-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-teal-400 to-cyan-500 border-teal-600">
+                     <button id="upgrade-pet-btn" class="btn-base w-full px-2 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-orange-400 to-red-500 border-orange-600">
+                        อัปเกรด
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <button id="use-item-btn" class="btn-base w-full px-2 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-teal-400 to-cyan-500 border-teal-600">
                         ใช้ไอเทม
                     </button>
-                     <button id="upgrade-pet-btn" class="btn-base w-full px-2 py-2 text-xs font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-orange-400 to-red-500 border-orange-600">
-                        อัปเกรด
+                    <button id="achievements-btn" class="btn-base relative w-full px-2 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-amber-400 to-yellow-500 border-amber-600">
+                        ความสำเร็จ
+                        <span id="achievement-notification" class="notification-badge hidden"></span>
                     </button>
                 </div>
 
@@ -548,6 +572,16 @@
         </div>
     </div>
 
+    <div id="achievements-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 420px;">
+            <h2 class="text-2xl font-bold text-pink-500 mb-4">🏆 ความสำเร็จ</h2>
+            <div id="achievements-content" class="text-left space-y-4 max-h-[70vh] overflow-y-auto p-2 bg-gray-50 rounded-lg">
+                <!-- Achievements will be rendered here -->
+            </div>
+            <button id="close-achievements-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
+
 
     <div id="hatch-modal" class="modal-overlay">
         <div class="modal-content">
@@ -559,7 +593,7 @@
             </div>
             <div id="name-stage" class="hidden">
                 <h2 class="text-2xl font-bold text-pink-500 mb-4">น้องม่อนฟักออกมาแล้ว!</h2>
-                <img src="https://placehold.co/150x150/fbcfe8/be185d?text=🥰" alt="Baby Mon" class="mx-auto h-32 w-32 mb-4">
+                <img src="https://placehold.co/128x128/fbcfe8/be185d?text=🥰" alt="Baby Mon" class="mx-auto h-32 w-32 mb-4">
                 <p class="text-gray-600 mb-4">ตั้งชื่อให้น้องม่อนกันเถอะ:</p>
                 <input type="text" id="pet-name-input" class="w-full p-2 border-2 border-pink-200 rounded-lg text-center" placeholder="ชื่อน้องม่อน" maxlength="12">
                 <button id="confirm-name-btn" class="btn-base w-full mt-4 px-4 py-3 text-lg font-bold text-white rounded-2xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700">ยืนยัน</button>
@@ -612,9 +646,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // This is a simplified game state management. 
+            // In a real application, you might use a more robust solution.
             let state = {};
             let explorationInterval = null;
 
+            // All static definitions for the game are here.
             const allMissions = [
                 { text: 'ถ่ายรูปหน้าส่งให้ม่อน (1 เหรียญ)', reward: 1 }, 
                 { text: 'ถ่าย ootd ส่งให้ม่อน (1 เหรียญ)', reward: 1 },
@@ -672,6 +709,7 @@
             };
 
             const petBackgroundDefinitions = {
+                // Original Backgrounds
                 'default': { name: 'ห้องธรรมดา', description: 'ไม่มีโบนัสพิเศษ', image: `room.jpg` },
                 'kitchen': { name: 'ห้องครัว', description: 'หิวช้าลง 10%', image: `kitchen.jpg` },
                 'library': { name: 'ห้องสมุด', description: 'ได้รับ EXP เพิ่มขึ้น 10%', image: `library.jpg` },
@@ -680,7 +718,27 @@
                 'restaurant': { name: 'ร้านอาหาร', description: 'ราคาอาหารลดลง 20%', image: `restaurant.jpg` },
                 'amusement_park': { name: 'สวนสนุก', description: 'เล่นด้วยได้ความสุขเพิ่ม 20%', image: `amusement_park.jpg` },
                 'vegetable_garden': { name: 'สวนผัก', description: 'ผักโตเร็วขึ้น 10%', image: `vegetable_garden.jpg` },
-                'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` }
+                'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` },
+                // New Achievement Unlocks (You can add image paths here later)
+                'mythical_garden': { name: 'สวนเทพนิยาย', description: 'อาหารประเภทขนมปังให้ EXP +10%', image: 'https://placehold.co/400x200/dcfce7/166534?text=Mythical+Garden' },
+                'crystal_chamber': { name: 'ห้องคริสตัล', description: 'อาหารประเภทเค้กให้ความสุข +15%', image: 'https://placehold.co/400x200/f0f9ff/075985?text=Crystal+Chamber' },
+                'sky_palace': { name: 'วังฟ้า', description: 'อาหารประเภทไอศกรีมให้เหรียญม่อน +5%', image: 'https://placehold.co/400x200/e0f2fe/0c4a6e?text=Sky+Palace' },
+                'magical_aquarium': { name: 'อควาเรียมเวทมนตร์', description: 'สตรอว์เบอร์รีมีโอกาสได้เมล็ดคืน', image: 'https://placehold.co/400x200/ecfeff/0e7490?text=Aquarium' },
+                'playroom': { name: 'Playroom', description: 'ได้ความสุขจากการเล่น +20%', image: 'https://placehold.co/400x200/fef2f2/991b1b?text=Playroom' },
+                'playground': { name: 'สนามเด็กเล่น', description: 'พลังงานลดช้าลง 10%', image: 'https://placehold.co/400x200/f0fdf4/166534?text=Playground' },
+                'music_room': { name: 'ห้องดนตรี', description: 'EXP จากการเล่นด้วย +15%', image: 'https://placehold.co/400x200/f5f3ff/5b21b6?text=Music+Room' },
+                'digital_nexus': { name: 'Digital Nexus', description: 'พลังงานใช้ -30% และ EXP +15%', image: 'https://placehold.co/400x200/f3f4f6/111827?text=Digital+Nexus' },
+                'gym_room': { name: 'ห้องกีฬา', description: 'ฟื้นฟู Stamina +20%', image: 'https://placehold.co/400x200/fafafa/171717?text=Gym' },
+                'cute_cafe': { name: 'คาเฟ่น่ารัก', description: 'เมื่อให้อาหารได้ความสุข +10%', image: 'https://placehold.co/400x200/fdf4ff/a21caf?text=Cafe' },
+                'coffee_lounge': { name: 'Coffee Lounge', description: 'EXP +10%, ความหิวลดช้าลง 10%', image: 'https://placehold.co/400x200/fdf2f8/9d174d?text=Lounge' },
+                'secret_garden': { name: 'สวนลับ', description: 'ดรอปจากการสำรวจ +5%', image: 'https://placehold.co/400x200/f0fdfa/0f766e?text=Secret+Garden' },
+                'hidden_shop': { name: 'ร้านค้าลับ', description: 'ราคาของในร้านค้าลด 10%', image: 'https://placehold.co/400x200/fefce8/a16207?text=Hidden+Shop' },
+                'beach_resort': { name: 'Beach Resort', description: 'Stamina ลดช้าลง 15%', image: 'https://placehold.co/400x200/eff6ff/1d4ed8?text=Resort' },
+                'ancient_forest': { name: 'Ancient Forest', description: 'EXP +15% จากการสำรวจ', image: 'https://placehold.co/400x200/f7fee7/3f6212?text=Ancient+Forest' },
+                'cozy_bedroom': { name: 'ห้องนอนใหม่', description: 'ฟื้นฟูพลังงานเร็วขึ้น 25%', image: 'https://placehold.co/400x200/faf5ff/6b21a8?text=Cozy+Bedroom' },
+                'grand_kitchen': { name: 'ห้องครัวใหญ่', description: 'อาหารให้ความอิ่ม +25%', image: 'https://placehold.co/400x200/fff7ed/c2410c?text=Grand+Kitchen' },
+                'toy_gallery': { name: 'ห้องเก็บของเล่น', description: 'ความสุขจากการเล่น +25%', image: 'https://placehold.co/400x200/fef9c3/ca8a04?text=Toy+Gallery' },
+                'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'https://placehold.co/400x200/fefce8/b45309?text=Legendary+Palace' },
             };
 
             const staminaItems = {
@@ -690,10 +748,10 @@
             };
 
             const petToys = {
-                'ของเล่นยาง': { happiness: 20 },
-                'ลูกบอล': { happiness: 25 },
-                'กีต้า': { happiness: 40 },
-                'คอมพิวเตอร์': { happiness: 50 },
+                'ของเล่นยาง': { happiness: 20, exp: 5 },
+                'ลูกบอล': { happiness: 25, exp: 5 },
+                'กีต้า': { happiness: 40, exp: 10 },
+                'คอมพิวเตอร์': { happiness: 50, exp: 15 },
             };
 
             const allPlayableGames = [
@@ -705,9 +763,6 @@
                 { id: 'cafe', name: 'เกมคาเฟ่', file: 'cafe.html' },
             ];
             
-            // ===================================================================
-            // ===== START: โค้ดส่วนที่ 1 ที่แก้ไข (อัปเดตข้อมูลรางวัล) =====
-            // ===================================================================
             const explorationLocations = {
                 'garden': { 
                     name: 'สวนหลังบ้าน', 
@@ -743,7 +798,7 @@
                         { type: 'item', name: 'ไอศกรีม', chance: 40 },
                         { type: 'item', name: 'กีต้า', chance: 40 },
                         { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 40 },
-                        { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 },
+                        { type: 'item', name: 'ticket_random', chance: 15 },
                         { type: 'background', name: 'vegetable_garden', chance: 10 }
                     ]
                 },
@@ -754,16 +809,13 @@
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
                         { type: 'item', name: 'คอมพิวเตอร์', chance: 20 },
                         { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 20 },
-                        { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
-                        { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 },
+                        { type: 'item', name: 'ticket_trip', chance: 10 },
+                        { type: 'item', name: 'ticket_command', chance: 5 },
                         { type: 'background', name: 'forest', chance: 10 }
                     ]
                 }
             };
-            // ===================================================================
-            // ===== END: โค้ดส่วนที่ 1 ที่แก้ไข =====
-            // ===================================================================
-
+            
             const gachaPrizes = [
                 { name: '1 เหรียญเล่นม่อน', type: 'play_coin', value: 1, probability: 39, rarity: 'common' },
                 { name: '2 เหรียญเล่นม่อน', type: 'play_coin', value: 2, probability: 24, rarity: 'common' },
@@ -785,7 +837,251 @@
             
             const upgradeCosts = [100, 200, 400, 800, 1000];
             const maxUpgradeLevel = 5;
+            
+            const petFoodDefinitions = {
+                'ขนมปัง': { hunger: 15, exp: 5, cost: 10 },
+                'เค้ก': { hunger: 30, exp: 12, cost: 25 },
+                'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 },
+                'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 },
+                'แครอท': { hunger: 20, exp: 10, cost: 0 },
+                'บรอกโคลี': { hunger: 25, exp: 12, cost: 0 },
+                'สตรอว์เบอร์รี': { hunger: 30, exp: 20, cost: 0 },
+            };
 
+            // ===================================================================
+            // ===== START: ACHIEVEMENT DEFINITIONS ==============================
+            // ===================================================================
+            const achievementDefinitions = {
+                // --- Feeding Achievements ---
+                'feed_bread': {
+                    category: 'การป้อนอาหาร', name: 'นักชิมขนมปัง 🍞', icon: '🍞',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10, play_coin: 1 } },
+                        { goal: 10, rewards: { exp: 20, play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 40, play_coin: 3 } },
+                        { goal: 50, rewards: { exp: 60, play_coin: 4 } },
+                        { goal: 70, rewards: { exp: 80, play_coin: 5 } },
+                        { goal: 100, rewards: { exp: 100, background: 'mythical_garden' } },
+                    ]
+                },
+                'feed_cake': {
+                    category: 'การป้อนอาหาร', name: 'คนรักเค้ก 🍰', icon: '🍰',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 15, play_coin: 1 } },
+                        { goal: 10, rewards: { exp: 25, play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 50, play_coin: 3 } },
+                        { goal: 50, rewards: { exp: 70, play_coin: 4 } },
+                        { goal: 70, rewards: { exp: 90, play_coin: 5 } },
+                        { goal: 100, rewards: { exp: 120, background: 'crystal_chamber' } },
+                    ]
+                },
+                'feed_icecream': {
+                    category: 'การป้อนอาหาร', name: 'ผู้เชี่ยวชาญไอศกรีม 🍦', icon: '🍦',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 20, play_coin: 1 } },
+                        { goal: 10, rewards: { exp: 30, play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 60, play_coin: 3 } },
+                        { goal: 50, rewards: { exp: 80, play_coin: 4 } },
+                        { goal: 70, rewards: { exp: 100, play_coin: 5 } },
+                        { goal: 100, rewards: { exp: 150, background: 'sky_palace' } },
+                    ]
+                },
+                'feed_tomato': {
+                    category: 'การป้อนอาหาร', name: 'ชาวสวนมะเขือเทศ 🍅', icon: '🍅',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 8, item: { id: 'เมล็ดมะเขือเทศ', amount: 1 } } },
+                        { goal: 10, rewards: { exp: 16, item: { id: 'เมล็ดมะเขือเทศ', amount: 1 } } },
+                        { goal: 30, rewards: { exp: 35, item: { id: 'เมล็ดมะเขือเทศ', amount: 2 } } },
+                        { goal: 50, rewards: { exp: 55, item: { id: 'เมล็ดมะเขือเทศ', amount: 3 } } },
+                        { goal: 70, rewards: { exp: 75, item: { id: 'เมล็ดมะเขือเทศ', amount: 4 } } },
+                        { goal: 100, rewards: { exp: 100, background: 'vegetable_garden' } },
+                    ]
+                },
+                'feed_carrot': {
+                    category: 'การป้อนอาหาร', name: 'นักปลูกแครอท 🥕', icon: '�',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10, item: { id: 'เมล็ดแครอท', amount: 1 } } },
+                        { goal: 10, rewards: { exp: 20, item: { id: 'เมล็ดแครอท', amount: 1 } } },
+                        { goal: 30, rewards: { exp: 40, item: { id: 'เมล็ดแครอท', amount: 2 } } },
+                        { goal: 50, rewards: { exp: 60, item: { id: 'เมล็ดแครอท', amount: 3 } } },
+                        { goal: 70, rewards: { exp: 80, item: { id: 'เมล็ดแครอท', amount: 4 } } },
+                        { goal: 100, rewards: { exp: 110, background: 'forest' } },
+                    ]
+                },
+                'feed_broccoli': {
+                    category: 'การป้อนอาหาร', name: 'แฟนพันธุ์แท้บรอกโคลี 🥦', icon: '🥦',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 12, item: { id: 'เมล็ดบรอกโคลี', amount: 1 } } },
+                        { goal: 10, rewards: { exp: 24, item: { id: 'เมล็ดบรอกโคลี', amount: 1 } } },
+                        { goal: 30, rewards: { exp: 48, item: { id: 'เมล็ดบรอกโคลี', amount: 2 } } },
+                        { goal: 50, rewards: { exp: 70, item: { id: 'เมล็ดบรอกโคลี', amount: 3 } } },
+                        { goal: 70, rewards: { exp: 90, item: { id: 'เมล็ดบรอกโคลี', amount: 4 } } },
+                        { goal: 100, rewards: { exp: 120, background: 'library' } },
+                    ]
+                },
+                'feed_strawberry': {
+                    category: 'การป้อนอาหาร', name: 'เจ้าแห่งสตรอว์เบอร์รี 🍓', icon: '🍓',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 15, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
+                        { goal: 10, rewards: { exp: 30, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
+                        { goal: 30, rewards: { exp: 60, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 2 } } },
+                        { goal: 50, rewards: { exp: 80, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 3 } } },
+                        { goal: 70, rewards: { exp: 100, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 4 } } },
+                        { goal: 100, rewards: { exp: 150, background: 'magical_aquarium' } },
+                    ]
+                },
+                // --- Toy Achievements ---
+                'play_rubber_toy': {
+                    category: 'ของเล่น', name: 'นักเล่นของเล่นยาง', icon: '🧸',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10 } },
+                        { goal: 15, rewards: { play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 30 } },
+                        { goal: 50, rewards: { exp: 50, item: { id: 'ของเล่นยาง', amount: 1 } } },
+                        { goal: 100, rewards: { background: 'playroom' } },
+                    ]
+                },
+                'play_ball': {
+                    category: 'ของเล่น', name: 'นักเล่นบอล', icon: '⚽',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10 } },
+                        { goal: 15, rewards: { play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 30 } },
+                        { goal: 50, rewards: { exp: 50 } },
+                        { goal: 100, rewards: { background: 'playground' } },
+                    ]
+                },
+                'play_guitar': {
+                    category: 'ของเล่น', name: 'นักกีต้าร์', icon: '🎸',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 15 } },
+                        { goal: 15, rewards: { play_coin: 3 } },
+                        { goal: 30, rewards: { exp: 40 } },
+                        { goal: 50, rewards: { exp: 60 } },
+                        { goal: 100, rewards: { background: 'music_room' } },
+                    ]
+                },
+                'play_computer': {
+                    category: 'ของเล่น', name: 'เซียนคอมพิวเตอร์', icon: '💻',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 20 } },
+                        { goal: 15, rewards: { play_coin: 3 } },
+                        { goal: 30, rewards: { exp: 50 } },
+                        { goal: 50, rewards: { exp: 70 } },
+                        { goal: 100, rewards: { background: 'digital_nexus' } },
+                    ]
+                },
+                // --- Stamina Item Achievements ---
+                'use_m150': {
+                    category: 'ไอเทมเพิ่มพลัง', name: 'ผู้ใช้ M150', icon: '⚡',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10 } },
+                        { goal: 15, rewards: { play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 40 } },
+                        { goal: 50, rewards: { background: 'gym_room' } },
+                    ]
+                },
+                'use_latte': {
+                    category: 'ไอเทมเพิ่มพลัง', name: 'คอกาแฟลาเต้', icon: '☕',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 10 } },
+                        { goal: 15, rewards: { play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 40 } },
+                        { goal: 50, rewards: { background: 'cute_cafe' } },
+                    ]
+                },
+                'use_americano': {
+                    category: 'ไอเทมเพิ่มพลัง', name: 'สายดาร์กอเมริกาโน่', icon: '☕',
+                    tiers: [
+                        { goal: 5, rewards: { exp: 15 } },
+                        { goal: 15, rewards: { play_coin: 3 } },
+                        { goal: 30, rewards: { exp: 50 } },
+                        { goal: 50, rewards: { background: 'coffee_lounge' } },
+                    ]
+                },
+                // --- Exploration Achievements ---
+                'explore_garden': {
+                    category: 'การสำรวจ', name: 'นักสำรวจสวนหลังบ้าน', icon: '🧭',
+                    tiers: [
+                        { goal: 3, rewards: { exp: 10 } },
+                        { goal: 10, rewards: { play_coin: 2 } },
+                        { goal: 30, rewards: { exp: 40 } },
+                        { goal: 50, rewards: { background: 'secret_garden' } },
+                    ]
+                },
+                'explore_market': {
+                    category: 'การสำรวจ', name: 'นักช้อปตลาดนัด', icon: '🧭',
+                    tiers: [
+                        { goal: 3, rewards: { exp: 12 } },
+                        { goal: 10, rewards: { play_coin: 3 } },
+                        { goal: 30, rewards: { exp: 45 } },
+                        { goal: 50, rewards: { background: 'hidden_shop' } },
+                    ]
+                },
+                'explore_beach': {
+                    category: 'การสำรวจ', name: 'นักเที่ยวทะเล', icon: '🧭',
+                    tiers: [
+                        { goal: 3, rewards: { exp: 15 } },
+                        { goal: 10, rewards: { play_coin: 3 } },
+                        { goal: 30, rewards: { exp: 60 } },
+                        { goal: 50, rewards: { background: 'beach_resort' } },
+                    ]
+                },
+                'explore_forest': {
+                    category: 'การสำรวจ', name: 'นักผจญภัยในป่า', icon: '🧭',
+                    tiers: [
+                        { goal: 3, rewards: { exp: 20 } },
+                        { goal: 10, rewards: { play_coin: 4 } },
+                        { goal: 30, rewards: { exp: 70 } },
+                        { goal: 50, rewards: { background: 'ancient_forest' } },
+                    ]
+                },
+                // --- Upgrade Achievements ---
+                'upgrade_bed': {
+                    category: 'การอัปเกรดบ้าน', name: 'นักตกแต่งเตียง', icon: '🏠',
+                    tiers: [
+                        { goal: 1, rewards: { exp: 20 } },
+                        { goal: 2, rewards: { play_coin: 5 } }, // Custom reward
+                        { goal: 3, rewards: { play_coin: 5 } }, // Custom reward
+                        { goal: 4, rewards: { exp: 50 } }, // Custom reward
+                        { goal: 5, rewards: { background: 'cozy_bedroom' } },
+                    ]
+                },
+                'upgrade_bowl': {
+                    category: 'การอัปเกรดบ้าน', name: 'นักออกแบบชามอาหาร', icon: '🏠',
+                    tiers: [
+                        { goal: 1, rewards: { exp: 20 } },
+                        { goal: 2, rewards: { play_coin: 5 } },
+                        { goal: 3, rewards: { play_coin: 5 } },
+                        { goal: 4, rewards: { exp: 50 } },
+                        { goal: 5, rewards: { background: 'grand_kitchen' } },
+                    ]
+                },
+                'upgrade_toy_shelf': {
+                    category: 'การอัปเกรดบ้าน', name: 'นักสะสมของเล่น', icon: '🏠',
+                    tiers: [
+                        { goal: 1, rewards: { exp: 20 } },
+                        { goal: 2, rewards: { play_coin: 5 } },
+                        { goal: 3, rewards: { play_coin: 5 } },
+                        { goal: 4, rewards: { exp: 50 } },
+                        { goal: 5, rewards: { background: 'toy_gallery' } },
+                    ]
+                },
+                 'upgrade_all_max': {
+                    category: 'การอัปเกรดบ้าน', name: 'เจ้าแห่งการแต่งบ้าน', icon: '👑',
+                    isSpecial: true, // This is a special flag
+                    tiers: [
+                        { goal: 1, rewards: { background: 'sky_palace_legendary' } },
+                    ]
+                }
+            };
+
+            // ===================================================================
+            // ===== END: ACHIEVEMENT DEFINITIONS ================================
+            // ===================================================================
+
+
+            // DOM Elements
             const screens = {
                 menu: document.getElementById('menu-screen'),
                 shop: document.getElementById('shop-screen'),
@@ -871,27 +1167,21 @@
             const closePlayModalBtn = document.getElementById('close-play-modal-btn');
 
             const explorationStatusCard = document.getElementById('exploration-status-card');
-            const explorationLocationEl = document.getElementById('exploration-location');
             const explorationTimerEl = document.getElementById('exploration-timer');
             const explorationStatusText = document.getElementById('exploration-status-text');
             const claimRewardsBtn = document.getElementById('claim-rewards-btn');
+            
+            const achievementsBtn = document.getElementById('achievements-btn');
+            const achievementNotification = document.getElementById('achievement-notification');
+            const achievementsModal = document.getElementById('achievements-modal');
+            const achievementsContent = document.getElementById('achievements-content');
+            const closeAchievementsModalBtn = document.getElementById('close-achievements-modal-btn');
 
             let eggTaps = 0;
             const TAPS_TO_HATCH = 20;
 
-            const petFoodDefinitions = {
-                'ขนมปัง': { hunger: 15, exp: 5, cost: 10 },
-                'เค้ก': { hunger: 30, exp: 12, cost: 25 },
-                'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 },
-                'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 },
-                'แครอท': { hunger: 20, exp: 10, cost: 0 },
-                'บรอกโคลี': { hunger: 25, exp: 12, cost: 0 },
-                'สตรอว์เบอร์รี': { hunger: 30, exp: 20, cost: 0 },
-            };
 
-            document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
-            document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
-
+            // --- State Management ---
             function saveState() {
                 localStorage.setItem('monGameDataV17', JSON.stringify(state));
             }
@@ -900,6 +1190,7 @@
                 const savedData = localStorage.getItem('monGameDataV17');
                 if (savedData) {
                     state = JSON.parse(savedData);
+                    // Migration and default value checks for new features
                     if (!state.shopItemLevels) {
                         state.shopItemLevels = {};
                         shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
@@ -918,6 +1209,8 @@
                             state.pet.upgradeLevels = { bed: 0, bowl: 0, toy_shelf: 0 };
                         }
                     }
+                    if (!state.achievementProgress) state.achievementProgress = {};
+                    if (!state.achievementStatus) state.achievementStatus = {};
 
                 } else {
                     state = {
@@ -936,45 +1229,16 @@
                             lastPattedDate: null, lastStatusUpdate: Date.now(),
                             ownedBackgrounds: ['default'], activeBackground: 'default',
                             upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
-                        }
+                        },
+                        achievementProgress: {},
+                        achievementStatus: {}
                     };
                     shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
                     generateNewMissions();
                 }
             }
 
-            function pickDailyBonusGame() {
-                const today = new Date().toDateString();
-                if (state.lastBonusGameDate !== today) {
-                    const randomIndex = Math.floor(Math.random() * allPlayableGames.length);
-                    state.dailyBonusGameId = allPlayableGames[randomIndex].id;
-                    state.lastBonusGameDate = today;
-                    saveState();
-                }
-                displayBonusGame();
-            }
-
-            function displayBonusGame() {
-                if (!state.dailyBonusGameId) return;
-
-                const bonusGame = allPlayableGames.find(game => game.id === state.dailyBonusGameId);
-                if (bonusGame) {
-                    dailyBonusGameName.textContent = bonusGame.name;
-                    bonusGameSection.classList.remove('hidden');
-
-                    gameCardContainer.querySelectorAll('.game-card').forEach(card => {
-                        card.classList.remove('bonus-game');
-                        const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
-                        if (gameData) {
-                            card.href = `./${gameData.file}`; 
-                            if (card.dataset.gameId === state.dailyBonusGameId) {
-                                card.classList.add('bonus-game');
-                            }
-                        }
-                    });
-                }
-            }
-
+            // --- UI Rendering ---
             function updateCoinDisplays() {
                 coinDisplays.mon.textContent = state.monCoins;
                 coinDisplays.play.textContent = state.playCoins;
@@ -1003,30 +1267,14 @@
                                 <span class="font-semibold">${itemDetails.name}</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-base font-bold bg-pink-200 text-pink-600 rounded-full px-3 py-1 ml-2">x${state.inventory[itemId]}</span>
-                                    <button data-id="${itemId}" class="play-item-btn btn-base px-3 py-1 text-sm font-bold text-white rounded-lg shadow-md border-b-2" style="background-color: #8A2BE2; border-bottom-color: #6A1BAE;">ใช้</button>
                                 </div>
                             `;
                             inventoryList.appendChild(itemEl);
                         }
                     });
                     inventoryCard.classList.remove('hidden');
-                    document.querySelectorAll('.play-item-btn').forEach(button => {
-                        button.addEventListener('click', useItem);
-                    });
                 } else {
                     inventoryCard.classList.add('hidden');
-                }
-            }
-
-            function useItem(event) {
-                const itemId = event.target.dataset.id;
-                if (state.inventory[itemId] > 0) {
-                    const itemDetails = consumableItems[itemId];
-                    alert(`ใช้ไอเทม: ${itemDetails.name}!`);
-                    state.inventory[itemId]--; 
-                    saveState();
-                    renderInventory(); 
-                    updateCoinDisplays(); 
                 }
             }
             
@@ -1041,24 +1289,6 @@
                 }
             }
             
-            checkInBtn.addEventListener('click', () => {
-                const today = new Date().toDateString();
-                if (state.lastCheckinDate !== today) {
-                    state.playCoins += 5;
-                    state.lastCheckinDate = today;
-                    updateCoinDisplays();
-                    updateCheckInButton();
-                    saveState();
-                    alert('เช็คอินสำเร็จ! คุณได้รับ 5 เหรียญเล่นม่อน');
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
-            });
-
-            function generateNewMissions() {
-                const shuffled = [...allMissions].sort(() => 0.5 - Math.random());
-                state.dailyMissions = shuffled.slice(0, 5).map(mission => ({ ...mission, completed: false }));
-            }
-
             function renderMissions() {
                 dailyMissionsList.innerHTML = '';
                 state.dailyMissions.forEach((mission, index) => {
@@ -1110,19 +1340,26 @@
                         
                         let buttonHtml = '';
                         let priceText = '';
+                        let finalPrice = item.basePrice;
+
+                        // Apply discount from achievement
+                        const hiddenShopUnlocked = state.pet.ownedBackgrounds.includes('hidden_shop');
+                        if (hiddenShopUnlocked) {
+                            finalPrice = Math.round(finalPrice * 0.9);
+                        }
+                        
+                        if (item.type === 'ticket') {
+                            const currentLevel = state.shopItemLevels[item.id] || 0;
+                            finalPrice = finalPrice * Math.pow(2, currentLevel);
+                        }
+
+                        priceText = `${finalPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
                         
                         if (item.type === 'background') {
                             const isOwned = state.pet.ownedBackgrounds.includes(item.id);
-                            priceText = `${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
-                            buttonHtml = `<button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 ml-3 ${isOwned ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700'}">${isOwned ? 'มีแล้ว' : 'ซื้อ'}</button>`;
-                        } else if (item.type === 'ticket') {
-                            const currentLevel = state.shopItemLevels[item.id] || 0;
-                            const currentPrice = item.basePrice * Math.pow(2, currentLevel);
-                            priceText = `${currentPrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
-                            buttonHtml = `<button data-price="${currentPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
-                        } else { 
-                            priceText = `${item.basePrice} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1" onerror="this.style.display='none'">`;
-                            buttonHtml = `<button data-price="${item.basePrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
+                            buttonHtml = `<button data-price="${finalPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 ml-3 ${isOwned ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700'}">${isOwned ? 'มีแล้ว' : 'ซื้อ'}</button>`;
+                        } else {
+                            buttonHtml = `<button data-price="${finalPrice}" data-id="${item.id}" data-type="${item.type}" class="buy-item-btn btn-base px-5 py-2 text-base font-bold text-white rounded-xl shadow-lg flex items-center justify-center border-b-4 bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700 ml-3">ซื้อ</button>`;
                         }
 
                         itemEl.innerHTML = `
@@ -1161,7 +1398,7 @@
                             updateCoinDisplays();
                             renderInventory(); 
                             saveState();
-                            alert('ซื้อสำเร็จ! ไอเทมถูกเพิ่มในกระเป๋าแล้วค่ะ');
+                            alert('ซื้อสำเร็จ!');
                             confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, scalar: 1.2 });
                             renderShopItems(); 
                         } else {
@@ -1171,6 +1408,45 @@
                 });
             }
 
+            // --- Game Logic ---
+            function generateNewMissions() {
+                const shuffled = [...allMissions].sort(() => 0.5 - Math.random());
+                state.dailyMissions = shuffled.slice(0, 5).map(mission => ({ ...mission, completed: false }));
+            }
+
+            function pickDailyBonusGame() {
+                const today = new Date().toDateString();
+                if (state.lastBonusGameDate !== today) {
+                    const randomIndex = Math.floor(Math.random() * allPlayableGames.length);
+                    state.dailyBonusGameId = allPlayableGames[randomIndex].id;
+                    state.lastBonusGameDate = today;
+                    saveState();
+                }
+                displayBonusGame();
+            }
+
+            function displayBonusGame() {
+                if (!state.dailyBonusGameId) return;
+
+                const bonusGame = allPlayableGames.find(game => game.id === state.dailyBonusGameId);
+                if (bonusGame) {
+                    dailyBonusGameName.textContent = bonusGame.name;
+                    bonusGameSection.classList.remove('hidden');
+
+                    gameCardContainer.querySelectorAll('.game-card').forEach(card => {
+                        card.classList.remove('bonus-game');
+                        const gameData = allPlayableGames.find(g => g.id === card.dataset.gameId);
+                        if (gameData) {
+                            card.href = `./${gameData.file}`; 
+                            if (card.dataset.gameId === state.dailyBonusGameId) {
+                                card.classList.add('bonus-game');
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Gacha Logic
             function pullGacha() {
                 const rand = Math.random() * 100;
                 let cumulativeProbability = 0;
@@ -1283,34 +1559,6 @@
                 gachaRatesModal.classList.remove('visible');
             }
 
-            gachaPullBtn.addEventListener('click', () => {
-                const gachaCost = 50;
-                if (state.monCoins >= gachaCost) {
-                    gachaPullBtn.classList.add('shaking');
-                    setTimeout(() => gachaPullBtn.classList.remove('shaking'), 820);
-
-                    state.monCoins -= gachaCost;
-                    
-                    const prize = pullGacha();
-                    givePrize(prize);
-                    
-                    saveState();
-                    updateCoinDisplays();
-                    renderInventory();
-                    
-                    showGachaModal(prize);
-                } else {
-                    alert('อุ๊ย! เหรียญม่อนไม่พอสำหรับสุ่มกาชา!');
-                }
-            });
-
-            closeGachaModalBtn.addEventListener('click', hideGachaModal);
-            gachaModal.addEventListener('click', (e) => { if (e.target === gachaModal) hideGachaModal(); });
-            
-            gachaRatesBtn.addEventListener('click', showGachaRatesModal);
-            closeGachaRatesModalBtn.addEventListener('click', hideGachaRatesModal);
-            gachaRatesModal.addEventListener('click', (e) => { if (e.target === gachaRatesModal) hideGachaRatesModal(); });
-
             // --- Pet Functions ---
             function updatePetStatusOverTime() {
                 if (!state.pet.exists) return;
@@ -1321,10 +1569,18 @@
                 if (elapsedMinutes > 0) {
                     let hungerMultiplier = 1.0;
                     let happinessMultiplier = 1.0;
-
-                    if (state.pet.activeBackground === 'kitchen') hungerMultiplier = 0.9;
-                    if (state.pet.activeBackground === 'bedroom') happinessMultiplier = 0.9;
+                    let staminaRegenMultiplier = 1.0;
+                    let staminaDecayMultiplier = 1.0;
                     
+                    const activeBg = state.pet.activeBackground;
+                    if (activeBg === 'kitchen') hungerMultiplier *= 0.9;
+                    if (activeBg === 'bedroom') happinessMultiplier *= 0.9;
+                    if (activeBg === 'coffee_lounge') hungerMultiplier *= 0.9;
+                    if (activeBg === 'gym_room') staminaRegenMultiplier *= 1.2;
+                    if (activeBg === 'playground' || activeBg === 'beach_resort') {
+                        staminaDecayMultiplier *= (activeBg === 'playground' ? 0.9 : 0.85);
+                    }
+
                     const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
                     const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
                     
@@ -1332,7 +1588,7 @@
                     const baseRegenInterval = 10;
                     const timeReduction = bedLevel * 0.5;
                     const finalRegenInterval = Math.max(1, baseRegenInterval - timeReduction);
-                    const staminaGain = Math.floor(elapsedMinutes / finalRegenInterval);
+                    const staminaGain = Math.floor((elapsedMinutes / finalRegenInterval) * staminaRegenMultiplier);
                     
                     state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
                     state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
@@ -1385,6 +1641,7 @@
             function renderPetStats() {
                 if (!state.pet.exists) return;
                 updatePetEmotion();
+                updateAchievementNotification();
 
                 const pet = state.pet;
                 const maxExp = pet.level * 100;
@@ -1412,6 +1669,7 @@
                     petBackgroundBuffDisplay.textContent = `โบนัส: ${bgInfo.description}`;
                     petBackgroundBuffDisplay.classList.remove('hidden');
                 } else {
+                    petDisplayArea.style.backgroundImage = `url('${petBackgroundDefinitions.default.image}')`;
                     petBackgroundBuffDisplay.classList.add('hidden');
                 }
                 
@@ -1420,15 +1678,20 @@
             
             function addPetExp(amount) {
                 const pet = state.pet;
+                let finalAmount = amount;
                 
-                if (state.pet.activeBackground === 'library') {
-                    amount = Math.round(amount * 1.1);
+                const activeBg = state.pet.activeBackground;
+                if (activeBg === 'library' || activeBg === 'coffee_lounge' || activeBg === 'digital_nexus') {
+                    if (activeBg === 'library') finalAmount *= 1.1;
+                    if (activeBg === 'coffee_lounge') finalAmount *= 1.1;
+                    if (activeBg === 'digital_nexus') finalAmount *= 1.15;
                 }
+                finalAmount = Math.round(finalAmount);
 
                 const maxExp = pet.level * 100;
-                pet.exp += amount;
+                pet.exp += finalAmount;
 
-                if (pet.exp >= maxExp) {
+                while (pet.exp >= maxExp) {
                     pet.level++;
                     pet.exp -= maxExp;
                     alert(`ยินดีด้วย! ${pet.name} เลเวลอัปเป็น Lv. ${pet.level} แล้ว!`);
@@ -1440,6 +1703,8 @@
             function handleEggTap() {
                 eggTaps++;
                 eggTapsText.textContent = eggTaps;
+                eggImage.classList.add('shaking');
+                setTimeout(() => eggImage.classList.remove('shaking'), 200);
                 if (eggTaps >= TAPS_TO_HATCH) {
                     eggStage.classList.add('hidden');
                     nameStage.classList.remove('hidden');
@@ -1476,8 +1741,14 @@
                 foodList.innerHTML = '';
                 
                 let costMultiplier = 1.0;
+                if (state.pet.ownedBackgrounds.includes('hidden_shop')) {
+                    costMultiplier *= 0.9;
+                }
+                if (state.pet.upgradeLevels.bowl >= 4) {
+                    costMultiplier *= 0.95;
+                }
                 if (state.pet.activeBackground === 'restaurant') {
-                    costMultiplier = 0.8;
+                    costMultiplier *= 0.8;
                 }
 
                 for (const foodName in petFoodDefinitions) {
@@ -1485,12 +1756,43 @@
                     const hasItem = (state.inventory[foodName] || 0) > 0;
                     
                     const bowlLevel = state.pet.upgradeLevels.bowl;
-                    const hungerBonus = 1 + (bowlLevel * 0.02);
-                    const finalHungerGain = Math.round(food.hunger * hungerBonus);
+                    const hungerBonus = 1 + ((bowlLevel-1) * 0.05) + (bowlLevel >= 2 ? 0.05 : 0); // Lv2: +5%, Lv3: +10% etc.
+                    let finalHungerGain = Math.round(food.hunger * hungerBonus);
+                    if (state.pet.activeBackground === 'grand_kitchen') finalHungerGain = Math.round(finalHungerGain * 1.25);
 
                     const foodEl = document.createElement('button');
                     foodEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-rose-50 rounded-lg border-l-4 border-rose-200';
                     
+                    const feedAction = () => {
+                        let happinessGain = 0;
+                        if (state.pet.activeBackground === 'cute_cafe') happinessGain += 10;
+                        if (state.pet.activeBackground === 'crystal_chamber' && foodName === 'เค้ก') happinessGain += 15;
+
+                        state.pet.hunger = Math.min(100 + (state.pet.upgradeLevels.bowl >= 2 ? 5 : 0), state.pet.hunger + finalHungerGain);
+                        state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
+                        
+                        let expGain = food.exp;
+                        if (state.pet.activeBackground === 'mythical_garden' && foodName === 'ขนมปัง') expGain = Math.round(expGain * 1.1);
+                        if (state.pet.activeBackground === 'library' && foodName === 'บรอกโคลี') expGain = Math.round(expGain * 1.2);
+                        addPetExp(expGain);
+                        
+                        // Track Achievement
+                        const achievementKeyMap = { 'ขนมปัง': 'feed_bread', 'เค้ก': 'feed_cake', 'ไอศกรีม': 'feed_icecream', 'มะเขือเทศ': 'feed_tomato', 'แครอท': 'feed_carrot', 'บรอกโคลี': 'feed_broccoli', 'สตรอว์เบอร์รี': 'feed_strawberry' };
+                        if (achievementKeyMap[foodName]) {
+                            trackAchievement(achievementKeyMap[foodName]);
+                        }
+                        
+                        floatingPetImage.src = petEmotions.happy;
+                        petModalImageEl.src = petEmotions.happy;
+                        setTimeout(renderPetStats, 2000);
+
+                        hideFeedModal();
+                        alert(`คุณป้อน ${foodName} ให้ ${state.pet.name}!`);
+                        saveState();
+                        renderInventory();
+                        renderPetStats();
+                    };
+
                     if (hasItem) {
                         foodEl.innerHTML = `
                             <span>ใช้ ${foodName} (+${finalHungerGain} ❤️)</span>
@@ -1498,18 +1800,7 @@
                         `;
                         foodEl.onclick = () => {
                             state.inventory[foodName]--;
-                            state.pet.hunger = Math.min(100, state.pet.hunger + finalHungerGain);
-                            addPetExp(food.exp);
-                            
-                            floatingPetImage.src = petEmotions.happy;
-                            petModalImageEl.src = petEmotions.happy;
-                            setTimeout(renderPetStats, 2000);
-
-                            hideFeedModal();
-                            alert(`คุณป้อน ${foodName} ให้ ${state.pet.name}!`);
-                            saveState();
-                            renderInventory();
-                            renderPetStats();
+                            feedAction();
                         };
                     } else if (food.cost > 0) {
                         const finalCost = Math.round(food.cost * costMultiplier);
@@ -1520,18 +1811,8 @@
                         foodEl.onclick = () => {
                             if (state.monCoins >= finalCost) {
                                 state.monCoins -= finalCost;
-                                state.pet.hunger = Math.min(100, state.pet.hunger + finalHungerGain);
-                                addPetExp(food.exp);
                                 updateCoinDisplays();
-                                
-                                floatingPetImage.src = petEmotions.happy;
-                                petModalImageEl.src = petEmotions.happy;
-                                setTimeout(renderPetStats, 2000);
-
-                                hideFeedModal();
-                                alert(`คุณซื้อและป้อน ${foodName} ให้ ${state.pet.name}!`);
-                                saveState();
-                                renderPetStats();
+                                feedAction();
                             } else {
                                 alert('เหรียญม่อนไม่พอจ้า!');
                             }
@@ -1553,15 +1834,10 @@
                 const today = new Date().toDateString();
                 const canPat = state.pet.lastPattedDate !== today;
 
-                let happinessMultiplier = (state.pet.activeBackground === 'amusement_park') ? 1.2 : 1.0;
-                const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
-                const happinessBonus = 1 + (toyShelfLevel * 0.02);
-
                 const patEl = document.createElement('button');
                 patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
-                const finalPatHappiness = Math.round(50 * happinessBonus * happinessMultiplier);
                 patEl.innerHTML = `
-                    <span>ลูบหัว (+${finalPatHappiness} 😊)</span>
+                    <span>ลูบหัว (+15 😊)</span>
                     <span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>
                 `;
                 if (canPat) {
@@ -1574,14 +1850,22 @@
                 for (const toyName in petToys) {
                     if (state.inventory[toyName] > 0) {
                         const toy = petToys[toyName];
-                        const finalHappinessGain = Math.round(toy.happiness * happinessBonus * happinessMultiplier);
+                        let happinessGain = toy.happiness;
+                        
+                        const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
+                        if (toyShelfLevel >= 2) happinessGain = Math.round(happinessGain * 1.05);
+                        if (state.pet.activeBackground === 'playroom') happinessGain = Math.round(happinessGain * 1.2);
+                        if (state.pet.activeBackground === 'toy_gallery') happinessGain = Math.round(happinessGain * 1.25);
+                        if (state.pet.activeBackground === 'amusement_park') happinessGain = Math.round(happinessGain * 1.2);
+
+
                         const toyEl = document.createElement('button');
                         toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
                         toyEl.innerHTML = `
-                            <span>ใช้ ${toyName} (+${finalHappinessGain} 😊)</span>
+                            <span>ใช้ ${toyName} (+${happinessGain} 😊)</span>
                             <span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>
                         `;
-                        toyEl.onclick = () => handlePlayAction(toyName);
+                        toyEl.onclick = () => handlePlayAction(toyName, happinessGain);
                         playOptionsList.appendChild(toyEl);
                     }
                 }
@@ -1592,37 +1876,37 @@
                 playModal.classList.remove('visible');
             }
 
-            function handlePlayAction(action) {
-                let happinessMultiplier = 1.0;
-                if (state.pet.activeBackground === 'amusement_park') {
-                    happinessMultiplier = 1.2;
-                }
+            function handlePlayAction(action, happinessGain = 15) {
+                let expGain = 0;
+                let playCoinGain = 0;
                 
-                const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
-                const happinessBonus = 1 + (toyShelfLevel * 0.02);
-
                 if (action === 'pat') {
                     const today = new Date().toDateString();
                     if (state.pet.lastPattedDate !== today) {
                         state.pet.lastPattedDate = today;
-                        const finalHappinessGain = Math.round(50 * happinessBonus * happinessMultiplier);
-                        state.pet.happiness = Math.min(100, state.pet.happiness + finalHappinessGain);
-                        
-                        const reward = 1 + Math.floor(state.pet.level / 5);
-                        state.playCoins += reward;
-                        addPetExp(10);
-
-                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${reward} เหรียญเล่นม่อน และ 10 EXP!`);
-                        updateCoinDisplays();
+                        expGain = 10;
+                        playCoinGain = 1 + Math.floor(state.pet.level / 5);
+                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${playCoinGain} เหรียญเล่นม่อน และ ${expGain} EXP!`);
                     }
                 } 
                 else if (petToys[action] && state.inventory[action] > 0) {
                     state.inventory[action]--;
-                    const baseHappiness = petToys[action].happiness;
-                    const finalHappinessGain = Math.round(baseHappiness * happinessBonus * happinessMultiplier);
-                    state.pet.happiness = Math.min(100, state.pet.happiness + finalHappinessGain);
+                    expGain = petToys[action].exp;
                     alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
+                    
+                    const achievementKeyMap = { 'ของเล่นยาง': 'play_rubber_toy', 'ลูกบอล': 'play_ball', 'กีต้า': 'play_guitar', 'คอมพิวเตอร์': 'play_computer' };
+                    if (achievementKeyMap[action]) {
+                        trackAchievement(achievementKeyMap[action]);
+                    }
                 }
+
+                state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
+                
+                if (state.pet.upgradeLevels.bed >= 4) expGain += 5;
+                if (state.pet.activeBackground === 'music_room') expGain = Math.round(expGain * 1.15);
+                
+                if (expGain > 0) addPetExp(expGain);
+                if (playCoinGain > 0) state.playCoins += playCoinGain;
 
                 floatingPetImage.classList.add('pet-happy-animation');
                 floatingPetImage.addEventListener('animationend', () => {
@@ -1632,6 +1916,7 @@
                 saveState();
                 renderPetStats();
                 renderInventory();
+                updateCoinDisplays();
                 hidePlayModal();
             }
             
@@ -1659,6 +1944,11 @@
                             state.inventory[itemId]--;
                             state.pet.stamina = Math.min(100, state.pet.stamina + itemEffect.stamina);
                             
+                            const achievementKeyMap = { 'item_m150': 'use_m150', 'item_latte': 'use_latte', 'item_americano': 'use_americano' };
+                            if (achievementKeyMap[itemId]) {
+                                trackAchievement(achievementKeyMap[itemId]);
+                            }
+
                             hideUseItemModal();
                             alert(`คุณใช้ ${itemDetails.name} ฟื้นฟูพลังงาน!`);
                             saveState();
@@ -1681,29 +1971,17 @@
             function renderUpgradesUI() {
                 upgradeList.innerHTML = '';
                 const upgrades = [
-                    { id: 'bed', name: 'เตียงนอน', icon: '🛏️', description: 'ฟื้นฟูพลังงานเร็วขึ้น' },
-                    { id: 'bowl', name: 'ชามข้าว', icon: '🍚', description: 'อาหารเพิ่มความหิวมากขึ้น' },
-                    { id: 'toy_shelf', name: 'ชั้นของเล่น', icon: '🧸', description: 'เล่นแล้วมีความสุขมากขึ้น' }
+                    { id: 'bed', name: 'เตียงนอน', icon: '🛏️', descriptions: ['+20 EXP', 'ความสุขสูงสุด +5', 'ความสุขลดช้าลง 5%', '+5 EXP ทุกครั้งที่เล่นด้วย', 'ปลดล็อก "ห้องนอนใหม่"'] },
+                    { id: 'bowl', name: 'ชามข้าว', icon: '🍚', descriptions: ['+20 EXP', 'อิ่มสูงสุด +5', 'ความหิวลดช้าลง 5%', 'ราคาอาหารลด 5%', 'ปลดล็อก "ห้องครัวใหญ่"'] },
+                    { id: 'toy_shelf', name: 'ชั้นของเล่น', icon: '🧸', descriptions: ['+20 EXP', 'ความสุขจากของเล่น +5%', 'โอกาสดรอปของจากการเล่น +3%', 'คูลดาวน์เล่นด้วยสั้นลง', 'ปลดล็อก "ห้องเก็บของเล่น"'] }
                 ];
 
                 upgrades.forEach(upgrade => {
                     const currentLevel = state.pet.upgradeLevels[upgrade.id];
                     const isMaxLevel = currentLevel >= maxUpgradeLevel;
                     
-                    let effectText, nextEffectText;
-                    if(upgrade.id === 'bed') {
-                        const timeReduction = (currentLevel * 30);
-                        effectText = `ลดเวลาฟื้นฟู: ${timeReduction} วินาที`;
-                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: ลดเวลา ${timeReduction + 30} วิ`;
-                    } else if (upgrade.id === 'bowl') {
-                        const bonus = currentLevel * 2;
-                        effectText = `โบนัสความหิว: +${bonus}%`;
-                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: +${bonus + 2}%`;
-                    } else { // toy_shelf
-                        const bonus = currentLevel * 2;
-                        effectText = `โบนัสความสุข: +${bonus}%`;
-                        nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: +${bonus + 2}%`;
-                    }
+                    const effectText = currentLevel > 0 ? upgrade.descriptions[currentLevel - 1] : 'ยังไม่มีโบนัส';
+                    const nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: ${upgrade.descriptions[currentLevel]}`;
                     
                     const cost = isMaxLevel ? -1 : upgradeCosts[currentLevel];
                     const canAfford = state.monCoins >= cost;
@@ -1714,8 +1992,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <h4 class="font-bold text-lg text-gray-800 flex items-center">${upgrade.icon} ${upgrade.name} (Lv. ${currentLevel})</h4>
-                                <p class="text-sm text-gray-600">${upgrade.description}</p>
-                                <p class="text-sm font-semibold text-green-600">${effectText}</p>
+                                <p class="text-sm font-semibold text-green-600">โบนัสปัจจุบัน: ${effectText}</p>
                             </div>
                             <button data-id="${upgrade.id}" class="upgrade-btn btn-base text-white font-bold py-2 px-4 rounded-lg border-b-4 ${isMaxLevel || !canAfford ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-green-500 border-green-700'}">
                                 ${isMaxLevel ? 'MAX' : `${cost} $`}
@@ -1741,6 +2018,14 @@
                 if (state.monCoins >= cost) {
                     state.monCoins -= cost;
                     state.pet.upgradeLevels[upgradeId]++;
+                    
+                    trackAchievement(`upgrade_${upgradeId}`, state.pet.upgradeLevels[upgradeId]); // Set progress to current level
+                    
+                    // Check for special all-max achievement
+                    if (state.pet.upgradeLevels.bed === 5 && state.pet.upgradeLevels.bowl === 5 && state.pet.upgradeLevels.toy_shelf === 5) {
+                        trackAchievement('upgrade_all_max');
+                    }
+
                     saveState();
                     updateCoinDisplays();
                     renderUpgradesUI();
@@ -1760,25 +2045,25 @@
                 return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
 
-            // ===================================================================
-            // ===== START: โค้ดส่วนที่ 2 ที่แก้ไข (แก้ไขฟังก์ชันแจกรางวัล) =====
-            // ===================================================================
             function handleExplorationCompletion(locationId) {
                 const location = explorationLocations[locationId];
                 if (!location) return;
 
-                let foundRewards = [];
-                addPetExp(location.exp);
-                foundRewards.push(`${location.exp} EXP`);
+                trackAchievement(`explore_${locationId}`);
 
-                // โบนัสพิเศษจากพื้นหลัง
+                let foundRewards = [];
+                let expFromExploration = location.exp;
+                
+                const activeBg = state.pet.activeBackground;
+                if (activeBg === 'ancient_forest') expFromExploration = Math.round(expFromExploration * 1.15);
+                addPetExp(expFromExploration);
+                foundRewards.push(`${expFromExploration} EXP`);
+
                 let bonusDropChance = 0;
-                if (state.pet.activeBackground === 'forest') {
-                    bonusDropChance = 5; // เพิ่มโอกาสดรอป 5%
+                if (activeBg === 'secret_garden' || activeBg === 'forest') {
+                    bonusDropChance = 5;
                 }
 
-                // --- ส่วนที่แก้ไข ---
-                // วนลูปจากข้อมูลรางวัลที่อัปเดตแล้วโดยตรง
                 location.rewards.forEach(reward => {
                     const roll = Math.random() * 100;
                     if (roll < (reward.chance + bonusDropChance)) {
@@ -1793,7 +2078,6 @@
                              state.playCoins += amount;
                              foundRewards.push(`${amount} เหรียญเล่นม่อน`);
                          } else if (reward.type === 'item') {
-                             // ตรวจสอบให้แน่ใจว่าใช้ชื่อที่ถูกต้องจาก consumableItems
                              const itemName = consumableItems[reward.name]?.name || reward.name;
                              state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
                              foundRewards.push(itemName);
@@ -1822,9 +2106,6 @@
                 renderExplorationStatus();
                 confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
             }
-            // ===================================================================
-            // ===== END: โค้ดส่วนที่ 2 ที่แก้ไข =====
-            // ===================================================================
 
             function renderExplorationStatus() {
                 if (explorationInterval) clearInterval(explorationInterval);
@@ -1901,7 +2182,166 @@
                 renderPetStats();
                 backgroundModal.classList.remove('visible');
             }
+            
+            // --- Achievement System Functions ---
+            function trackAchievement(key, value = 1) {
+                const isLevelBased = key.startsWith('upgrade_');
+                if (isLevelBased) {
+                    state.achievementProgress[key] = value;
+                } else {
+                    state.achievementProgress[key] = (state.achievementProgress[key] || 0) + value;
+                }
+                updateAchievementNotification();
+                saveState();
+            }
 
+            function updateAchievementNotification() {
+                let hasUnclaimed = false;
+                for (const id in achievementDefinitions) {
+                    const achievement = achievementDefinitions[id];
+                    const progress = state.achievementProgress[id] || 0;
+                    for (let i = 0; i < achievement.tiers.length; i++) {
+                        const tier = achievement.tiers[i];
+                        const statusKey = `${id}_${i}`;
+                        if (progress >= tier.goal && !state.achievementStatus[statusKey]) {
+                            hasUnclaimed = true;
+                            break;
+                        }
+                    }
+                    if (hasUnclaimed) break;
+                }
+                
+                if (hasUnclaimed) {
+                    achievementNotification.classList.remove('hidden');
+                } else {
+                    achievementNotification.classList.add('hidden');
+                }
+            }
+            
+            function renderAchievements() {
+                achievementsContent.innerHTML = '';
+                const achievementsByCategory = {};
+
+                for (const id in achievementDefinitions) {
+                    const achievement = achievementDefinitions[id];
+                    if (!achievementsByCategory[achievement.category]) {
+                        achievementsByCategory[achievement.category] = [];
+                    }
+                    achievementsByCategory[achievement.category].push({ id, ...achievement });
+                }
+
+                for (const category in achievementsByCategory) {
+                    const categoryEl = document.createElement('div');
+                    categoryEl.innerHTML = `<h3 class="text-lg font-bold text-pink-600 mb-2">${category}</h3>`;
+                    
+                    achievementsByCategory[category].forEach(ach => {
+                        const progress = state.achievementProgress[ach.id] || 0;
+                        let nextTier = null;
+                        let nextTierIndex = -1;
+                        for(let i = 0; i < ach.tiers.length; i++) {
+                            const statusKey = `${ach.id}_${i}`;
+                            if (!state.achievementStatus[statusKey]) {
+                                nextTier = ach.tiers[i];
+                                nextTierIndex = i;
+                                break;
+                            }
+                        }
+
+                        const achEl = document.createElement('div');
+                        achEl.className = 'bg-white p-3 rounded-lg mb-2 border';
+                        
+                        let progressText = nextTier ? `${progress} / ${nextTier.goal}` : 'สำเร็จทั้งหมด!';
+                        let progressPercent = nextTier ? (progress / nextTier.goal) * 100 : 100;
+                        
+                        achEl.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">${ach.icon} ${ach.name}</h4>
+                                    <p class="text-xs text-gray-500">${progressText}</p>
+                                </div>
+                            </div>
+                            <div class="progress-bar-bg mt-1">
+                                <div class="progress-bar bg-gradient-to-r from-amber-300 to-yellow-400" style="width: ${progressPercent}%;"></div>
+                            </div>
+                            <div class="mt-2 space-y-1">
+                                ${ach.tiers.map((tier, i) => {
+                                    const statusKey = `${ach.id}_${i}`;
+                                    const isClaimed = state.achievementStatus[statusKey];
+                                    const canClaim = progress >= tier.goal && !isClaimed;
+                                    
+                                    let rewardText = Object.entries(tier.rewards).map(([key, value]) => {
+                                        if (key === 'exp') return `+${value} EXP`;
+                                        if (key === 'play_coin') return `+${value} เหรียญเล่นม่อน`;
+                                        if (key === 'background') return `ปลดล็อก "${petBackgroundDefinitions[value]?.name || value}"`;
+                                        if (key === 'item') return `+${value.amount} ${consumableItems[value.id]?.name || value.id}`;
+                                        return '';
+                                    }).join(', ');
+
+                                    let buttonHtml;
+                                    if (isClaimed) {
+                                        buttonHtml = `<button disabled class="text-xs px-2 py-1 rounded bg-gray-300 text-gray-500">รับแล้ว</button>`;
+                                    } else if (canClaim) {
+                                        buttonHtml = `<button data-id="${ach.id}" data-tier="${i}" class="claim-achievement-btn btn-base text-xs px-2 py-1 rounded bg-green-500 text-white font-semibold">รับ</button>`;
+                                    } else {
+                                        buttonHtml = `<button disabled class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-400">ยังไม่ถึง</button>`;
+                                    }
+
+                                    return `<div class="flex justify-between items-center text-sm p-1 rounded ${isClaimed ? 'bg-green-50 text-gray-400 line-through' : 'bg-gray-100'}">
+                                                <span>เป้าหมาย ${tier.goal}: ${rewardText}</span>
+                                                ${buttonHtml}
+                                            </div>`;
+                                }).join('')}
+                            </div>
+                        `;
+                        categoryEl.appendChild(achEl);
+                    });
+                    achievementsContent.appendChild(categoryEl);
+                }
+
+                document.querySelectorAll('.claim-achievement-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.dataset.id;
+                        const tierIndex = parseInt(e.target.dataset.tier);
+                        claimAchievementReward(id, tierIndex);
+                    });
+                });
+            }
+
+            function claimAchievementReward(id, tierIndex) {
+                const achievement = achievementDefinitions[id];
+                if (!achievement) return;
+
+                const tier = achievement.tiers[tierIndex];
+                const progress = state.achievementProgress[id] || 0;
+                const statusKey = `${id}_${tierIndex}`;
+
+                if (progress >= tier.goal && !state.achievementStatus[statusKey]) {
+                    state.achievementStatus[statusKey] = true;
+
+                    // Grant rewards
+                    if (tier.rewards.exp) addPetExp(tier.rewards.exp);
+                    if (tier.rewards.play_coin) state.playCoins += tier.rewards.play_coin;
+                    if (tier.rewards.item) {
+                        state.inventory[tier.rewards.item.id] = (state.inventory[tier.rewards.item.id] || 0) + tier.rewards.item.amount;
+                    }
+                    if (tier.rewards.background) {
+                        if (!state.pet.ownedBackgrounds.includes(tier.rewards.background)) {
+                            state.pet.ownedBackgrounds.push(tier.rewards.background);
+                        }
+                    }
+                    
+                    saveState();
+                    updateCoinDisplays();
+                    renderInventory();
+                    renderAchievements(); // Re-render to update button state
+                    updateAchievementNotification(); // Check for other notifications
+                    alert('รับรางวัลสำเร็จ!');
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+            }
+
+
+            // --- Drag and Drop for Floating Pet ---
             let isDragging = false;
             let dragStartX, dragStartY;
             let lastTranslateX = 0, lastTranslateY = 0;
@@ -1945,7 +2385,7 @@
             function dragEnd(e) {
                 if (isDragging) {
                      let finalX, finalY;
-                     if (e.type === 'touchend') {
+                     if (e.type === 'touchend' && e.changedTouches.length > 0) {
                          finalX = e.changedTouches[0].clientX;
                          finalY = e.changedTouches[0].clientY;
                      } else {
@@ -1966,43 +2406,96 @@
             }
 
 
-            floatingPetContainer.addEventListener('mousedown', dragStart);
-            floatingPetContainer.addEventListener('touchstart', dragStart);
-            floatingPetContainer.addEventListener('click', () => {
-                if (!isDragging) {
-                    renderPetStats();
-                    petStatsModal.classList.add('visible');
-                }
-            });
-            
-            closePetStatsModalBtn.addEventListener('click', () => petStatsModal.classList.remove('visible'));
-            eggImage.addEventListener('click', handleEggTap);
-            confirmNameBtn.addEventListener('click', confirmPetName);
-            feedPetBtn.addEventListener('click', showFeedModal);
-            closeFeedModalBtn.addEventListener('click', () => feedModal.classList.remove('visible'));
-            playWithPetBtn.addEventListener('click', showPlayModal);
-            closePlayModalBtn.addEventListener('click', hidePlayModal);
-            claimRewardsBtn.addEventListener('click', () => {
-                if (state.pet.exploration) {
-                    handleExplorationCompletion(state.pet.exploration.locationId);
-                }
-            });
+            // --- Event Listeners ---
+            function setupEventListeners() {
+                document.getElementById('go-to-shop-btn').addEventListener('click', () => showScreen('shop'));
+                document.getElementById('shop-back-btn').addEventListener('click', () => showScreen('menu'));
+                
+                checkInBtn.addEventListener('click', () => {
+                    const today = new Date().toDateString();
+                    if (state.lastCheckinDate !== today) {
+                        state.playCoins += 5;
+                        state.lastCheckinDate = today;
+                        updateCoinDisplays();
+                        updateCheckInButton();
+                        saveState();
+                        alert('เช็คอินสำเร็จ! คุณได้รับ 5 เหรียญเล่นม่อน');
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
+                });
+                
+                gachaPullBtn.addEventListener('click', () => {
+                    const gachaCost = 50;
+                    if (state.monCoins >= gachaCost) {
+                        gachaPullBtn.classList.add('shaking');
+                        setTimeout(() => gachaPullBtn.classList.remove('shaking'), 820);
 
-            changeBgBtn.addEventListener('click', () => {
-                renderPetBackgroundsUI();
-                backgroundModal.classList.add('visible');
-            });
-            closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
-            
-            upgradePetBtn.addEventListener('click', () => {
-                renderUpgradesUI();
-                upgradeModal.classList.add('visible');
-            });
-            closeUpgradeModalBtn.addEventListener('click', () => upgradeModal.classList.remove('visible'));
-            
-            useItemBtn.addEventListener('click', showUseItemModal);
-            closeUseItemModalBtn.addEventListener('click', hideUseItemModal);
+                        state.monCoins -= gachaCost;
+                        
+                        const prize = pullGacha();
+                        givePrize(prize);
+                        
+                        saveState();
+                        updateCoinDisplays();
+                        renderInventory();
+                        
+                        showGachaModal(prize);
+                    } else {
+                        alert('อุ๊ย! เหรียญม่อนไม่พอสำหรับสุ่มกาชา!');
+                    }
+                });
 
+                closeGachaModalBtn.addEventListener('click', hideGachaModal);
+                gachaModal.addEventListener('click', (e) => { if (e.target === gachaModal) hideGachaModal(); });
+                gachaRatesBtn.addEventListener('click', showGachaRatesModal);
+                closeGachaRatesModalBtn.addEventListener('click', hideGachaRatesModal);
+                gachaRatesModal.addEventListener('click', (e) => { if (e.target === gachaRatesModal) hideGachaRatesModal(); });
+
+                floatingPetContainer.addEventListener('mousedown', dragStart);
+                floatingPetContainer.addEventListener('touchstart', dragStart);
+                floatingPetContainer.addEventListener('click', () => {
+                    if (!isDragging) {
+                        renderPetStats();
+                        petStatsModal.classList.add('visible');
+                    }
+                });
+                
+                closePetStatsModalBtn.addEventListener('click', () => petStatsModal.classList.remove('visible'));
+                eggImage.addEventListener('click', handleEggTap);
+                confirmNameBtn.addEventListener('click', confirmPetName);
+                feedPetBtn.addEventListener('click', showFeedModal);
+                closeFeedModalBtn.addEventListener('click', () => feedModal.classList.remove('visible'));
+                playWithPetBtn.addEventListener('click', showPlayModal);
+                closePlayModalBtn.addEventListener('click', hidePlayModal);
+                claimRewardsBtn.addEventListener('click', () => {
+                    if (state.pet.exploration) {
+                        handleExplorationCompletion(state.pet.exploration.locationId);
+                    }
+                });
+
+                changeBgBtn.addEventListener('click', () => {
+                    renderPetBackgroundsUI();
+                    backgroundModal.classList.add('visible');
+                });
+                closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
+                
+                upgradePetBtn.addEventListener('click', () => {
+                    renderUpgradesUI();
+                    upgradeModal.classList.add('visible');
+                });
+                closeUpgradeModalBtn.addEventListener('click', () => upgradeModal.classList.remove('visible'));
+                
+                useItemBtn.addEventListener('click', showUseItemModal);
+                closeUseItemModalBtn.addEventListener('click', hideUseItemModal);
+
+                achievementsBtn.addEventListener('click', () => {
+                    renderAchievements();
+                    achievementsModal.classList.add('visible');
+                });
+                closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('visible'));
+            }
+
+            // --- Initialization ---
             function init() {
                 loadState();
                 
@@ -2026,6 +2519,8 @@
                 renderShopItems();
                 renderInventory(); 
                 pickDailyBonusGame();
+                updateAchievementNotification();
+                setupEventListeners();
                 showScreen('menu'); 
 
                 document.querySelectorAll('.game-card').forEach(card => {
