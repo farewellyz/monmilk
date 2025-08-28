@@ -2499,10 +2499,6 @@
             function init() {
                 loadState();
                 
-				if (!state.retroactiveCheckCompleted) checkForRetroactiveAchievements();
-
-                if (!state.pet.exists) {
-				
                 if (!state.pet.exists) {
                     hatchModal.classList.add('visible');
                 } else {
@@ -2551,29 +2547,7 @@
                     });
                 });
             }
-// ========== โค้ดสำหรับตรวจสอบความสำเร็จย้อนหลัง ==========
-            function checkForRetroactiveAchievements() {
-                if (!state.pet || !state.pet.exists) return;
 
-                const upgrades = ['bed', 'bowl', 'toy_shelf'];
-                upgrades.forEach(upgradeId => {
-                    const currentLevel = state.pet.upgradeLevels[upgradeId] || 0;
-                    if (currentLevel > 0) {
-                        // อัปเดต progress ให้เท่ากับเลเวลปัจจุบัน
-                        state.achievementProgress[`upgrade_${upgradeId}`] = currentLevel;
-                    }
-                });
-
-                // ตรวจสอบรางวัลพิเศษเมื่ออัปเกรดครบ 3 อย่าง
-                if (state.pet.upgradeLevels.bed >= 5 && state.pet.upgradeLevels.bowl >= 5 && state.pet.upgradeLevels.toy_shelf >= 5) {
-                    state.achievementProgress['upgrade_all_max'] = 1;
-                }
-                
-                // ตั้งค่าสถานะว่าได้ตรวจสอบแล้ว จะได้ไม่ทำงานซ้ำซ้อน
-                state.retroactiveCheckCompleted = true; 
-                saveState();
-            }
-            // =======================================================
             init();
         });
     </script>
