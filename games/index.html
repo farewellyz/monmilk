@@ -515,6 +515,7 @@
                         อัปเกรด
                     </button>
                 </div>
+
                 <button id="close-pet-stats-modal-btn" class="btn-base w-full mt-3 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
             </div>
         </div>
@@ -638,11 +639,9 @@
                 { id: 'ticket_trip', name: 'ตั๋วให้พาไปไหนก็ได้', basePrice: 600, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
                 { id: 'ticket_wish', name: 'ตั๋วที่ขออะไรก็ได้', basePrice: 2000, type: 'ticket', category: 'ตั๋วพิเศษ' }, 
                 { id: 'ticket_command', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', basePrice: 1000, type: 'ticket', category: 'ตั๋วพิเศษ' },
-                // === EDIT START: Added stamina items to shop list ===
                 { id: 'item_m150', name: 'M150', basePrice: 60, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
                 { id: 'item_latte', name: 'ลาเต้', basePrice: 90, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
                 { id: 'item_americano', name: 'อเมริกาโน่', basePrice: 150, type: 'consumable', category: 'ไอเทมฟื้นฟู' },
-                // === EDIT END ===
                 { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
                 { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
             ];
@@ -652,11 +651,9 @@
                 'ticket_trip': { name: 'ตั๋วให้พาไปไหนก็ได้' },
                 'ticket_wish': { name: 'ตั๋วที่ขออะไรก็ได้' },
                 'ticket_command': { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้' },
-                // === EDIT START: Added new stamina items ===
                 'item_m150': { name: 'M150' },
                 'item_latte': { name: 'ลาเต้' },
                 'item_americano': { name: 'อเมริกาโน่' },
-                // === EDIT END ===
                 'ขนมปัง': { name: 'ขนมปัง' },
                 'เค้ก': { name: 'เค้ก' },
                 'ไอศกรีม': { name: 'ไอศกรีม' },
@@ -796,7 +793,6 @@
             const petBackgroundList = document.getElementById('pet-background-list');
             const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
 
-            // === EDIT START: Corrected variable declarations ===
             const upgradePetBtn = document.getElementById('upgrade-pet-btn');
             const upgradeModal = document.getElementById('upgrade-modal');
             const closeUpgradeModalBtn = document.getElementById('close-upgrade-modal-btn');
@@ -805,7 +801,6 @@
             const useItemModal = document.getElementById('use-item-modal');
             const closeUseItemModalBtn = document.getElementById('close-use-item-modal-btn');
             const itemUseList = document.getElementById('item-use-list');
-            // === EDIT END ===
 
             const hatchModal = document.getElementById('hatch-modal');
             const eggStage = document.getElementById('egg-stage');
@@ -1506,14 +1501,28 @@
                 const today = new Date().toDateString();
                 const canPat = state.pet.lastPattedDate !== today;
 
+                let happinessMultiplier = (state.pet.activeBackground === 'amusement_park') ? 1.2 : 1.0;
+                const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
+                const happinessBonus = 1 + (toyShelfLevel * 0.02);
+
+                const patEl = document.createElement('button');
+                patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
+                const finalPatHappiness = Math.round(50 * happinessBonus * happinessMultiplier);
+                patEl.innerHTML = `
+                    <span>ลูบหัว (+${finalPatHappiness} 😊)</span>
+                    <span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>
+                `;
+                if (canPat) {
+                    patEl.onclick = () => handlePlayAction('pat');
+                } else {
+                    patEl.disabled = true;
+                }
+                playOptionsList.appendChild(patEl);
+
                 for (const toyName in petToys) {
                     if (state.inventory[toyName] > 0) {
                         const toy = petToys[toyName];
-                        
-                        const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
-                        const happinessBonus = 1 + (toyShelfLevel * 0.02);
-                        const finalHappinessGain = Math.round(toy.happiness * happinessBonus);
-
+                        const finalHappinessGain = Math.round(toy.happiness * happinessBonus * happinessMultiplier);
                         const toyEl = document.createElement('button');
                         toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
                         toyEl.innerHTML = `
@@ -1540,7 +1549,22 @@
                 const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
                 const happinessBonus = 1 + (toyShelfLevel * 0.02);
 
-                if (petToys[action] && state.inventory[action] > 0) {
+                if (action === 'pat') {
+                    const today = new Date().toDateString();
+                    if (state.pet.lastPattedDate !== today) {
+                        state.pet.lastPattedDate = today;
+                        const finalHappinessGain = Math.round(50 * happinessBonus * happinessMultiplier);
+                        state.pet.happiness = Math.min(100, state.pet.happiness + finalHappinessGain);
+                        
+                        const reward = 1 + Math.floor(state.pet.level / 5);
+                        state.playCoins += reward;
+                        addPetExp(10);
+
+                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${reward} เหรียญเล่นม่อน และ 10 EXP!`);
+                        updateCoinDisplays();
+                    }
+                } 
+                else if (petToys[action] && state.inventory[action] > 0) {
                     state.inventory[action]--;
                     const baseHappiness = petToys[action].happiness;
                     const finalHappinessGain = Math.round(baseHappiness * happinessBonus * happinessMultiplier);
@@ -1559,7 +1583,6 @@
                 hidePlayModal();
             }
             
-            // === EDIT START: Added and corrected "Use Item" modal functions ===
             function showUseItemModal() {
                 itemUseList.innerHTML = '';
                 let hasStaminaItem = false;
@@ -1602,7 +1625,6 @@
             function hideUseItemModal() {
                 useItemModal.classList.remove('visible');
             }
-            // === EDIT END ===
 
             function renderUpgradesUI() {
                 upgradeList.innerHTML = '';
