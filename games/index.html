@@ -471,6 +471,9 @@
                 <div id="pet-background-buff-display" class="text-center bg-pink-100 text-pink-700 font-semibold p-2 rounded-lg my-2 border border-pink-200 hidden text-sm">
                 </div>
 
+                <div id="pet-attunement-status-display" class="text-center bg-yellow-100 text-yellow-800 font-semibold p-2 rounded-lg my-2 border border-yellow-200 hidden text-sm">
+                </div>
+
                 <div id="pet-exploration-status-in-modal" class="hidden text-center mb-3 p-2 bg-yellow-100 border-l-4 border-yellow-400 rounded-lg">
                     <p class="font-semibold text-yellow-800 text-sm">กำลังสำรวจที่ <span id="pet-exploration-location-in-modal"></span></p>
                     <p class="text-md font-bold text-yellow-600" id="pet-exploration-timer-in-modal">00:00:00</p>
@@ -551,6 +554,24 @@
              <div id="pet-background-list" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-100 rounded-lg">
              </div>
              <button id="close-background-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ปิด</button>
+        </div>
+    </div>
+
+    <div id="background-confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+             <h2 class="text-2xl font-bold text-pink-500 mb-4">ยืนยันการเปลี่ยนพื้นหลัง</h2>
+             <div id="background-confirm-details" class="text-left">
+                <img id="background-confirm-image" src="" class="rounded-lg mb-3 w-full h-32 object-cover">
+                <h3 id="background-confirm-name" class="text-lg font-semibold text-gray-800"></h3>
+                <p id="background-confirm-desc" class="text-gray-600"></p>
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 rounded-md my-3 text-sm">
+                    <strong>โปรดทราบ:</strong> บัฟจะเริ่มทำงานหลังจากเวลาปรับตัว 15 นาที
+                </div>
+             </div>
+             <div class="flex gap-2 mt-4">
+                <button id="cancel-background-change-btn" class="btn-base w-full px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ยกเลิก</button>
+                <button id="confirm-background-change-btn" class="btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700">ใช้พื้นหลังนี้</button>
+             </div>
         </div>
     </div>
 
@@ -650,6 +671,7 @@
             // In a real application, you might use a more robust solution.
             let state = {};
             let explorationInterval = null;
+            let attunementInterval = null;
 
             // All static definitions for the game are here.
             const allMissions = [
@@ -920,7 +942,7 @@
                     ]
                 },
                 'feed_strawberry': {
-                    category: 'การป้อนอาหาร', name: 'เจ้าแห่งสตรอว์เบอร์รี 🍓', icon: '🍓',
+                    category: 'การป้อนอาหาร', name: 'เจ้าแห่งสตรอว์เบอร์รี 🍓', icon: '�',
                     tiers: [
                         { goal: 5, rewards: { exp: 15, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
                         { goal: 10, rewards: { exp: 30, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
@@ -1140,6 +1162,14 @@
             const closeBackgroundModalBtn = document.getElementById('close-background-modal-btn');
             const petBackgroundList = document.getElementById('pet-background-list');
             const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
+            const petAttunementStatusDisplay = document.getElementById('pet-attunement-status-display');
+
+            const backgroundConfirmModal = document.getElementById('background-confirm-modal');
+            const backgroundConfirmImage = document.getElementById('background-confirm-image');
+            const backgroundConfirmName = document.getElementById('background-confirm-name');
+            const backgroundConfirmDesc = document.getElementById('background-confirm-desc');
+            const confirmBackgroundChangeBtn = document.getElementById('confirm-background-change-btn');
+            const cancelBackgroundChangeBtn = document.getElementById('cancel-background-change-btn');
 
             const upgradePetBtn = document.getElementById('upgrade-pet-btn');
             const upgradeModal = document.getElementById('upgrade-modal');
@@ -1208,6 +1238,7 @@
                         if (!state.pet.upgradeLevels) {
                             state.pet.upgradeLevels = { bed: 0, bowl: 0, toy_shelf: 0 };
                         }
+                        if (!state.pet.hasOwnProperty('attunement')) state.pet.attunement = null;
                     }
                     if (!state.achievementProgress) state.achievementProgress = {};
                     if (!state.achievementStatus) state.achievementStatus = {};
@@ -1228,6 +1259,7 @@
                             stamina: 100, exploration: null,
                             lastPattedDate: null, lastStatusUpdate: Date.now(),
                             ownedBackgrounds: ['default'], activeBackground: 'default',
+                            attunement: null,
                             upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
                         },
                         achievementProgress: {},
@@ -1661,10 +1693,10 @@
                 petStaminaText.textContent = `${pet.stamina} / 100`;
                 petStaminaBar.style.width = `${pet.stamina}%`;
 
-                const activeBg = state.pet.activeBackground;
-                const bgInfo = petBackgroundDefinitions[activeBg];
+                const activeBgId = state.pet.activeBackground;
+                const bgInfo = petBackgroundDefinitions[activeBgId];
 
-                if(bgInfo) {
+                if (bgInfo && bgInfo.description !== 'ไม่มีโบนัสพิเศษ') {
                     petDisplayArea.style.backgroundImage = `url('${bgInfo.image}')`;
                     petBackgroundBuffDisplay.textContent = `โบนัส: ${bgInfo.description}`;
                     petBackgroundBuffDisplay.classList.remove('hidden');
@@ -1727,6 +1759,7 @@
                         lastStatusUpdate: Date.now(),
                         ownedBackgrounds: ['default'],
                         activeBackground: 'default',
+                        attunement: null,
                         upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
                     };
                     saveState();
@@ -2159,28 +2192,141 @@
 
             function renderPetBackgroundsUI() {
                 petBackgroundList.innerHTML = '';
+                const isAttuning = !!state.pet.attunement;
+
                 state.pet.ownedBackgrounds.forEach(bgId => {
                     const bgInfo = petBackgroundDefinitions[bgId];
                     if (!bgInfo) return;
 
                     const bgEl = document.createElement('div');
+                    bgEl.dataset.bgId = bgId; // Add data-id for easier selection
                     const isActive = state.pet.activeBackground === bgId;
-                    bgEl.className = `cursor-pointer rounded-md p-1 border-2 transition-all ${isActive ? 'border-pink-500 scale-105 shadow-lg' : 'border-transparent'}`;
+                    const isBeingAttuned = isAttuning && state.pet.attunement.bgId === bgId;
+
+                    let borderClass = 'border-transparent';
+                    if (isActive) borderClass = 'border-pink-500 scale-105 shadow-lg';
+                    if (isBeingAttuned) borderClass = 'border-yellow-500 scale-105 shadow-lg';
+                    
+                    let disabledClass = '';
+                    if (isAttuning && !isBeingAttuned) {
+                        disabledClass = 'opacity-50 cursor-not-allowed';
+                    }
+
+                    bgEl.className = `relative rounded-md p-1 border-2 transition-all ${borderClass} ${disabledClass}`;
+                    
                     bgEl.innerHTML = `
                         <div class="h-16 bg-cover bg-center rounded" style="background-image: url('${bgInfo.image}')"></div>
                         <p class="text-xs font-semibold mt-1 text-center text-gray-700">${bgInfo.name}</p>
+                        <div class="attunement-timer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-md ${isBeingAttuned ? '' : 'hidden'}"></div>
                     `;
                     bgEl.title = bgInfo.description;
-                    bgEl.onclick = () => setActiveBackground(bgId);
+
+                    if (!isAttuning) {
+                        bgEl.classList.add('cursor-pointer');
+                        bgEl.onclick = () => {
+                            if (isActive) return; // Don't do anything if clicking the active one
+                            showBackgroundConfirmationModal(bgId);
+                        };
+                    }
+                    
                     petBackgroundList.appendChild(bgEl);
                 });
             }
 
-            function setActiveBackground(bgId) {
-                state.pet.activeBackground = bgId;
-                saveState();
-                renderPetStats();
+            function showBackgroundConfirmationModal(bgId) {
+                const bgInfo = petBackgroundDefinitions[bgId];
+                if (!bgInfo) return;
+
+                backgroundConfirmImage.src = bgInfo.image;
+                backgroundConfirmName.textContent = bgInfo.name;
+                backgroundConfirmDesc.textContent = `โบนัส: ${bgInfo.description}`;
+
+                // Clone and replace the button to remove old event listeners
+                const oldBtn = document.getElementById('confirm-background-change-btn');
+                const newBtn = oldBtn.cloneNode(true);
+                oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+                
+                newBtn.onclick = () => startAttunement(bgId);
+
                 backgroundModal.classList.remove('visible');
+                backgroundConfirmModal.classList.add('visible');
+            }
+
+            function startAttunement(bgId) {
+                const ATTUNEMENT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+                if (state.pet.attunement || state.pet.activeBackground === bgId) {
+                    alert('ไม่สามารถเปลี่ยนได้ในขณะนี้');
+                    return;
+                }
+
+                state.pet.attunement = {
+                    bgId: bgId,
+                    endTime: Date.now() + ATTUNEMENT_DURATION_MS
+                };
+
+                saveState();
+                backgroundConfirmModal.classList.remove('visible');
+                alert(`เริ่มการปรับตัวเข้ากับ "${petBackgroundDefinitions[bgId].name}"!\nบัฟจะทำงานในอีก 15 นาที`);
+                updateAttunementStatus(); // Start the interval and update UI immediately
+            }
+
+            function updateAttunementStatus() {
+                if (attunementInterval) clearInterval(attunementInterval);
+
+                const attunement = state.pet.attunement;
+                if (!attunement) {
+                    petAttunementStatusDisplay.classList.add('hidden');
+                    return;
+                }
+
+                const update = () => {
+                    const now = Date.now();
+                    const remaining = attunement.endTime - now;
+
+                    if (remaining <= 0) {
+                        // Attunement complete
+                        const completedBgId = state.pet.attunement.bgId;
+                        const bgName = petBackgroundDefinitions[completedBgId]?.name || 'พื้นหลังใหม่';
+                        
+                        state.pet.activeBackground = completedBgId;
+                        state.pet.attunement = null;
+                        
+                        clearInterval(attunementInterval);
+                        attunementInterval = null;
+                        
+                        saveState();
+                        
+                        alert(`ปรับตัวเข้ากับ "${bgName}" สำเร็จ! บัฟทำงานแล้ว`);
+                        
+                        // Update UI
+                        petAttunementStatusDisplay.classList.add('hidden');
+                        renderPetStats(); // Re-render to show new active buff
+                        // If background modal is open, re-render it too
+                        if (backgroundModal.classList.contains('visible')) {
+                            renderPetBackgroundsUI();
+                        }
+                    } else {
+                        // Attunement in progress
+                        const countdownText = formatCountdown(remaining);
+                        const bgName = petBackgroundDefinitions[state.pet.attunement.bgId]?.name;
+                        const statusText = `กำลังปรับตัว: ${bgName} (${countdownText})`;
+                        
+                        // Update pet stats modal display
+                        petAttunementStatusDisplay.innerHTML = statusText;
+                        petAttunementStatusDisplay.classList.remove('hidden');
+
+                        // Update background selection modal display
+                        const bgItemInList = petBackgroundList.querySelector(`[data-bg-id="${state.pet.attunement.bgId}"] .attunement-timer`);
+                        if (bgItemInList) {
+                            bgItemInList.textContent = countdownText;
+                            bgItemInList.classList.remove('hidden');
+                        }
+                    }
+                };
+
+                attunementInterval = setInterval(update, 1000);
+                update(); // Initial call
             }
             
             // --- Achievement System Functions ---
@@ -2479,6 +2625,11 @@
                 });
                 closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
                 
+				cancelBackgroundChangeBtn.addEventListener('click', () => {
+					backgroundConfirmModal.classList.remove('visible'); // ซ่อนหน้าต่างยืนยัน
+					backgroundModal.classList.add('visible'); // แสดงหน้าต่างเลือกพื้นหลังอีกครั้ง
+				});
+				
                 upgradePetBtn.addEventListener('click', () => {
                     renderUpgradesUI();
                     upgradeModal.classList.add('visible');
@@ -2494,30 +2645,11 @@
                 });
                 closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('visible'));
             }
-// ========== โค้ดสำหรับตรวจสอบความสำเร็จย้อนหลัง ==========
-            function checkForRetroactiveAchievements() {
-                if (!state.pet || !state.pet.exists) return;
 
-                const upgrades = ['bed', 'bowl', 'toy_shelf'];
-                upgrades.forEach(upgradeId => {
-                    const currentLevel = state.pet.upgradeLevels[upgradeId] || 0;
-                    if (currentLevel > 0) {
-                        state.achievementProgress[`upgrade_${upgradeId}`] = currentLevel;
-                    }
-                });
-
-                if (state.pet.upgradeLevels.bed >= 5 && state.pet.upgradeLevels.bowl >= 5 && state.pet.upgradeLevels.toy_shelf >= 5) {
-                    state.achievementProgress['upgrade_all_max'] = 1;
-                }
-                
-                state.retroactiveCheckCompleted = true; 
-                saveState();
-            }
-            // =======================================================
             // --- Initialization ---
             function init() {
                 loadState();
-                if (!state.retroactiveCheckCompleted) checkForRetroactiveAchievements();
+                
                 if (!state.pet.exists) {
                     hatchModal.classList.add('visible');
                 } else {
@@ -2572,4 +2704,3 @@
     </script>
 </body>
 </html>
-
