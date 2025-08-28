@@ -705,12 +705,64 @@
                 { id: 'cafe', name: 'เกมคาเฟ่', file: 'cafe.html' },
             ];
             
+            // ===================================================================
+            // ===== START: โค้ดส่วนที่ 1 ที่แก้ไข (อัปเดตข้อมูลรางวัล) =====
+            // ===================================================================
             const explorationLocations = {
-                'garden': { name: 'สวนหลังบ้าน', exp: 5, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 } ]},
-                'market': { name: 'ตลาดนัดของเล่น', exp: 10, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 } ]},
-                'beach': { name: 'ชายหาดสายรุ้ง', exp: 20, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 } ]},
-                'forest': { name: 'ป่ามหัศจรรย์', exp: 30, rewards: [ { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 } ]}
+                'garden': { 
+                    name: 'สวนหลังบ้าน', 
+                    exp: 5,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '5-10', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '1-2', chance: 90 },
+                        { type: 'item', name: 'ขนมปัง', chance: 60 },
+                        { type: 'item', name: 'ของเล่นยาง', chance: 60 },
+                        { type: 'item', name: 'เมล็ดมะเขือเทศ', chance: 60 },
+                        { type: 'background', name: 'bedroom', chance: 10 },
+                        { type: 'background', name: 'beach', chance: 10 }
+                    ]
+                },
+                'market': { 
+                    name: 'ตลาดนัดของเล่น', 
+                    exp: 10,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
+                        { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
+                        { type: 'item', name: 'เค้ก', chance: 50 },
+                        { type: 'item', name: 'ลูกบอล', chance: 50 },
+                        { type: 'item', name: 'เมล็ดแครอท', chance: 50 },
+                        { type: 'background', name: 'restaurant', chance: 10 },
+                        { type: 'background', name: 'amusement_park', chance: 10 }
+                    ]
+                },
+                'beach': { 
+                    name: 'ชายหาดสายรุ้ง', 
+                    exp: 20,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
+                        { type: 'item', name: 'ไอศกรีม', chance: 40 },
+                        { type: 'item', name: 'กีต้า', chance: 40 },
+                        { type: 'item', name: 'เมล็ดบรอกโคลี', chance: 40 },
+                        { type: 'item', name: 'ตั๋วสุ่มวงล้อ', chance: 15 },
+                        { type: 'background', name: 'vegetable_garden', chance: 10 }
+                    ]
+                },
+                'forest': { 
+                    name: 'ป่ามหัศจรรย์', 
+                    exp: 30,
+                    rewards: [
+                        { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
+                        { type: 'item', name: 'คอมพิวเตอร์', chance: 20 },
+                        { type: 'item', name: 'เมล็ดสตรอว์เบอร์รี', chance: 20 },
+                        { type: 'item', name: 'ตั๋วให้พาไปไหนก็ได้', chance: 10 },
+                        { type: 'item', name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', chance: 5 },
+                        { type: 'background', name: 'forest', chance: 10 }
+                    ]
+                }
             };
+            // ===================================================================
+            // ===== END: โค้ดส่วนที่ 1 ที่แก้ไข =====
+            // ===================================================================
 
             const gachaPrizes = [
                 { name: '1 เหรียญเล่นม่อน', type: 'play_coin', value: 1, probability: 39, rarity: 'common' },
@@ -1708,6 +1760,9 @@
                 return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
 
+            // ===================================================================
+            // ===== START: โค้ดส่วนที่ 2 ที่แก้ไข (แก้ไขฟังก์ชันแจกรางวัล) =====
+            // ===================================================================
             function handleExplorationCompletion(locationId) {
                 const location = explorationLocations[locationId];
                 if (!location) return;
@@ -1715,42 +1770,46 @@
                 let foundRewards = [];
                 addPetExp(location.exp);
                 foundRewards.push(`${location.exp} EXP`);
+
+                // โบนัสพิเศษจากพื้นหลัง
                 let bonusDropChance = 0;
                 if (state.pet.activeBackground === 'forest') {
-                    bonusDropChance = 5; 
+                    bonusDropChance = 5; // เพิ่มโอกาสดรอป 5%
                 }
-                const fullRewards = JSON.parse(localStorage.getItem('fullExplorationRewards'));
-                if (fullRewards && fullRewards[locationId]) {
-                    fullRewards[locationId].forEach(reward => {
-                        const roll = Math.random() * 100;
-                        if (roll < (reward.chance + bonusDropChance)) {
-                             const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
-                             const [min, max] = amountRange;
-                             const amount = min + Math.floor((max - min + 1) * Math.random());
-                             if (reward.type === 'mon_coin') {
-                                 state.monCoins += amount;
-                                 foundRewards.push(`${amount} เหรียญม่อน`);
-                             } else if (reward.type === 'play_coin') {
-                                 state.playCoins += amount;
-                                 foundRewards.push(`${amount} เหรียญเล่นม่อน`);
-                             } else if (reward.type === 'item') {
-                                 const itemName = consumableItems[reward.name]?.name || reward.name;
-                                 state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
-                                 foundRewards.push(itemName);
-                             } else if (reward.type === 'background') {
-                                 if (!state.pet.ownedBackgrounds.includes(reward.name)) {
-                                     state.pet.ownedBackgrounds.push(reward.name);
-                                     const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
-                                     foundRewards.push(`พื้นหลัง: ${bgName}`);
-                                 }
+
+                // --- ส่วนที่แก้ไข ---
+                // วนลูปจากข้อมูลรางวัลที่อัปเดตแล้วโดยตรง
+                location.rewards.forEach(reward => {
+                    const roll = Math.random() * 100;
+                    if (roll < (reward.chance + bonusDropChance)) {
+                         const amountRange = reward.amount ? reward.amount.split('-').map(Number) : [1, 1];
+                         const [min, max] = amountRange;
+                         const amount = min + Math.floor((max - min + 1) * Math.random());
+                         
+                         if (reward.type === 'mon_coin') {
+                             state.monCoins += amount;
+                             foundRewards.push(`${amount} เหรียญม่อน`);
+                         } else if (reward.type === 'play_coin') {
+                             state.playCoins += amount;
+                             foundRewards.push(`${amount} เหรียญเล่นม่อน`);
+                         } else if (reward.type === 'item') {
+                             // ตรวจสอบให้แน่ใจว่าใช้ชื่อที่ถูกต้องจาก consumableItems
+                             const itemName = consumableItems[reward.name]?.name || reward.name;
+                             state.inventory[reward.name] = (state.inventory[reward.name] || 0) + 1;
+                             foundRewards.push(itemName);
+                         } else if (reward.type === 'background') {
+                             if (!state.pet.ownedBackgrounds.includes(reward.name)) {
+                                 state.pet.ownedBackgrounds.push(reward.name);
+                                 const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
+                                 foundRewards.push(`ปลดล็อก: ${bgName}`);
                              }
-                        }
-                    });
-                }
+                         }
+                    }
+                });
                 
-                let alertMessage = `การสำรวจที่ ${location.name} เสร็จสิ้น! ${state.pet.name} กลับมาแล้ว`;
+                let alertMessage = `การสำรวจที่ '${location.name}' เสร็จสิ้น! ${state.pet.name} กลับมาแล้ว`;
                 if (foundRewards.length > 0) {
-                    alertMessage += `\n\n${state.pet.name} เจอ:\n- ${foundRewards.join('\n- ')}`;
+                    alertMessage += `\n\n${state.pet.name} ได้รับ:\n- ${foundRewards.join('\n- ')}`;
                 } else {
                     alertMessage += `\nแต่น่าเสียดายที่ ${state.pet.name} ไม่เจออะไรเลย...`;
                 }
@@ -1761,7 +1820,11 @@
                 updateCoinDisplays();
                 renderInventory();
                 renderExplorationStatus();
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
             }
+            // ===================================================================
+            // ===== END: โค้ดส่วนที่ 2 ที่แก้ไข =====
+            // ===================================================================
 
             function renderExplorationStatus() {
                 if (explorationInterval) clearInterval(explorationInterval);
