@@ -2494,11 +2494,30 @@
                 });
                 closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('visible'));
             }
+// ========== โค้ดสำหรับตรวจสอบความสำเร็จย้อนหลัง ==========
+            function checkForRetroactiveAchievements() {
+                if (!state.pet || !state.pet.exists) return;
 
+                const upgrades = ['bed', 'bowl', 'toy_shelf'];
+                upgrades.forEach(upgradeId => {
+                    const currentLevel = state.pet.upgradeLevels[upgradeId] || 0;
+                    if (currentLevel > 0) {
+                        state.achievementProgress[`upgrade_${upgradeId}`] = currentLevel;
+                    }
+                });
+
+                if (state.pet.upgradeLevels.bed >= 5 && state.pet.upgradeLevels.bowl >= 5 && state.pet.upgradeLevels.toy_shelf >= 5) {
+                    state.achievementProgress['upgrade_all_max'] = 1;
+                }
+                
+                state.retroactiveCheckCompleted = true; 
+                saveState();
+            }
+            // =======================================================
             // --- Initialization ---
             function init() {
                 loadState();
-                
+                if (!state.retroactiveCheckCompleted) checkForRetroactiveAchievements();
                 if (!state.pet.exists) {
                     hatchModal.classList.add('visible');
                 } else {
@@ -2553,3 +2572,4 @@
     </script>
 </body>
 </html>
+
