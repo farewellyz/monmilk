@@ -173,7 +173,9 @@ function PetSystem(state, helpers) {
             state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
             state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
             if (!state.pet.exploration || state.pet.exploration.endTime < now) {
-                state.pet.stamina = Math.min(100, state.pet.stamina + staminaGain);
+                // [CODE EDITED] Use dynamic max stamina for regeneration
+                const maxStamina = 100 + ((state.pet.level - 1) * 2);
+                state.pet.stamina = Math.min(maxStamina, state.pet.stamina + staminaGain);
             }
             state.pet.lastStatusUpdate = now;
             saveState();
@@ -215,27 +217,27 @@ function PetSystem(state, helpers) {
         const pet = state.pet;
         const maxExp = pet.level * 100;
         
-        // [CODE EDITED] Calculate max stats based on upgrades
+        // [CODE EDITED] Calculate max stats based on level and upgrades
+        const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
-        const maxHunger = 100 + (bowlLevel >= 2 ? 5 : 0);
+        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
         const bedLevel = pet.upgradeLevels.bed;
-        const maxHappiness = 100 + (bedLevel >= 2 ? 5 : 0);
+        const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
+        const maxStamina = 100 + levelBonus;
 
         petNameEl.textContent = pet.name;
         petLevelEl.textContent = `Lv. ${pet.level}`;
         petExpText.textContent = `${pet.exp} / ${maxExp}`;
         petExpBar.style.width = `${(pet.exp / maxExp) * 100}%`;
         
-        // [CODE EDITED] Update hunger display with dynamic max value
         petHungerText.textContent = `${pet.hunger} / ${maxHunger}`;
         petHungerBar.style.width = `${(pet.hunger / maxHunger) * 100}%`;
         
-        // [CODE EDITED] Update happiness display with dynamic max value
         petHappinessText.textContent = `${pet.happiness} / ${maxHappiness}`;
         petHappinessBar.style.width = `${(pet.happiness / maxHappiness) * 100}%`;
         
-        petStaminaText.textContent = `${pet.stamina} / 100`;
-        petStaminaBar.style.width = `${pet.stamina}%`;
+        petStaminaText.textContent = `${pet.stamina} / ${maxStamina}`;
+        petStaminaBar.style.width = `${(pet.stamina / maxStamina) * 100}%`;
         
         const activeBgId = state.pet.activeBackground;
         const bgInfo = petBackgroundDefinitions[activeBgId];
@@ -248,11 +250,9 @@ function PetSystem(state, helpers) {
             petBackgroundBuffDisplay.classList.add('hidden');
         }
 
-        // Update exploration status inside the modal
         if (state.pet.exploration) {
             petExplorationStatusInModal.classList.remove('hidden');
             petExplorationLocationInModal.textContent = helpers.explorationLocations[state.pet.exploration.locationId].name;
-            // The main script will handle updating the timer text
         } else {
             petExplorationStatusInModal.classList.add('hidden');
         }
@@ -266,11 +266,13 @@ function PetSystem(state, helpers) {
             finalAmount *= (activeBg === 'digital_nexus' ? 1.15 : 1.1);
         }
         finalAmount = Math.round(finalAmount);
-        const maxExp = pet.level * 100;
+        
+        let maxExp = pet.level * 100;
         pet.exp += finalAmount;
         while (pet.exp >= maxExp) {
             pet.level++;
             pet.exp -= maxExp;
+            maxExp = pet.level * 100; // Update maxExp for the new level
             alert(`ยินดีด้วย! ${pet.name} เลเวลอัปเป็น Lv. ${pet.level} แล้ว!`);
         }
         saveState();
@@ -324,8 +326,14 @@ function PetSystem(state, helpers) {
                 let happinessGain = 0;
                 if (state.pet.activeBackground === 'cute_cafe') happinessGain += 10;
                 if (state.pet.activeBackground === 'cake_shop' && foodName === 'เค้ก') happinessGain += 15;
-                state.pet.hunger = Math.min(100 + (state.pet.upgradeLevels.bowl >= 2 ? 5 : 0), state.pet.hunger + finalHungerGain);
-                state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
+                
+                // [CODE EDITED] Use dynamic max stats for clamping
+                const maxHunger = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bowl >= 2 ? 5 : 0);
+                const maxHappiness = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0);
+
+                state.pet.hunger = Math.min(maxHunger, state.pet.hunger + finalHungerGain);
+                state.pet.happiness = Math.min(maxHappiness, state.pet.happiness + happinessGain);
+
                 let expGain = food.exp;
                 if (state.pet.activeBackground === 'mythical_garden' && foodName === 'ขนมปัง') expGain = Math.round(expGain * 1.1);
                 addPetExp(expGain);
@@ -406,7 +414,11 @@ function PetSystem(state, helpers) {
             const achievementKeyMap = { 'ของเล่นยาง': 'play_rubber_toy', 'ลูกบอล': 'play_ball', 'กีต้า': 'play_guitar', 'คอมพิวเตอร์': 'play_computer' };
             if (achievementKeyMap[action]) trackAchievement(achievementKeyMap[action]);
         }
-        state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
+
+        // [CODE EDITED] Use dynamic max happiness for clamping
+        const maxHappiness = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0);
+        state.pet.happiness = Math.min(maxHappiness, state.pet.happiness + happinessGain);
+
         if (state.pet.upgradeLevels.bed >= 4) expGain += 5;
         if (state.pet.activeBackground === 'music_room') expGain = Math.round(expGain * 1.15);
         if (expGain > 0) addPetExp(expGain);
@@ -432,9 +444,10 @@ function PetSystem(state, helpers) {
                 itemEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-teal-50 rounded-lg border-l-4 border-teal-200';
                 itemEl.innerHTML = `<span>ใช้ ${itemDetails.name} (+${itemEffect.stamina} ⚡️)</span><span class="font-bold text-gray-600">มี ${state.inventory[itemId]} ชิ้น</span>`;
                 itemEl.onclick = () => {
-                    if (state.pet.stamina >= 100) { alert('พลังงานเต็มแล้วจ้า!'); return; }
+                    const maxStamina = 100 + ((state.pet.level - 1) * 2);
+                    if (state.pet.stamina >= maxStamina) { alert('พลังงานเต็มแล้วจ้า!'); return; }
                     state.inventory[itemId]--;
-                    state.pet.stamina = Math.min(100, state.pet.stamina + itemEffect.stamina);
+                    state.pet.stamina = Math.min(maxStamina, state.pet.stamina + itemEffect.stamina);
                     const achievementKeyMap = { 'item_m150': 'use_m150', 'item_latte': 'use_latte', 'item_americano': 'use_americano' };
                     if (achievementKeyMap[itemId]) trackAchievement(achievementKeyMap[itemId]);
                     useItemModal.classList.remove('visible');
@@ -737,21 +750,24 @@ function PetSystem(state, helpers) {
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
         changeHunger: function(amount) {
+            const levelBonus = (state.pet.level - 1) * 2;
             const bowlLevel = state.pet.upgradeLevels.bowl;
-            const maxHunger = 100 + (bowlLevel >= 2 ? 5 : 0);
+            const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
             state.pet.hunger = Math.min(maxHunger, Math.max(0, state.pet.hunger + amount));
             renderPetStats();
             saveState();
         },
         changeHappiness: function(amount) {
+            const levelBonus = (state.pet.level - 1) * 2;
             const bedLevel = state.pet.upgradeLevels.bed;
-            const maxHappiness = 100 + (bedLevel >= 2 ? 5 : 0);
+            const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
             state.pet.happiness = Math.min(maxHappiness, Math.max(0, state.pet.happiness + amount));
             renderPetStats();
             saveState();
         },
         changeStamina: function(amount) {
-            const maxStamina = 100;
+            const levelBonus = (state.pet.level - 1) * 2;
+            const maxStamina = 100 + levelBonus;
             state.pet.stamina = Math.min(maxStamina, Math.max(0, state.pet.stamina + amount));
             renderPetStats();
             saveState();
