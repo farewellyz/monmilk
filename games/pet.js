@@ -33,7 +33,7 @@ function PetSystem(state, helpers) {
         'cozy_bedroom': { name: 'ห้องนอนใหม่', description: 'ฟื้นฟูพลังงานเร็วขึ้น 25%', image: 'cozy_bedroom.jpg' },
         'grand_kitchen': { name: 'ห้องครัวใหญ่', description: 'อาหารให้ความอิ่ม +25%', image: 'grand_kitchen.jpg' },
         'toy_gallery': { name: 'ห้องเก็บของเล่น', description: 'ความสุขจากการเล่น +25%', image: 'toy_gallery.jpg' },
-        'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.jpg' },
+        'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.gif' },
     };
     const staminaItems = { 'item_m150': { stamina: 20 }, 'item_latte': { stamina: 30 }, 'item_americano': { stamina: 50 } };
     // [CODE EDITED] Updated toy happiness values
@@ -750,4 +750,5 @@ function PetSystem(state, helpers) {
         },
     };
 }
+
 
