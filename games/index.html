@@ -692,7 +692,7 @@
                     id: 'friend_visit',
                     title: 'เพื่อนมาหา!',
                     description: 'เพื่อนของ {petName} แวะมาทักทาย ชวนคุยกันหน่อยไหม?',
-                    imageUrl: 'https://placehold.co/128x128/ecfccb/4d7c0f?text=Hi!',
+                    imageUrl: 'come.gif',
                     options: [
                         {
                             text: 'คุยด้วย',
@@ -708,7 +708,7 @@
                     id: 'meal_invite',
                     title: 'ชวนไปกินข้าว',
                     description: 'เพื่อนอีกตัวมาชวน {petName} ไปหาอะไรอร่อยๆ กินด้วยกัน',
-                    imageUrl: 'https://placehold.co/128x128/ffe4e6/be185d?text=😋',
+                    imageUrl: 'eat.png',
                     options: [
                         {
                             text: 'ไปสิ!',
@@ -724,10 +724,10 @@
                     id: 'found_coin',
                     title: 'เจอของ!',
                     description: '{petName} ไปเดินเล่นแล้วเจอเหรียญม่อนตกอยู่บนพื้น!',
-                    imageUrl: 'https://placehold.co/128x128/fef08a/854d0e?text=💰',
+                    imageUrl: 'drop.png',
                     options: [
                         {
-                            text: 'เก็บเลย!',
+                            text: 'ขโมย!',
                             effect: { monCoins: 10 }
                         }
                     ]
@@ -736,10 +736,10 @@
                     id: 'kind_stranger',
                     title: 'คนแปลกหน้าใจดี',
                     description: 'มีคนใจดีเห็น {petName} แล้วเอ็นดู เลยให้ "เค้ก" มาชิ้นนึง!',
-                    imageUrl: 'https://placehold.co/128x128/fce7f3/9d174d?text=🍰',
+                    imageUrl: 'cake.png',
                     options: [
                         {
-                            text: 'ขอบคุณครับ!',
+                            text: 'ขอบคุณค่าา',
                             effect: { item: { id: 'เค้ก', amount: 1 } }
                         }
                     ]
@@ -748,7 +748,7 @@
                     id: 'race_challenge',
                     title: 'คำท้าจากเพื่อน!',
                     description: 'เพื่อนตัวแสบมาชวน {petName} วิ่งแข่ง! จะรับคำท้าไหม?',
-                    imageUrl: 'https://placehold.co/128x128/dbeafe/1e3a8a?text=🏁',
+                    imageUrl: 'run.png',
                     options: [
                         {
                             text: 'แข่งเลย!',
@@ -764,7 +764,7 @@
                     id: 'mysterious_box',
                     title: 'กล่องปริศนา!',
                     description: 'มีกล่องลึกลับวางอยู่ตรงหน้า จะเปิดดูไหม?',
-                    imageUrl: 'https://placehold.co/128x128/e9d5ff/581c87?text=❓',
+                    imageUrl: 'box.png',
                     options: [
                         {
                             text: 'เปิดเลย!',
@@ -779,8 +779,8 @@
                 {
                     id: 'card_game',
                     title: 'เกมวัดดวง',
-                    description: 'คนแปลกหน้าชวนเล่นทายไพ่! เขาจะจั่ว 1 ใบ ให้ทายว่าจะสูงหรือต่ำกว่า 7 (A=1, JQK=10)',
-                    imageUrl: 'https://placehold.co/128x128/fecaca/7f1d1d?text=🃏',
+                    description: 'คนสวยชวนเล่นทายไพ่! เขาจะจั่ว 1 ใบ ให้ทายว่าจะสูงหรือต่ำกว่า 7 (A=1, JQK=10)',
+                    imageUrl: 'poker.png',
                     options: [
                         {
                             text: 'สูงกว่า 7!',
@@ -966,7 +966,6 @@
             const eventImage = document.getElementById('event-image');
             const eventDescription = document.getElementById('event-description');
             const eventOptions = document.getElementById('event-options');
-            const testEventBtn = document.getElementById('test-event-btn');
             
             
             // --- State Management ---
@@ -1673,9 +1672,6 @@
                     }
                 });
                 
-                if (testEventBtn) {
-                    testEventBtn.addEventListener('click', () => triggerRandomEvent(true));
-                }
             }
 
             // --- Initialization ---
