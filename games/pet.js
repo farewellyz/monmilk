@@ -36,10 +36,26 @@ function PetSystem(state, helpers) {
         'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.jpg' },
     };
     const staminaItems = { 'item_m150': { stamina: 20 }, 'item_latte': { stamina: 30 }, 'item_americano': { stamina: 50 } };
-    const petToys = { 'ของเล่นยาง': { happiness: 20, exp: 5 }, 'ลูกบอล': { happiness: 25, exp: 5 }, 'กีต้า': { happiness: 40, exp: 10 }, 'คอมพิวเตอร์': { happiness: 50, exp: 15 }, 'นินเท็นโด้': { happiness: 25, exp: 10 } };
+    // [CODE EDITED] Updated toy happiness values
+    const petToys = { 
+        'ของเล่นยาง': { happiness: 20, exp: 5 }, 
+        'ลูกบอล': { happiness: 30, exp: 5 }, 
+        'กีต้า': { happiness: 40, exp: 10 }, 
+        'คอมพิวเตอร์': { happiness: 50, exp: 15 }, 
+        'นินเท็นโด้': { happiness: 50, exp: 10 } 
+    };
     const upgradeCosts = [100, 200, 400, 800, 1000];
     const maxUpgradeLevel = 5;
-    const petFoodDefinitions = { 'ขนมปัง': { hunger: 15, exp: 5, cost: 10 }, 'เค้ก': { hunger: 30, exp: 12, cost: 25 }, 'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 }, 'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 }, 'แครอท': { hunger: 20, exp: 10, cost: 0 }, 'บรอกโคลี': { hunger: 25, exp: 12, cost: 0 }, 'สตรอว์เบอร์รี': { hunger: 30, exp: 20, cost: 0 } };
+    // [CODE EDITED] Updated food hunger values
+    const petFoodDefinitions = { 
+        'ขนมปัง': { hunger: 15, exp: 5, cost: 10 }, 
+        'เค้ก': { hunger: 30, exp: 12, cost: 25 }, 
+        'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 }, 
+        'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 }, 
+        'แครอท': { hunger: 30, exp: 10, cost: 0 }, 
+        'บรอกโคลี': { hunger: 40, exp: 12, cost: 0 }, 
+        'สตรอว์เบอร์รี': { hunger: 50, exp: 20, cost: 0 } 
+    };
     const petEmotions = { normal: 'idle.gif', happy: 'happy.png', sad: 'cry.png', angry: 'angry.png' };
     const achievementDefinitions = {
         'feed_bread': { category: 'การป้อนอาหาร', name: 'นักชิมขนมปัง 🍞', icon: '🍞', tiers: [ { goal: 5, rewards: { exp: 10, play_coin: 1 } }, { goal: 10, rewards: { exp: 20, play_coin: 2 } }, { goal: 30, rewards: { exp: 40, play_coin: 3 } }, { goal: 50, rewards: { exp: 60, play_coin: 4 } }, { goal: 70, rewards: { exp: 80, play_coin: 5 } }, { goal: 100, rewards: { exp: 100, background: 'mythical_garden' } } ] },
@@ -288,7 +304,6 @@ function PetSystem(state, helpers) {
             const food = petFoodDefinitions[foodName];
             const hasItem = (state.inventory[foodName] || 0) > 0;
             const bowlLevel = state.pet.upgradeLevels.bowl;
-            // [CODE EDITED] Corrected the bonus calculation to prevent negative values at level 0
             const hungerBonus = 1 + (bowlLevel > 0 ? ((bowlLevel - 1) * 0.05) : 0) + (bowlLevel >= 2 ? 0.05 : 0);
             let finalHungerGain = Math.round(food.hunger * hungerBonus);
             if (state.pet.activeBackground === 'grand_kitchen') finalHungerGain = Math.round(finalHungerGain * 1.25);
@@ -336,7 +351,8 @@ function PetSystem(state, helpers) {
         const canPat = state.pet.lastPattedDate !== today;
         const patEl = document.createElement('button');
         patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
-        patEl.innerHTML = `<span>ลูบหัว (+15 😊)</span><span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>`;
+        // [CODE EDITED] Updated pat happiness value in UI
+        patEl.innerHTML = `<span>ลูบหัว (+30 😊)</span><span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>`;
         if (canPat) { patEl.onclick = () => handlePlayAction('pat'); } 
         else { patEl.disabled = true; }
         playOptionsList.appendChild(patEl);
@@ -359,7 +375,12 @@ function PetSystem(state, helpers) {
         playModal.classList.add('visible');
     }
 
-    function handlePlayAction(action, happinessGain = 15) {
+    function handlePlayAction(action, happinessGain) {
+        // [CODE EDITED] Updated pat happiness value in logic
+        if (action === 'pat' && happinessGain === undefined) {
+            happinessGain = 30;
+        }
+
         let expGain = 0, playCoinGain = 0;
         if (action === 'pat') {
             const today = new Date().toDateString();
@@ -706,7 +727,7 @@ function PetSystem(state, helpers) {
         addPetExp,
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
-        // [CODE ADDED] Public methods to change stats from external scripts
+        // Public methods to change stats from external scripts
         changeHunger: function(amount) {
             const bowlLevel = state.pet.upgradeLevels.bowl;
             const maxHunger = 100 + (bowlLevel >= 2 ? 5 : 0);
@@ -729,5 +750,4 @@ function PetSystem(state, helpers) {
         },
     };
 }
-
 
