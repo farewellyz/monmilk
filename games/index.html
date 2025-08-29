@@ -439,12 +439,6 @@
                     ไปร้านค้าแลกของ
                 </button>
             </div>
-            
-            <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-                <button id="test-event-btn" class="btn-base px-4 py-2 text-sm font-bold text-white rounded-full shadow-lg bg-gray-700 hover:bg-gray-800 border-b-4 border-gray-900">
-                    ทดสอบเหตุการณ์สุ่ม
-                </button>
-            </div>
         </div>
 
         <div id="shop-screen" class="hidden">
@@ -973,7 +967,6 @@
             const eventDescription = document.getElementById('event-description');
             const eventOptions = document.getElementById('event-options');
             
-            const testEventBtn = document.getElementById('test-event-btn');
             
             // --- State Management ---
             function saveState() {
@@ -1676,7 +1669,6 @@
                     }
                 });
                 
-                testEventBtn.addEventListener('click', () => triggerRandomEvent(true));
             }
 
             // --- Initialization ---
@@ -1747,3 +1739,4 @@
     </script>
 </body>
 </html>
+
