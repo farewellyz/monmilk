@@ -33,10 +33,9 @@ function PetSystem(state, helpers) {
         'cozy_bedroom': { name: 'ห้องนอนใหม่', description: 'ฟื้นฟูพลังงานเร็วขึ้น 25%', image: 'cozy_bedroom.jpg' },
         'grand_kitchen': { name: 'ห้องครัวใหญ่', description: 'อาหารให้ความอิ่ม +25%', image: 'grand_kitchen.jpg' },
         'toy_gallery': { name: 'ห้องเก็บของเล่น', description: 'ความสุขจากการเล่น +25%', image: 'toy_gallery.jpg' },
-        'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.gif' },
+        'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.jpg' },
     };
     const staminaItems = { 'item_m150': { stamina: 20 }, 'item_latte': { stamina: 30 }, 'item_americano': { stamina: 50 } };
-    // [CODE EDITED] Updated toy happiness values
     const petToys = { 
         'ของเล่นยาง': { happiness: 20, exp: 5 }, 
         'ลูกบอล': { happiness: 30, exp: 5 }, 
@@ -46,7 +45,6 @@ function PetSystem(state, helpers) {
     };
     const upgradeCosts = [100, 200, 400, 800, 1000];
     const maxUpgradeLevel = 5;
-    // [CODE EDITED] Updated food hunger values
     const petFoodDefinitions = { 
         'ขนมปัง': { hunger: 15, exp: 5, cost: 10 }, 
         'เค้ก': { hunger: 30, exp: 12, cost: 25 }, 
@@ -216,16 +214,29 @@ function PetSystem(state, helpers) {
         updateAchievementNotification();
         const pet = state.pet;
         const maxExp = pet.level * 100;
+        
+        // [CODE EDITED] Calculate max stats based on upgrades
+        const bowlLevel = pet.upgradeLevels.bowl;
+        const maxHunger = 100 + (bowlLevel >= 2 ? 5 : 0);
+        const bedLevel = pet.upgradeLevels.bed;
+        const maxHappiness = 100 + (bedLevel >= 2 ? 5 : 0);
+
         petNameEl.textContent = pet.name;
         petLevelEl.textContent = `Lv. ${pet.level}`;
         petExpText.textContent = `${pet.exp} / ${maxExp}`;
         petExpBar.style.width = `${(pet.exp / maxExp) * 100}%`;
-        petHungerText.textContent = `${pet.hunger} / 100`;
-        petHungerBar.style.width = `${pet.hunger}%`;
-        petHappinessText.textContent = `${pet.happiness} / 100`;
-        petHappinessBar.style.width = `${pet.happiness}%`;
+        
+        // [CODE EDITED] Update hunger display with dynamic max value
+        petHungerText.textContent = `${pet.hunger} / ${maxHunger}`;
+        petHungerBar.style.width = `${(pet.hunger / maxHunger) * 100}%`;
+        
+        // [CODE EDITED] Update happiness display with dynamic max value
+        petHappinessText.textContent = `${pet.happiness} / ${maxHappiness}`;
+        petHappinessBar.style.width = `${(pet.happiness / maxHappiness) * 100}%`;
+        
         petStaminaText.textContent = `${pet.stamina} / 100`;
         petStaminaBar.style.width = `${pet.stamina}%`;
+        
         const activeBgId = state.pet.activeBackground;
         const bgInfo = petBackgroundDefinitions[activeBgId];
         if (bgInfo && bgInfo.description !== 'ไม่มีโบนัสพิเศษ') {
@@ -351,7 +362,6 @@ function PetSystem(state, helpers) {
         const canPat = state.pet.lastPattedDate !== today;
         const patEl = document.createElement('button');
         patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
-        // [CODE EDITED] Updated pat happiness value in UI
         patEl.innerHTML = `<span>ลูบหัว (+30 😊)</span><span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>`;
         if (canPat) { patEl.onclick = () => handlePlayAction('pat'); } 
         else { patEl.disabled = true; }
@@ -376,7 +386,6 @@ function PetSystem(state, helpers) {
     }
 
     function handlePlayAction(action, happinessGain) {
-        // [CODE EDITED] Updated pat happiness value in logic
         if (action === 'pat' && happinessGain === undefined) {
             happinessGain = 30;
         }
@@ -727,7 +736,6 @@ function PetSystem(state, helpers) {
         addPetExp,
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
-        // Public methods to change stats from external scripts
         changeHunger: function(amount) {
             const bowlLevel = state.pet.upgradeLevels.bowl;
             const maxHunger = 100 + (bowlLevel >= 2 ? 5 : 0);
@@ -750,5 +758,4 @@ function PetSystem(state, helpers) {
         },
     };
 }
-
 
