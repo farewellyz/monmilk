@@ -439,6 +439,12 @@
                     ไปร้านค้าแลกของ
                 </button>
             </div>
+            
+            <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+                <button id="test-event-btn" class="btn-base px-4 py-2 text-sm font-bold text-white rounded-full shadow-lg bg-gray-700 hover:bg-gray-800 border-b-4 border-gray-900">
+                    ทดสอบเหตุการณ์สุ่ม
+                </button>
+            </div>
         </div>
 
         <div id="shop-screen" class="hidden">
@@ -450,6 +456,7 @@
         </div>
     </div>
 
+    <!-- PET & MODALS HTML (ส่วนแสดงผลของสัตว์เลี้ยงและหน้าต่าง Pop-up) -->
     <div id="floating-pet-container" class="hidden">
         <div id="pet-speech-bubble" class="hidden"></div>
         <img id="floating-pet-image" src="" alt="น้องม่อน">
@@ -664,16 +671,135 @@
         </div>
     </div>
 
+    <div id="random-event-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="event-title" class="text-2xl font-bold text-pink-500 mb-4"></h2>
+            <img id="event-image" src="" alt="Event Image" class="mx-auto h-32 w-32 mb-4 rounded-lg">
+            <p id="event-description" class="text-gray-600 mb-6"></p>
+            <div id="event-options" class="flex flex-col gap-2">
+            </div>
+        </div>
+    </div>
+
+
+    <!-- เรียกใช้งานไฟล์ pet.js ก่อนสคริปต์หลัก -->
+    <script src="pet.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // This is a simplified game state management. 
-            // In a real application, you might use a more robust solution.
             let state = {};
             let explorationInterval = null;
-            let attunementInterval = null;
+            let petSystem = null;
+            let randomEventInterval = null;
 
-            // All static definitions for the game are here.
+            const randomEvents = [
+                {
+                    id: 'friend_visit',
+                    title: 'เพื่อนมาหา!',
+                    description: 'เพื่อนของน้องม่อนแวะมาทักทาย ชวนคุยกันหน่อยไหม?',
+                    imageUrl: 'https://placehold.co/128x128/ecfccb/4d7c0f?text=Hi!',
+                    options: [
+                        {
+                            text: 'คุยด้วย',
+                            effect: { happiness: 15 }
+                        },
+                        {
+                            text: 'ไม่ว่างเลย',
+                            effect: {}
+                        }
+                    ]
+                },
+                {
+                    id: 'meal_invite',
+                    title: 'ชวนไปกินข้าว',
+                    description: 'เพื่อนอีกตัวมาชวนน้องม่อนไปหาอะไรอร่อยๆ กินด้วยกัน',
+                    imageUrl: 'https://placehold.co/128x128/ffe4e6/be185d?text=😋',
+                    options: [
+                        {
+                            text: 'ไปสิ!',
+                            effect: { hunger: 20 }
+                        },
+                        {
+                            text: 'ไว้คราวหน้านะ',
+                            effect: {}
+                        }
+                    ]
+                },
+                {
+                    id: 'found_coin',
+                    title: 'เจอของ!',
+                    description: 'น้องม่อนไปเดินเล่นแล้วเจอเหรียญม่อนตกอยู่บนพื้น!',
+                    imageUrl: 'https://placehold.co/128x128/fef08a/854d0e?text=💰',
+                    options: [
+                        {
+                            text: 'เก็บเลย!',
+                            effect: { monCoins: 10 }
+                        }
+                    ]
+                },
+                {
+                    id: 'kind_stranger',
+                    title: 'คนแปลกหน้าใจดี',
+                    description: 'มีคนใจดีเห็นน้องม่อนแล้วเอ็นดู เลยให้ "เค้ก" มาชิ้นนึง!',
+                    imageUrl: 'https://placehold.co/128x128/fce7f3/9d174d?text=🍰',
+                    options: [
+                        {
+                            text: 'ขอบคุณครับ!',
+                            effect: { item: { id: 'เค้ก', amount: 1 } }
+                        }
+                    ]
+                },
+                {
+                    id: 'race_challenge',
+                    title: 'คำท้าจากเพื่อน!',
+                    description: 'เพื่อนตัวแสบมาชวนน้องม่อนวิ่งแข่ง! จะรับคำท้าไหม?',
+                    imageUrl: 'https://placehold.co/128x128/dbeafe/1e3a8a?text=🏁',
+                    options: [
+                        {
+                            text: 'แข่งเลย!',
+                            effect: { race: true }
+                        },
+                        {
+                            text: 'ไม่ดีกว่า',
+                            effect: {}
+                        }
+                    ]
+                },
+                {
+                    id: 'mysterious_box',
+                    title: 'กล่องปริศนา!',
+                    description: 'มีกล่องลึกลับวางอยู่ตรงหน้า จะเปิดดูไหม?',
+                    imageUrl: 'https://placehold.co/128x128/e9d5ff/581c87?text=❓',
+                    options: [
+                        {
+                            text: 'เปิดเลย!',
+                            effect: { openBox: true }
+                        },
+                        {
+                            text: 'เมินดีกว่า',
+                            effect: {}
+                        }
+                    ]
+                },
+                {
+                    id: 'card_game',
+                    title: 'เกมวัดดวง',
+                    description: 'คนแปลกหน้าชวนเล่นทายไพ่! เขาจะจั่ว 1 ใบ ให้ทายว่าจะสูงหรือต่ำกว่า 7 (A=1, JQK=10)',
+                    imageUrl: 'https://placehold.co/128x128/fecaca/7f1d1d?text=🃏',
+                    options: [
+                        {
+                            text: 'สูงกว่า 7!',
+                            effect: { guess: 'high' }
+                        },
+                        {
+                            text: 'ต่ำกว่า 7!',
+                            effect: { guess: 'low' }
+                        }
+                    ]
+                }
+            ];
+
             const allMissions = [
                 { text: 'ถ่ายรูปหน้าส่งให้ม่อน (1 เหรียญ)', reward: 1 }, 
                 { text: 'ถ่าย ootd ส่งให้ม่อน (1 เหรียญ)', reward: 1 },
@@ -732,53 +858,6 @@
 				'นินเท็นโด้': { name: 'นินเท็นโด้' },
             };
 
-            const petBackgroundDefinitions = {
-                // Original Backgrounds
-                'default': { name: 'ห้องธรรมดา', description: 'ไม่มีโบนัสพิเศษ', image: `room.jpg` },
-                'kitchen': { name: 'ห้องครัว', description: 'หิวช้าลง 10%', image: `kitchen.jpg` },
-                'library': { name: 'ห้องสมุด', description: 'ได้รับ EXP เพิ่มขึ้น 10%', image: `library.jpg` },
-                'beach': { name: 'ชายหาด', description: 'ใช้พลังงานน้อยลง 10%', image: `beach.jpg` },
-                'bedroom': { name: 'ห้องนอน', description: 'ความสุขลดช้าลง 10%', image: `bedroom.jpg` },
-                'restaurant': { name: 'ร้านอาหาร', description: 'ราคาอาหารลดลง 20%', image: `restaurant.jpg` },
-                'amusement_park': { name: 'สวนสนุก', description: 'เล่นด้วยได้ความสุขเพิ่ม 20%', image: `amusement_park.jpg` },
-                'vegetable_garden': { name: 'สวนผัก', description: 'ผักโตเร็วขึ้น 10%', image: `vegetable_garden.jpg` },
-                'forest': { name: 'ป่า', description: 'โอกาสดรอปของเพิ่ม 5%', image: `forest.jpg` },
-                // New Achievement Unlocks (You can add image paths here later)
-                'mythical_garden': { name: 'สวนเทพนิยาย', description: 'อาหารประเภทขนมปังให้ EXP +10%', image: 'mythical_garden.jpg' },
-                'cake_shop': { name: 'ร้านเค้ก', description: 'อาหารประเภทเค้กให้ความสุข +15%', image: 'cake_shop.jpg' },
-                'sky_palace': { name: 'วังฟ้า', description: 'อาหารประเภทไอศกรีมให้เหรียญม่อน +5%', image: 'sky_palace.jpg' },
-                'magical_aquarium': { name: 'อควาเรียมเวทมนตร์', description: 'สตรอว์เบอร์รีมีโอกาสได้เมล็ดคืน', image: 'magical_aquarium.jpg' },
-                'playroom': { name: 'Playroom', description: 'ได้ความสุขจากการเล่น +20%', image: 'playroom.jpg' },
-                'playground': { name: 'สนามเด็กเล่น', description: 'พลังงานลดช้าลง 10%', image: 'playground.jpg' },
-                'music_room': { name: 'ห้องดนตรี', description: 'EXP จากการเล่นด้วย +15%', image: 'music_room.jpg' },
-                'digital_nexus': { name: 'Digital Nexus', description: 'พลังงานใช้ -30% และ EXP +15%', image: 'digital_nexus.jpg' },
-                'gym_room': { name: 'ห้องกีฬา', description: 'ฟื้นฟู Stamina +20%', image: 'gym_room.jpg' },
-                'cute_cafe': { name: 'คาเฟ่น่ารัก', description: 'เมื่อให้อาหารได้ความสุข +10%', image: 'cute_cafe.jpg' },
-                'coffee_lounge': { name: 'Coffee Lounge', description: 'EXP +10%, ความหิวลดช้าลง 10%', image: 'coffee_lounge.jpg' },
-                'secret_garden': { name: 'สวนลับ', description: 'ดรอปจากการสำรวจ +5%', image: 'secret_garden.jpg' },
-                'hidden_shop': { name: 'ร้านค้าลับ', description: 'ราคาของในร้านค้าลด 10%', image: 'hidden_shop.jpg' },
-                'beach_resort': { name: 'Beach Resort', description: 'Stamina ลดช้าลง 15%', image: 'beach_resort.jpg' },
-                'ancient_forest': { name: 'Ancient Forest', description: 'EXP +15% จากการสำรวจ', image: 'ancient_forest.jpg' },
-                'cozy_bedroom': { name: 'ห้องนอนใหม่', description: 'ฟื้นฟูพลังงานเร็วขึ้น 25%', image: 'cozy_bedroom.jpg' },
-                'grand_kitchen': { name: 'ห้องครัวใหญ่', description: 'อาหารให้ความอิ่ม +25%', image: 'grand_kitchen.jpg' },
-                'toy_gallery': { name: 'ห้องเก็บของเล่น', description: 'ความสุขจากการเล่น +25%', image: 'toy_gallery.jpg' },
-                'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.gif' },
-            };
-
-            const staminaItems = {
-                'item_m150': { stamina: 20 },
-                'item_latte': { stamina: 30 },
-                'item_americano': { stamina: 50 },
-            };
-
-            const petToys = {
-                'ของเล่นยาง': { happiness: 20, exp: 5 },
-                'ลูกบอล': { happiness: 25, exp: 5 },
-                'กีต้า': { happiness: 40, exp: 10 },
-                'คอมพิวเตอร์': { happiness: 50, exp: 15 },
-				'นินเท็นโด้': { happiness: 25, exp: 10 },
-            };
-
             const allPlayableGames = [
                 { id: 'rps', name: 'เป่ายิ้งฉุบ', file: 'rps_game.html' },
                 { id: 'memory', name: 'จับคู่ภาพ', file: 'memory_game.html' },
@@ -804,7 +883,7 @@
                 },
                 'market': { 
                     name: 'ตลาดนัดของเล่น', 
-                    exp: 10,
+                    exp: 20,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '20-30', chance: 100 },
                         { type: 'play_coin', name: 'เหรียญเล่นม่อน', amount: '3-4', chance: 90 },
@@ -817,7 +896,7 @@
                 },
                 'beach': { 
                     name: 'ชายหาดสายรุ้ง', 
-                    exp: 20,
+                    exp: 60,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '60-90', chance: 100 },
                         { type: 'item', name: 'ไอศกรีม', chance: 40 },
@@ -829,7 +908,7 @@
                 },
                 'forest': { 
                     name: 'ป่ามหัศจรรย์', 
-                    exp: 30,
+                    exp: 120,
                     rewards: [
                         { type: 'mon_coin', name: 'เหรียญม่อน', amount: '120-180', chance: 100 },
                         { type: 'item', name: 'คอมพิวเตอร์', chance: 20 },
@@ -852,259 +931,6 @@
                 { name: 'ตั๋วที่ให้เค้าทำอะไรก็ได้', type: 'item', value: 'ticket_command', probability: 3, rarity: 'epic' },
                 { name: 'ตั๋วที่ขออะไรก็ได้', type: 'item', value: 'ticket_wish', probability: 1, rarity: 'legendary' },
             ];
-
-            const petEmotions = {
-                normal: 'idle.gif',
-                happy: 'happy.png',
-                sad: 'cry.png',
-                angry: 'angry.png',
-            };
-            
-            const upgradeCosts = [100, 200, 400, 800, 1000];
-            const maxUpgradeLevel = 5;
-            
-            const petFoodDefinitions = {
-                'ขนมปัง': { hunger: 15, exp: 5, cost: 10 },
-                'เค้ก': { hunger: 30, exp: 12, cost: 25 },
-                'ไอศกรีม': { hunger: 50, exp: 20, cost: 40 },
-                'มะเขือเทศ': { hunger: 20, exp: 8, cost: 0 },
-                'แครอท': { hunger: 20, exp: 10, cost: 0 },
-                'บรอกโคลี': { hunger: 25, exp: 12, cost: 0 },
-                'สตรอว์เบอร์รี': { hunger: 30, exp: 20, cost: 0 },
-            };
-
-            // ===================================================================
-            // ===== START: ACHIEVEMENT DEFINITIONS ==============================
-            // ===================================================================
-            const achievementDefinitions = {
-                // --- Feeding Achievements ---
-                'feed_bread': {
-                    category: 'การป้อนอาหาร', name: 'นักชิมขนมปัง 🍞', icon: '🍞',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10, play_coin: 1 } },
-                        { goal: 10, rewards: { exp: 20, play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 40, play_coin: 3 } },
-                        { goal: 50, rewards: { exp: 60, play_coin: 4 } },
-                        { goal: 70, rewards: { exp: 80, play_coin: 5 } },
-                        { goal: 100, rewards: { exp: 100, background: 'mythical_garden' } },
-                    ]
-                },
-                'feed_cake': {
-                    category: 'การป้อนอาหาร', name: 'คนรักเค้ก 🍰', icon: '🍰',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 15, play_coin: 1 } },
-                        { goal: 10, rewards: { exp: 25, play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 50, play_coin: 3 } },
-                        { goal: 50, rewards: { exp: 70, play_coin: 4 } },
-                        { goal: 70, rewards: { exp: 90, play_coin: 5 } },
-                        { goal: 100, rewards: { exp: 120, background: 'crystal_chamber' } },
-                    ]
-                },
-                'feed_icecream': {
-                    category: 'การป้อนอาหาร', name: 'ผู้เชี่ยวชาญไอศกรีม 🍦', icon: '🍦',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 20, play_coin: 1 } },
-                        { goal: 10, rewards: { exp: 30, play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 60, play_coin: 3 } },
-                        { goal: 50, rewards: { exp: 80, play_coin: 4 } },
-                        { goal: 70, rewards: { exp: 100, play_coin: 5 } },
-                        { goal: 100, rewards: { exp: 150, background: 'sky_palace' } },
-                    ]
-                },
-                'feed_tomato': {
-                    category: 'การป้อนอาหาร', name: 'ชาวสวนมะเขือเทศ 🍅', icon: '🍅',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 8, item: { id: 'เมล็ดมะเขือเทศ', amount: 1 } } },
-                        { goal: 10, rewards: { exp: 16, item: { id: 'เมล็ดมะเขือเทศ', amount: 1 } } },
-                        { goal: 30, rewards: { exp: 35, item: { id: 'เมล็ดมะเขือเทศ', amount: 2 } } },
-                        { goal: 50, rewards: { exp: 55, item: { id: 'เมล็ดมะเขือเทศ', amount: 3 } } },
-                        { goal: 70, rewards: { exp: 75, item: { id: 'เมล็ดมะเขือเทศ', amount: 4 } } },
-                        { goal: 100, rewards: { exp: 100, background: 'vegetable_garden' } },
-                    ]
-                },
-                'feed_carrot': {
-                    category: 'การป้อนอาหาร', name: 'นักปลูกแครอท 🥕', icon: '🥕',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10, item: { id: 'เมล็ดแครอท', amount: 1 } } },
-                        { goal: 10, rewards: { exp: 20, item: { id: 'เมล็ดแครอท', amount: 1 } } },
-                        { goal: 30, rewards: { exp: 40, item: { id: 'เมล็ดแครอท', amount: 2 } } },
-                        { goal: 50, rewards: { exp: 60, item: { id: 'เมล็ดแครอท', amount: 3 } } },
-                        { goal: 70, rewards: { exp: 80, item: { id: 'เมล็ดแครอท', amount: 4 } } },
-                        { goal: 100, rewards: { exp: 110, background: 'forest' } },
-                    ]
-                },
-                'feed_broccoli': {
-                    category: 'การป้อนอาหาร', name: 'แฟนพันธุ์แท้บรอกโคลี 🥦', icon: '🥦',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 12, item: { id: 'เมล็ดบรอกโคลี', amount: 1 } } },
-                        { goal: 10, rewards: { exp: 24, item: { id: 'เมล็ดบรอกโคลี', amount: 1 } } },
-                        { goal: 30, rewards: { exp: 48, item: { id: 'เมล็ดบรอกโคลี', amount: 2 } } },
-                        { goal: 50, rewards: { exp: 70, item: { id: 'เมล็ดบรอกโคลี', amount: 3 } } },
-                        { goal: 70, rewards: { exp: 90, item: { id: 'เมล็ดบรอกโคลี', amount: 4 } } },
-                        { goal: 100, rewards: { exp: 120, background: 'library' } },
-                    ]
-                },
-                'feed_strawberry': {
-                    category: 'การป้อนอาหาร', name: 'เจ้าแห่งสตรอว์เบอร์รี 🍓', icon: '�',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 15, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
-                        { goal: 10, rewards: { exp: 30, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 1 } } },
-                        { goal: 30, rewards: { exp: 60, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 2 } } },
-                        { goal: 50, rewards: { exp: 80, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 3 } } },
-                        { goal: 70, rewards: { exp: 100, item: { id: 'เมล็ดสตรอว์เบอร์รี', amount: 4 } } },
-                        { goal: 100, rewards: { exp: 150, background: 'magical_aquarium' } },
-                    ]
-                },
-                // --- Toy Achievements ---
-                'play_rubber_toy': {
-                    category: 'ของเล่น', name: 'นักเล่นของเล่นยาง', icon: '🧸',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10 } },
-                        { goal: 15, rewards: { play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 30 } },
-                        { goal: 50, rewards: { exp: 50, item: { id: 'ของเล่นยาง', amount: 1 } } },
-                        { goal: 100, rewards: { background: 'playroom' } },
-                    ]
-                },
-                'play_ball': {
-                    category: 'ของเล่น', name: 'นักเล่นบอล', icon: '⚽',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10 } },
-                        { goal: 15, rewards: { play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 30 } },
-                        { goal: 50, rewards: { exp: 50 } },
-                        { goal: 100, rewards: { background: 'playground' } },
-                    ]
-                },
-                'play_guitar': {
-                    category: 'ของเล่น', name: 'นักกีต้าร์', icon: '🎸',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 15 } },
-                        { goal: 15, rewards: { play_coin: 3 } },
-                        { goal: 30, rewards: { exp: 40 } },
-                        { goal: 50, rewards: { exp: 60 } },
-                        { goal: 100, rewards: { background: 'music_room' } },
-                    ]
-                },
-                'play_computer': {
-                    category: 'ของเล่น', name: 'เซียนคอมพิวเตอร์', icon: '💻',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 20 } },
-                        { goal: 15, rewards: { play_coin: 3 } },
-                        { goal: 30, rewards: { exp: 50 } },
-                        { goal: 50, rewards: { exp: 70 } },
-                        { goal: 100, rewards: { background: 'digital_nexus' } },
-                    ]
-                },
-                // --- Stamina Item Achievements ---
-                'use_m150': {
-                    category: 'ไอเทมเพิ่มพลัง', name: 'ผู้ใช้ M150', icon: '⚡',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10 } },
-                        { goal: 15, rewards: { play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 40 } },
-                        { goal: 50, rewards: { background: 'gym_room' } },
-                    ]
-                },
-                'use_latte': {
-                    category: 'ไอเทมเพิ่มพลัง', name: 'คอกาแฟลาเต้', icon: '☕',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 10 } },
-                        { goal: 15, rewards: { play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 40 } },
-                        { goal: 50, rewards: { background: 'cute_cafe' } },
-                    ]
-                },
-                'use_americano': {
-                    category: 'ไอเทมเพิ่มพลัง', name: 'สายดาร์กอเมริกาโน่', icon: '☕',
-                    tiers: [
-                        { goal: 5, rewards: { exp: 15 } },
-                        { goal: 15, rewards: { play_coin: 3 } },
-                        { goal: 30, rewards: { exp: 50 } },
-                        { goal: 50, rewards: { background: 'coffee_lounge' } },
-                    ]
-                },
-                // --- Exploration Achievements ---
-                'explore_garden': {
-                    category: 'การสำรวจ', name: 'นักสำรวจสวนหลังบ้าน', icon: '🧭',
-                    tiers: [
-                        { goal: 3, rewards: { exp: 10 } },
-                        { goal: 10, rewards: { play_coin: 2 } },
-                        { goal: 30, rewards: { exp: 40 } },
-                        { goal: 50, rewards: { background: 'secret_garden' } },
-                    ]
-                },
-                'explore_market': {
-                    category: 'การสำรวจ', name: 'นักช้อปตลาดนัด', icon: '🧭',
-                    tiers: [
-                        { goal: 3, rewards: { exp: 12 } },
-                        { goal: 10, rewards: { play_coin: 3 } },
-                        { goal: 30, rewards: { exp: 45 } },
-                        { goal: 50, rewards: { background: 'hidden_shop' } },
-                    ]
-                },
-                'explore_beach': {
-                    category: 'การสำรวจ', name: 'นักเที่ยวทะเล', icon: '🧭',
-                    tiers: [
-                        { goal: 3, rewards: { exp: 15 } },
-                        { goal: 10, rewards: { play_coin: 3 } },
-                        { goal: 30, rewards: { exp: 60 } },
-                        { goal: 50, rewards: { background: 'beach_resort' } },
-                    ]
-                },
-                'explore_forest': {
-                    category: 'การสำรวจ', name: 'นักผจญภัยในป่า', icon: '🧭',
-                    tiers: [
-                        { goal: 3, rewards: { exp: 20 } },
-                        { goal: 10, rewards: { play_coin: 4 } },
-                        { goal: 30, rewards: { exp: 70 } },
-                        { goal: 50, rewards: { background: 'ancient_forest' } },
-                    ]
-                },
-                // --- Upgrade Achievements ---
-                'upgrade_bed': {
-                    category: 'การอัปเกรดบ้าน', name: 'นักตกแต่งเตียง', icon: '🏠',
-                    tiers: [
-                        { goal: 1, rewards: { exp: 20 } },
-                        { goal: 2, rewards: { play_coin: 5 } }, // Custom reward
-                        { goal: 3, rewards: { play_coin: 5 } }, // Custom reward
-                        { goal: 4, rewards: { exp: 50 } }, // Custom reward
-                        { goal: 5, rewards: { background: 'cozy_bedroom' } },
-                    ]
-                },
-                'upgrade_bowl': {
-                    category: 'การอัปเกรดบ้าน', name: 'นักออกแบบชามอาหาร', icon: '🏠',
-                    tiers: [
-                        { goal: 1, rewards: { exp: 20 } },
-                        { goal: 2, rewards: { play_coin: 5 } },
-                        { goal: 3, rewards: { play_coin: 5 } },
-                        { goal: 4, rewards: { exp: 50 } },
-                        { goal: 5, rewards: { background: 'grand_kitchen' } },
-                    ]
-                },
-                'upgrade_toy_shelf': {
-                    category: 'การอัปเกรดบ้าน', name: 'นักสะสมของเล่น', icon: '🏠',
-                    tiers: [
-                        { goal: 1, rewards: { exp: 20 } },
-                        { goal: 2, rewards: { play_coin: 5 } },
-                        { goal: 3, rewards: { play_coin: 5 } },
-                        { goal: 4, rewards: { exp: 50 } },
-                        { goal: 5, rewards: { background: 'toy_gallery' } },
-                    ]
-                },
-                 'upgrade_all_max': {
-                    category: 'การอัปเกรดบ้าน', name: 'เจ้าแห่งการแต่งบ้าน', icon: '👑',
-                    isSpecial: true, // This is a special flag
-                    tiers: [
-                        { goal: 1, rewards: { background: 'sky_palace_legendary' } },
-                    ]
-                }
-            };
-
-            // ===================================================================
-            // ===== END: ACHIEVEMENT DEFINITIONS ================================
-            // ===================================================================
-
 
             // DOM Elements
             const screens = {
@@ -1136,84 +962,19 @@
             const gachaRatesList = document.getElementById('gacha-rates-list');
             const closeGachaRatesModalBtn = document.getElementById('close-gacha-rates-modal-btn');
 
-            const floatingPetContainer = document.getElementById('floating-pet-container');
-            const floatingPetImage = document.getElementById('floating-pet-image');
-            const petSpeechBubble = document.getElementById('pet-speech-bubble');
-            const petStatsModal = document.getElementById('pet-stats-modal');
-            const closePetStatsModalBtn = document.getElementById('close-pet-stats-modal-btn');
-            const petDisplayArea = document.getElementById('pet-display-area');
-            const petNameEl = document.getElementById('pet-name');
-            const petLevelEl = document.getElementById('pet-level');
-            const petModalImageEl = document.getElementById('pet-modal-image');
-            const petExpText = document.getElementById('pet-exp-text');
-            const petExpBar = document.getElementById('pet-exp-bar');
-            const petHungerText = document.getElementById('pet-hunger-text');
-            const petHungerBar = document.getElementById('pet-hunger-bar');
-            const petHappinessText = document.getElementById('pet-happiness-text');
-            const petHappinessBar = document.getElementById('pet-happiness-bar');
-            const petStaminaText = document.getElementById('pet-stamina-text');
-            const petStaminaBar = document.getElementById('pet-stamina-bar');
-            const feedPetBtn = document.getElementById('feed-pet-btn');
-            const playWithPetBtn = document.getElementById('play-with-pet-btn');
-            const petActionButtons = document.getElementById('pet-action-buttons');
-            const petExplorationStatusInModal = document.getElementById('pet-exploration-status-in-modal');
-            const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
-            const petExplorationTimerInModal = document.getElementById('pet-exploration-timer-in-modal');
-            
-            const changeBgBtn = document.getElementById('change-bg-btn');
-            const backgroundModal = document.getElementById('background-modal');
-            const closeBackgroundModalBtn = document.getElementById('close-background-modal-btn');
-            const petBackgroundList = document.getElementById('pet-background-list');
-            const petBackgroundBuffDisplay = document.getElementById('pet-background-buff-display');
-            const petAttunementStatusDisplay = document.getElementById('pet-attunement-status-display');
-
-            const backgroundConfirmModal = document.getElementById('background-confirm-modal');
-            const backgroundConfirmImage = document.getElementById('background-confirm-image');
-            const backgroundConfirmName = document.getElementById('background-confirm-name');
-            const backgroundConfirmDesc = document.getElementById('background-confirm-desc');
-            const confirmBackgroundChangeBtn = document.getElementById('confirm-background-change-btn');
-            const cancelBackgroundChangeBtn = document.getElementById('cancel-background-change-btn');
-
-            const upgradePetBtn = document.getElementById('upgrade-pet-btn');
-            const upgradeModal = document.getElementById('upgrade-modal');
-            const closeUpgradeModalBtn = document.getElementById('close-upgrade-modal-btn');
-            const upgradeList = document.getElementById('upgrade-list');
-            const useItemBtn = document.getElementById('use-item-btn');
-            const useItemModal = document.getElementById('use-item-modal');
-            const closeUseItemModalBtn = document.getElementById('close-use-item-modal-btn');
-            const itemUseList = document.getElementById('item-use-list');
-
-            const hatchModal = document.getElementById('hatch-modal');
-            const eggStage = document.getElementById('egg-stage');
-            const nameStage = document.getElementById('name-stage');
-            const eggImage = document.getElementById('egg-image');
-            const eggTapsText = document.getElementById('egg-taps');
-            const petNameInput = document.getElementById('pet-name-input');
-            const confirmNameBtn = document.getElementById('confirm-name-btn');
-            
-            const feedModal = document.getElementById('feed-modal');
-            const foodList = document.getElementById('food-list');
-            const closeFeedModalBtn = document.getElementById('close-feed-modal-btn');
-
-            const playModal = document.getElementById('play-modal');
-            const playOptionsList = document.getElementById('play-options-list');
-            const closePlayModalBtn = document.getElementById('close-play-modal-btn');
-
             const explorationStatusCard = document.getElementById('exploration-status-card');
             const explorationTimerEl = document.getElementById('exploration-timer');
             const explorationStatusText = document.getElementById('exploration-status-text');
             const claimRewardsBtn = document.getElementById('claim-rewards-btn');
+
+            const randomEventModal = document.getElementById('random-event-modal');
+            const eventTitle = document.getElementById('event-title');
+            const eventImage = document.getElementById('event-image');
+            const eventDescription = document.getElementById('event-description');
+            const eventOptions = document.getElementById('event-options');
             
-            const achievementsBtn = document.getElementById('achievements-btn');
-            const achievementNotification = document.getElementById('achievement-notification');
-            const achievementsModal = document.getElementById('achievements-modal');
-            const achievementsContent = document.getElementById('achievements-content');
-            const closeAchievementsModalBtn = document.getElementById('close-achievements-modal-btn');
-
-            let eggTaps = 0;
-            const TAPS_TO_HATCH = 20;
-
-
+            const testEventBtn = document.getElementById('test-event-btn');
+            
             // --- State Management ---
             function saveState() {
                 localStorage.setItem('monGameDataV17', JSON.stringify(state));
@@ -1245,6 +1006,9 @@
                     }
                     if (!state.achievementProgress) state.achievementProgress = {};
                     if (!state.achievementStatus) state.achievementStatus = {};
+                    if (!state.eventTracker) {
+                        state.eventTracker = { lastEventTime: 0, dailyCount: 0, lastEventDate: null };
+                    }
 
                 } else {
                     state = {
@@ -1266,7 +1030,8 @@
                             upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
                         },
                         achievementProgress: {},
-                        achievementStatus: {}
+                        achievementStatus: {},
+                        eventTracker: { lastEventTime: 0, dailyCount: 0, lastEventDate: null }
                     };
                     shopItemDefinitions.forEach(item => { state.shopItemLevels[item.id] = 0; });
                     generateNewMissions();
@@ -1377,7 +1142,6 @@
                         let priceText = '';
                         let finalPrice = item.basePrice;
 
-                        // Apply discount from achievement
                         const hiddenShopUnlocked = state.pet.ownedBackgrounds.includes('hidden_shop');
                         if (hiddenShopUnlocked) {
                             finalPrice = Math.round(finalPrice * 0.9);
@@ -1593,484 +1357,7 @@
             function hideGachaRatesModal() {
                 gachaRatesModal.classList.remove('visible');
             }
-
-            // --- Pet Functions ---
-            function updatePetStatusOverTime() {
-                if (!state.pet.exists) return;
-
-                const now = Date.now();
-                const elapsedMinutes = Math.floor((now - state.pet.lastStatusUpdate) / (1000 * 60));
-
-                if (elapsedMinutes > 0) {
-                    let hungerMultiplier = 1.0;
-                    let happinessMultiplier = 1.0;
-                    let staminaRegenMultiplier = 1.0;
-                    let staminaDecayMultiplier = 1.0;
-                    
-                    const activeBg = state.pet.activeBackground;
-                    if (activeBg === 'kitchen') hungerMultiplier *= 0.9;
-                    if (activeBg === 'bedroom') happinessMultiplier *= 0.9;
-                    if (activeBg === 'coffee_lounge') hungerMultiplier *= 0.9;
-                    if (activeBg === 'gym_room') staminaRegenMultiplier *= 1.2;
-                    if (activeBg === 'playground' || activeBg === 'beach_resort') {
-                        staminaDecayMultiplier *= (activeBg === 'playground' ? 0.9 : 0.85);
-                    }
-
-                    const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
-                    const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
-                    
-                    const bedLevel = state.pet.upgradeLevels.bed;
-                    const baseRegenInterval = 10;
-                    const timeReduction = bedLevel * 0.5;
-                    const finalRegenInterval = Math.max(1, baseRegenInterval - timeReduction);
-                    const staminaGain = Math.floor((elapsedMinutes / finalRegenInterval) * staminaRegenMultiplier);
-                    
-                    state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
-                    state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
-                    if (!state.pet.exploration || state.pet.exploration.endTime < now) {
-                        state.pet.stamina = Math.min(100, state.pet.stamina + staminaGain);
-                    }
-                    
-                    state.pet.lastStatusUpdate = now;
-                    saveState();
-                }
-            }
-
-            function updatePetEmotion() {
-                if (!state.pet.exists) return;
-                
-                let currentEmotion = 'normal';
-                let isBubbleVisible = false;
-
-                if (state.pet.hunger <= 50) {
-                    currentEmotion = 'sad';
-                    petSpeechBubble.textContent = 'หิวแน้ววว';
-                    isBubbleVisible = true;
-                } else if (state.pet.happiness <= 50) {
-                    currentEmotion = 'angry';
-                    petSpeechBubble.textContent = 'ไม่คิดถึงกันหรอ';
-                    isBubbleVisible = true;
-                }
-
-                if (isBubbleVisible) {
-                    petSpeechBubble.classList.remove('hidden');
-                } else {
-                    petSpeechBubble.classList.add('hidden');
-                }
-
-                const imageUrl = petEmotions[currentEmotion];
-                floatingPetImage.src = imageUrl;
-                petModalImageEl.src = imageUrl;
-            }
-
-
-            function renderFloatingPet() {
-                 if (!state.pet.exists) {
-                     floatingPetContainer.classList.add('hidden');
-                     return;
-                 }
-                 floatingPetContainer.classList.remove('hidden');
-                 updatePetEmotion();
-            }
-
-            function renderPetStats() {
-                if (!state.pet.exists) return;
-                updatePetEmotion();
-                updateAchievementNotification();
-
-                const pet = state.pet;
-                const maxExp = pet.level * 100;
-                
-                petNameEl.textContent = pet.name;
-                petLevelEl.textContent = `Lv. ${pet.level}`;
-                
-                petExpText.textContent = `${pet.exp} / ${maxExp}`;
-                petExpBar.style.width = `${(pet.exp / maxExp) * 100}%`;
-                
-                petHungerText.textContent = `${pet.hunger} / 100`;
-                petHungerBar.style.width = `${pet.hunger}%`;
-
-                petHappinessText.textContent = `${pet.happiness} / 100`;
-                petHappinessBar.style.width = `${pet.happiness}%`;
-                
-                petStaminaText.textContent = `${pet.stamina} / 100`;
-                petStaminaBar.style.width = `${pet.stamina}%`;
-
-                const activeBgId = state.pet.activeBackground;
-                const bgInfo = petBackgroundDefinitions[activeBgId];
-
-                if (bgInfo && bgInfo.description !== 'ไม่มีโบนัสพิเศษ') {
-                    petDisplayArea.style.backgroundImage = `url('${bgInfo.image}')`;
-                    petBackgroundBuffDisplay.textContent = `โบนัส: ${bgInfo.description}`;
-                    petBackgroundBuffDisplay.classList.remove('hidden');
-                } else {
-                    petDisplayArea.style.backgroundImage = `url('${petBackgroundDefinitions.default.image}')`;
-                    petBackgroundBuffDisplay.classList.add('hidden');
-                }
-                
-                renderExplorationStatus();
-            }
             
-            function addPetExp(amount) {
-                const pet = state.pet;
-                let finalAmount = amount;
-                
-                const activeBg = state.pet.activeBackground;
-                if (activeBg === 'library' || activeBg === 'coffee_lounge' || activeBg === 'digital_nexus') {
-                    if (activeBg === 'library') finalAmount *= 1.1;
-                    if (activeBg === 'coffee_lounge') finalAmount *= 1.1;
-                    if (activeBg === 'digital_nexus') finalAmount *= 1.15;
-                }
-                finalAmount = Math.round(finalAmount);
-
-                const maxExp = pet.level * 100;
-                pet.exp += finalAmount;
-
-                while (pet.exp >= maxExp) {
-                    pet.level++;
-                    pet.exp -= maxExp;
-                    alert(`ยินดีด้วย! ${pet.name} เลเวลอัปเป็น Lv. ${pet.level} แล้ว!`);
-                }
-                saveState();
-                renderPetStats();
-            }
-
-            function handleEggTap() {
-                eggTaps++;
-                eggTapsText.textContent = eggTaps;
-                eggImage.classList.add('shaking');
-                setTimeout(() => eggImage.classList.remove('shaking'), 200);
-                if (eggTaps >= TAPS_TO_HATCH) {
-                    eggStage.classList.add('hidden');
-                    nameStage.classList.remove('hidden');
-                }
-            }
-
-            function confirmPetName() {
-                const name = petNameInput.value.trim();
-                if (name) {
-                    state.pet = {
-                        exists: true,
-                        name: name,
-                        level: 1,
-                        exp: 0,
-                        hunger: 50,
-                        happiness: 60,
-                        stamina: 100,
-                        exploration: null,
-                        lastPattedDate: null,
-                        lastStatusUpdate: Date.now(),
-                        ownedBackgrounds: ['default'],
-                        activeBackground: 'default',
-                        attunement: null,
-                        upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
-                    };
-                    saveState();
-                    hatchModal.classList.remove('visible');
-                    renderFloatingPet();
-                } else {
-                    alert('กรุณาตั้งชื่อให้น้องม่อนด้วยนะ!');
-                }
-            }
-
-            function showFeedModal() {
-                foodList.innerHTML = '';
-                
-                let costMultiplier = 1.0;
-                if (state.pet.ownedBackgrounds.includes('hidden_shop')) {
-                    costMultiplier *= 0.9;
-                }
-                if (state.pet.upgradeLevels.bowl >= 4) {
-                    costMultiplier *= 0.95;
-                }
-                if (state.pet.activeBackground === 'restaurant') {
-                    costMultiplier *= 0.8;
-                }
-
-                for (const foodName in petFoodDefinitions) {
-                    const food = petFoodDefinitions[foodName];
-                    const hasItem = (state.inventory[foodName] || 0) > 0;
-                    
-                    const bowlLevel = state.pet.upgradeLevels.bowl;
-                    const hungerBonus = 1 + ((bowlLevel-1) * 0.05) + (bowlLevel >= 2 ? 0.05 : 0); // Lv2: +5%, Lv3: +10% etc.
-                    let finalHungerGain = Math.round(food.hunger * hungerBonus);
-                    if (state.pet.activeBackground === 'grand_kitchen') finalHungerGain = Math.round(finalHungerGain * 1.25);
-
-                    const foodEl = document.createElement('button');
-                    foodEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-rose-50 rounded-lg border-l-4 border-rose-200';
-                    
-                    const feedAction = () => {
-                        let happinessGain = 0;
-                        if (state.pet.activeBackground === 'cute_cafe') happinessGain += 10;
-                        if (state.pet.activeBackground === 'crystal_chamber' && foodName === 'เค้ก') happinessGain += 15;
-
-                        state.pet.hunger = Math.min(100 + (state.pet.upgradeLevels.bowl >= 2 ? 5 : 0), state.pet.hunger + finalHungerGain);
-                        state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
-                        
-                        let expGain = food.exp;
-                        if (state.pet.activeBackground === 'mythical_garden' && foodName === 'ขนมปัง') expGain = Math.round(expGain * 1.1);
-                        if (state.pet.activeBackground === 'library' && foodName === 'บรอกโคลี') expGain = Math.round(expGain * 1.2);
-                        addPetExp(expGain);
-                        
-                        // Track Achievement
-                        const achievementKeyMap = { 'ขนมปัง': 'feed_bread', 'เค้ก': 'feed_cake', 'ไอศกรีม': 'feed_icecream', 'มะเขือเทศ': 'feed_tomato', 'แครอท': 'feed_carrot', 'บรอกโคลี': 'feed_broccoli', 'สตรอว์เบอร์รี': 'feed_strawberry' };
-                        if (achievementKeyMap[foodName]) {
-                            trackAchievement(achievementKeyMap[foodName]);
-                        }
-                        
-                        floatingPetImage.src = petEmotions.happy;
-                        petModalImageEl.src = petEmotions.happy;
-                        setTimeout(renderPetStats, 2000);
-
-                        hideFeedModal();
-                        alert(`คุณป้อน ${foodName} ให้ ${state.pet.name}!`);
-                        saveState();
-                        renderInventory();
-                        renderPetStats();
-                    };
-
-                    if (hasItem) {
-                        foodEl.innerHTML = `
-                            <span>ใช้ ${foodName} (+${finalHungerGain} ❤️)</span>
-                            <span class="font-bold text-gray-600">มี ${state.inventory[foodName]} ชิ้น</span>
-                        `;
-                        foodEl.onclick = () => {
-                            state.inventory[foodName]--;
-                            feedAction();
-                        };
-                    } else if (food.cost > 0) {
-                        const finalCost = Math.round(food.cost * costMultiplier);
-                        foodEl.innerHTML = `
-                            <span>ซื้อ ${foodName} (+${finalHungerGain} ❤️)</span>
-                            <span class="font-bold text-amber-600">${finalCost} เหรียญ</span>
-                        `;
-                        foodEl.onclick = () => {
-                            if (state.monCoins >= finalCost) {
-                                state.monCoins -= finalCost;
-                                updateCoinDisplays();
-                                feedAction();
-                            } else {
-                                alert('เหรียญม่อนไม่พอจ้า!');
-                            }
-                        };
-                    } else {
-                        continue;
-                    }
-                    foodList.appendChild(foodEl);
-                }
-                feedModal.classList.add('visible');
-            }
-            
-            function hideFeedModal() {
-                feedModal.classList.remove('visible');
-            }
-            
-            function showPlayModal() {
-                playOptionsList.innerHTML = '';
-                const today = new Date().toDateString();
-                const canPat = state.pet.lastPattedDate !== today;
-
-                const patEl = document.createElement('button');
-                patEl.className = `btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200 ${!canPat ? 'opacity-50 cursor-not-allowed' : ''}`;
-                patEl.innerHTML = `
-                    <span>ลูบหัว (+15 😊)</span>
-                    <span class="font-bold text-blue-600">ฟรี (วันละครั้ง)</span>
-                `;
-                if (canPat) {
-                    patEl.onclick = () => handlePlayAction('pat');
-                } else {
-                    patEl.disabled = true;
-                }
-                playOptionsList.appendChild(patEl);
-
-                for (const toyName in petToys) {
-                    if (state.inventory[toyName] > 0) {
-                        const toy = petToys[toyName];
-                        let happinessGain = toy.happiness;
-                        
-                        const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
-                        if (toyShelfLevel >= 2) happinessGain = Math.round(happinessGain * 1.05);
-                        if (state.pet.activeBackground === 'playroom') happinessGain = Math.round(happinessGain * 1.2);
-                        if (state.pet.activeBackground === 'toy_gallery') happinessGain = Math.round(happinessGain * 1.25);
-                        if (state.pet.activeBackground === 'amusement_park') happinessGain = Math.round(happinessGain * 1.2);
-
-
-                        const toyEl = document.createElement('button');
-                        toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
-                        toyEl.innerHTML = `
-                            <span>ใช้ ${toyName} (+${happinessGain} 😊)</span>
-                            <span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>
-                        `;
-                        toyEl.onclick = () => handlePlayAction(toyName, happinessGain);
-                        playOptionsList.appendChild(toyEl);
-                    }
-                }
-                playModal.classList.add('visible');
-            }
-            
-            function hidePlayModal() {
-                playModal.classList.remove('visible');
-            }
-
-            function handlePlayAction(action, happinessGain = 15) {
-                let expGain = 0;
-                let playCoinGain = 0;
-                
-                if (action === 'pat') {
-                    const today = new Date().toDateString();
-                    if (state.pet.lastPattedDate !== today) {
-                        state.pet.lastPattedDate = today;
-                        expGain = 10;
-                        playCoinGain = 1 + Math.floor(state.pet.level / 5);
-                        alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${playCoinGain} เหรียญเล่นม่อน และ ${expGain} EXP!`);
-                    }
-                } 
-                else if (petToys[action] && state.inventory[action] > 0) {
-                    state.inventory[action]--;
-                    expGain = petToys[action].exp;
-                    alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
-                    
-                    const achievementKeyMap = { 'ของเล่นยาง': 'play_rubber_toy', 'ลูกบอล': 'play_ball', 'กีต้า': 'play_guitar', 'คอมพิวเตอร์': 'play_computer' };
-                    if (achievementKeyMap[action]) {
-                        trackAchievement(achievementKeyMap[action]);
-                    }
-                }
-
-                state.pet.happiness = Math.min(100 + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0), state.pet.happiness + happinessGain);
-                
-                if (state.pet.upgradeLevels.bed >= 4) expGain += 5;
-                if (state.pet.activeBackground === 'music_room') expGain = Math.round(expGain * 1.15);
-                
-                if (expGain > 0) addPetExp(expGain);
-                if (playCoinGain > 0) state.playCoins += playCoinGain;
-
-                floatingPetImage.classList.add('pet-happy-animation');
-                floatingPetImage.addEventListener('animationend', () => {
-                    floatingPetImage.classList.remove('pet-happy-animation');
-                }, { once: true });
-
-                saveState();
-                renderPetStats();
-                renderInventory();
-                updateCoinDisplays();
-                hidePlayModal();
-            }
-            
-            function showUseItemModal() {
-                itemUseList.innerHTML = '';
-                let hasStaminaItem = false;
-
-                for (const itemId in staminaItems) {
-                    if (state.inventory[itemId] > 0) {
-                        hasStaminaItem = true;
-                        const itemEffect = staminaItems[itemId];
-                        const itemDetails = consumableItems[itemId];
-
-                        const itemEl = document.createElement('button');
-                        itemEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-teal-50 rounded-lg border-l-4 border-teal-200';
-                        itemEl.innerHTML = `
-                            <span>ใช้ ${itemDetails.name} (+${itemEffect.stamina} ⚡️)</span>
-                            <span class="font-bold text-gray-600">มี ${state.inventory[itemId]} ชิ้น</span>
-                        `;
-                        itemEl.onclick = () => {
-                            if (state.pet.stamina >= 100) {
-                                alert('พลังงานเต็มแล้วจ้า!');
-                                return;
-                            }
-                            state.inventory[itemId]--;
-                            state.pet.stamina = Math.min(100, state.pet.stamina + itemEffect.stamina);
-                            
-                            const achievementKeyMap = { 'item_m150': 'use_m150', 'item_latte': 'use_latte', 'item_americano': 'use_americano' };
-                            if (achievementKeyMap[itemId]) {
-                                trackAchievement(achievementKeyMap[itemId]);
-                            }
-
-                            hideUseItemModal();
-                            alert(`คุณใช้ ${itemDetails.name} ฟื้นฟูพลังงาน!`);
-                            saveState();
-                            renderInventory();
-                            renderPetStats();
-                        };
-                        itemUseList.appendChild(itemEl);
-                    }
-                }
-                if (!hasStaminaItem) {
-                    itemUseList.innerHTML = `<p class="text-gray-500">ไม่มีไอเทมฟื้นฟูพลังงานเลย</p>`;
-                }
-                useItemModal.classList.add('visible');
-            }
-
-            function hideUseItemModal() {
-                useItemModal.classList.remove('visible');
-            }
-
-            function renderUpgradesUI() {
-                upgradeList.innerHTML = '';
-                const upgrades = [
-                    { id: 'bed', name: 'เตียงนอน', icon: '🛏️', descriptions: ['+20 EXP', 'ความสุขสูงสุด +5', 'ความสุขลดช้าลง 5%', '+5 EXP ทุกครั้งที่เล่นด้วย', 'ปลดล็อก "ห้องนอนใหม่"'] },
-                    { id: 'bowl', name: 'ชามข้าว', icon: '🍚', descriptions: ['+20 EXP', 'อิ่มสูงสุด +5', 'ความหิวลดช้าลง 5%', 'ราคาอาหารลด 5%', 'ปลดล็อก "ห้องครัวใหญ่"'] },
-                    { id: 'toy_shelf', name: 'ชั้นของเล่น', icon: '🧸', descriptions: ['+20 EXP', 'ความสุขจากของเล่น +5%', 'โอกาสดรอปของจากการเล่น +3%', 'คูลดาวน์เล่นด้วยสั้นลง', 'ปลดล็อก "ห้องเก็บของเล่น"'] }
-                ];
-
-                upgrades.forEach(upgrade => {
-                    const currentLevel = state.pet.upgradeLevels[upgrade.id];
-                    const isMaxLevel = currentLevel >= maxUpgradeLevel;
-                    
-                    const effectText = currentLevel > 0 ? upgrade.descriptions[currentLevel - 1] : 'ยังไม่มีโบนัส';
-                    const nextEffectText = isMaxLevel ? 'สูงสุดแล้ว' : `Lv.${currentLevel + 1}: ${upgrade.descriptions[currentLevel]}`;
-                    
-                    const cost = isMaxLevel ? -1 : upgradeCosts[currentLevel];
-                    const canAfford = state.monCoins >= cost;
-                    
-                    const el = document.createElement('div');
-                    el.className = 'bg-gray-100 p-3 rounded-lg';
-                    el.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="font-bold text-lg text-gray-800 flex items-center">${upgrade.icon} ${upgrade.name} (Lv. ${currentLevel})</h4>
-                                <p class="text-sm font-semibold text-green-600">โบนัสปัจจุบัน: ${effectText}</p>
-                            </div>
-                            <button data-id="${upgrade.id}" class="upgrade-btn btn-base text-white font-bold py-2 px-4 rounded-lg border-b-4 ${isMaxLevel || !canAfford ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-green-500 border-green-700'}">
-                                ${isMaxLevel ? 'MAX' : `${cost} $`}
-                            </button>
-                        </div>
-                        <div class="text-center text-xs text-gray-500 mt-2 bg-white p-1 rounded">ผลเลเวลถัดไป: ${nextEffectText}</div>
-                    `;
-                    upgradeList.appendChild(el);
-                });
-
-                document.querySelectorAll('.upgrade-btn').forEach(btn => {
-                    btn.addEventListener('click', handleUpgrade);
-                });
-            }
-            
-            function handleUpgrade(event) {
-                const upgradeId = event.target.dataset.id;
-                const currentLevel = state.pet.upgradeLevels[upgradeId];
-
-                if (currentLevel >= maxUpgradeLevel) return;
-
-                const cost = upgradeCosts[currentLevel];
-                if (state.monCoins >= cost) {
-                    state.monCoins -= cost;
-                    state.pet.upgradeLevels[upgradeId]++;
-                    
-                    trackAchievement(`upgrade_${upgradeId}`, state.pet.upgradeLevels[upgradeId]); // Set progress to current level
-                    
-                    // Check for special all-max achievement
-                    if (state.pet.upgradeLevels.bed === 5 && state.pet.upgradeLevels.bowl === 5 && state.pet.upgradeLevels.toy_shelf === 5) {
-                        trackAchievement('upgrade_all_max');
-                    }
-
-                    saveState();
-                    updateCoinDisplays();
-                    renderUpgradesUI();
-                    alert('อัปเกรดสำเร็จ!');
-                } else {
-                    alert('เหรียญม่อนไม่พอจ้า!');
-                }
-            }
-
             function formatCountdown(ms) {
                 if (ms < 0) ms = 0;
                 let s = Math.floor(ms / 1000);
@@ -2085,14 +1372,14 @@
                 const location = explorationLocations[locationId];
                 if (!location) return;
 
-                trackAchievement(`explore_${locationId}`);
+                petSystem.trackAchievement(`explore_${locationId}`);
 
                 let foundRewards = [];
                 let expFromExploration = location.exp;
                 
                 const activeBg = state.pet.activeBackground;
                 if (activeBg === 'ancient_forest') expFromExploration = Math.round(expFromExploration * 1.15);
-                addPetExp(expFromExploration);
+                petSystem.addPetExp(expFromExploration);
                 foundRewards.push(`${expFromExploration} EXP`);
 
                 let bonusDropChance = 0;
@@ -2120,7 +1407,7 @@
                          } else if (reward.type === 'background') {
                              if (!state.pet.ownedBackgrounds.includes(reward.name)) {
                                  state.pet.ownedBackgrounds.push(reward.name);
-                                 const bgName = petBackgroundDefinitions[reward.name]?.name || reward.name;
+                                 const bgName = petSystem.getBackgroundInfo(reward.name)?.name || reward.name;
                                  foundRewards.push(`ปลดล็อก: ${bgName}`);
                              }
                          }
@@ -2147,14 +1434,13 @@
                 if (explorationInterval) clearInterval(explorationInterval);
 
                 const exploration = state.pet.exploration;
-                const exploreBtnInModal = petActionButtons.querySelector('a[href="exploration.html"]');
+                const petActionButtons = document.getElementById('pet-action-buttons');
+                const exploreBtnInModal = petActionButtons ? petActionButtons.querySelector('a[href="exploration.html"]') : null;
 
                 if (exploration) {
                     const locationName = explorationLocations[exploration.locationId].name;
                     explorationStatusCard.classList.remove('hidden');
-                    petExplorationStatusInModal.classList.remove('hidden');
-                    petExplorationLocationInModal.textContent = locationName;
-
+                    
                     if (exploreBtnInModal) {
                         exploreBtnInModal.classList.add('opacity-50', 'cursor-not-allowed');
                         exploreBtnInModal.style.pointerEvents = 'none';
@@ -2172,7 +1458,9 @@
                             } else {
                                 const countdownText = formatCountdown(remaining);
                                 explorationTimerEl.textContent = countdownText;
-                                petExplorationTimerInModal.textContent = countdownText;
+                                // Update pet modal timer too if it exists
+                                const petModalTimer = document.getElementById('pet-exploration-timer-in-modal');
+                                if (petModalTimer) petModalTimer.textContent = countdownText;
                             }
                         };
                         explorationInterval = setInterval(updateTimer, 1000);
@@ -2181,377 +1469,159 @@
                         explorationStatusText.innerHTML = `${state.pet.name} กลับมาจากการสำรวจที่ <strong class="text-pink-500">${locationName}</strong> แล้ว!`;
                         explorationTimerEl.classList.add('hidden');
                         claimRewardsBtn.classList.remove('hidden');
-                        petExplorationTimerInModal.textContent = "เสร็จสิ้น!";
+                        const petModalTimer = document.getElementById('pet-exploration-timer-in-modal');
+                        if (petModalTimer) petModalTimer.textContent = "เสร็จสิ้น!";
                     }
                 } else {
                     explorationStatusCard.classList.add('hidden');
-                    petExplorationStatusInModal.classList.add('hidden');
                     if (exploreBtnInModal) {
                         exploreBtnInModal.classList.remove('opacity-50', 'cursor-not-allowed');
                         exploreBtnInModal.style.pointerEvents = 'auto';
                     }
                 }
             }
+            
+            function triggerRandomEvent(forceEvent = false) {
+                const now = Date.now();
+                const today = new Date().toDateString();
 
-            function renderPetBackgroundsUI() {
-                petBackgroundList.innerHTML = '';
-                const isAttuning = !!state.pet.attunement;
+                if (state.eventTracker.lastEventDate !== today) {
+                    state.eventTracker.dailyCount = 0;
+                    state.eventTracker.lastEventDate = today;
+                }
 
-                state.pet.ownedBackgrounds.forEach(bgId => {
-                    const bgInfo = petBackgroundDefinitions[bgId];
-                    if (!bgInfo) return;
-
-                    const bgEl = document.createElement('div');
-                    bgEl.dataset.bgId = bgId; // Add data-id for easier selection
-                    const isActive = state.pet.activeBackground === bgId;
-                    const isBeingAttuned = isAttuning && state.pet.attunement.bgId === bgId;
-
-                    let borderClass = 'border-transparent';
-                    if (isActive) borderClass = 'border-pink-500 scale-105 shadow-lg';
-                    if (isBeingAttuned) borderClass = 'border-yellow-500 scale-105 shadow-lg';
+                if (!forceEvent) {
+                    const timeSinceLast = now - state.eventTracker.lastEventTime;
+                    const canTrigger = state.eventTracker.dailyCount < 5 && timeSinceLast > 5 * 60 * 1000;
+                    const isExploring = state.pet.exploration && state.pet.exploration.endTime > Date.now();
+                    const isModalOpen = document.querySelector('.modal-overlay.visible');
                     
-                    let disabledClass = '';
-                    if (isAttuning && !isBeingAttuned) {
-                        disabledClass = 'opacity-50 cursor-not-allowed';
+                    if (!canTrigger || isExploring || isModalOpen || Math.random() > 0.2) {
+                        return;
                     }
+                }
 
-                    bgEl.className = `relative rounded-md p-1 border-2 transition-all ${borderClass} ${disabledClass}`;
-                    
-                    bgEl.innerHTML = `
-                        <div class="h-16 bg-cover bg-center rounded" style="background-image: url('${bgInfo.image}')"></div>
-                        <p class="text-xs font-semibold mt-1 text-center text-gray-700">${bgInfo.name}</p>
-                        <div class="attunement-timer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-md ${isBeingAttuned ? '' : 'hidden'}"></div>
-                    `;
-                    bgEl.title = bgInfo.description;
-
-                    if (!isAttuning) {
-                        bgEl.classList.add('cursor-pointer');
-                        bgEl.onclick = () => {
-                            if (isActive) return; // Don't do anything if clicking the active one
-                            showBackgroundConfirmationModal(bgId);
-                        };
-                    }
-                    
-                    petBackgroundList.appendChild(bgEl);
-                });
-            }
-
-            function showBackgroundConfirmationModal(bgId) {
-                const bgInfo = petBackgroundDefinitions[bgId];
-                if (!bgInfo) return;
-
-                backgroundConfirmImage.src = bgInfo.image;
-                backgroundConfirmName.textContent = bgInfo.name;
-                backgroundConfirmDesc.textContent = `โบนัส: ${bgInfo.description}`;
-
-                // Clone and replace the button to remove old event listeners
-                const oldBtn = document.getElementById('confirm-background-change-btn');
-                const newBtn = oldBtn.cloneNode(true);
-                oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+                const event = randomEvents[Math.floor(Math.random() * randomEvents.length)];
                 
-                newBtn.onclick = () => startAttunement(bgId);
-
-                backgroundModal.classList.remove('visible');
-                backgroundConfirmModal.classList.add('visible');
-            }
-
-            function startAttunement(bgId) {
-                const ATTUNEMENT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-
-                if (state.pet.attunement || state.pet.activeBackground === bgId) {
-                    alert('ไม่สามารถเปลี่ยนได้ในขณะนี้');
-                    return;
-                }
-
-                state.pet.attunement = {
-                    bgId: bgId,
-                    endTime: Date.now() + ATTUNEMENT_DURATION_MS
-                };
-
+                state.eventTracker.lastEventTime = now;
+                state.eventTracker.dailyCount++;
                 saveState();
-                backgroundConfirmModal.classList.remove('visible');
-                alert(`เริ่มการปรับตัวเข้ากับ "${petBackgroundDefinitions[bgId].name}"!\nบัฟจะทำงานในอีก 15 นาที`);
-                updateAttunementStatus(); // Start the interval and update UI immediately
-            }
 
-            function updateAttunementStatus() {
-                if (attunementInterval) clearInterval(attunementInterval);
+                eventTitle.textContent = event.title;
+                eventImage.src = event.imageUrl;
+                eventDescription.textContent = event.description;
+                eventOptions.innerHTML = '';
 
-                const attunement = state.pet.attunement;
-                if (!attunement) {
-                    petAttunementStatusDisplay.classList.add('hidden');
-                    return;
-                }
+                event.options.forEach(opt => {
+                    const button = document.createElement('button');
+                    button.className = 'btn-base w-full px-4 py-2 text-md font-bold text-white rounded-xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500 border-rose-700';
+                    button.textContent = opt.text;
+                    button.onclick = () => {
+                        handleEventEffect(opt.effect);
+                        randomEventModal.classList.remove('visible');
+                    };
+                    eventOptions.appendChild(button);
+                });
 
-                const update = () => {
-                    const now = Date.now();
-                    const remaining = attunement.endTime - now;
-
-                    if (remaining <= 0) {
-                        // Attunement complete
-                        const completedBgId = state.pet.attunement.bgId;
-                        const bgName = petBackgroundDefinitions[completedBgId]?.name || 'พื้นหลังใหม่';
-                        
-                        state.pet.activeBackground = completedBgId;
-                        state.pet.attunement = null;
-                        
-                        clearInterval(attunementInterval);
-                        attunementInterval = null;
-                        
-                        saveState();
-                        
-                        alert(`ปรับตัวเข้ากับ "${bgName}" สำเร็จ! บัฟทำงานแล้ว`);
-                        
-                        // Update UI
-                        petAttunementStatusDisplay.classList.add('hidden');
-                        renderPetStats(); // Re-render to show new active buff
-                        // If background modal is open, re-render it too
-                        if (backgroundModal.classList.contains('visible')) {
-                            renderPetBackgroundsUI();
-                        }
-                    } else {
-                        // Attunement in progress
-                        const countdownText = formatCountdown(remaining);
-                        const bgName = petBackgroundDefinitions[state.pet.attunement.bgId]?.name;
-                        const statusText = `กำลังปรับตัว: ${bgName} (${countdownText})`;
-                        
-                        // Update pet stats modal display
-                        petAttunementStatusDisplay.innerHTML = statusText;
-                        petAttunementStatusDisplay.classList.remove('hidden');
-
-                        // Update background selection modal display
-                        const bgItemInList = petBackgroundList.querySelector(`[data-bg-id="${state.pet.attunement.bgId}"] .attunement-timer`);
-                        if (bgItemInList) {
-                            bgItemInList.textContent = countdownText;
-                            bgItemInList.classList.remove('hidden');
-                        }
-                    }
-                };
-
-                attunementInterval = setInterval(update, 1000);
-                update(); // Initial call
+                randomEventModal.classList.add('visible');
             }
             
-            // --- Achievement System Functions ---
-            function trackAchievement(key, value = 1) {
-                const isLevelBased = key.startsWith('upgrade_');
-                if (isLevelBased) {
-                    state.achievementProgress[key] = value;
-                } else {
-                    state.achievementProgress[key] = (state.achievementProgress[key] || 0) + value;
+            function handleEventEffect(effect) {
+                let message = "เกิดเหตุการณ์ขึ้น!";
+                let rewards = [];
+
+                if (effect.happiness) {
+                    petSystem.changeHappiness(effect.happiness);
+                    message = "น้องม่อนดูมีความสุขขึ้นนะ!";
+                    rewards.push(`ความสุข +${effect.happiness}`);
                 }
-                updateAchievementNotification();
-                saveState();
-            }
-
-            function updateAchievementNotification() {
-                let hasUnclaimed = false;
-                for (const id in achievementDefinitions) {
-                    const achievement = achievementDefinitions[id];
-                    const progress = state.achievementProgress[id] || 0;
-                    for (let i = 0; i < achievement.tiers.length; i++) {
-                        const tier = achievement.tiers[i];
-                        const statusKey = `${id}_${i}`;
-                        if (progress >= tier.goal && !state.achievementStatus[statusKey]) {
-                            hasUnclaimed = true;
-                            break;
-                        }
-                    }
-                    if (hasUnclaimed) break;
+                if (effect.hunger) {
+                    petSystem.changeHunger(effect.hunger);
+                    message = "น้องม่อนอิ่มแปล้เลย!";
+                    rewards.push(`ความอิ่ม +${effect.hunger}`);
                 }
-                
-                if (hasUnclaimed) {
-                    achievementNotification.classList.remove('hidden');
-                } else {
-                    achievementNotification.classList.add('hidden');
-                }
-            }
-            
-            function renderAchievements() {
-                achievementsContent.innerHTML = '';
-                const achievementsByCategory = {};
-
-                for (const id in achievementDefinitions) {
-                    const achievement = achievementDefinitions[id];
-                    if (!achievementsByCategory[achievement.category]) {
-                        achievementsByCategory[achievement.category] = [];
-                    }
-                    achievementsByCategory[achievement.category].push({ id, ...achievement });
-                }
-
-                for (const category in achievementsByCategory) {
-                    const categoryEl = document.createElement('div');
-                    categoryEl.innerHTML = `<h3 class="text-lg font-bold text-pink-600 mb-2">${category}</h3>`;
-                    
-                    achievementsByCategory[category].forEach(ach => {
-                        const progress = state.achievementProgress[ach.id] || 0;
-                        let nextTier = null;
-                        let nextTierIndex = -1;
-                        for(let i = 0; i < ach.tiers.length; i++) {
-                            const statusKey = `${ach.id}_${i}`;
-                            if (!state.achievementStatus[statusKey]) {
-                                nextTier = ach.tiers[i];
-                                nextTierIndex = i;
-                                break;
-                            }
-                        }
-
-                        const achEl = document.createElement('div');
-                        achEl.className = 'bg-white p-3 rounded-lg mb-2 border';
-                        
-                        let progressText = nextTier ? `${progress} / ${nextTier.goal}` : 'สำเร็จทั้งหมด!';
-                        let progressPercent = nextTier ? (progress / nextTier.goal) * 100 : 100;
-                        
-                        achEl.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">${ach.icon} ${ach.name}</h4>
-                                    <p class="text-xs text-gray-500">${progressText}</p>
-                                </div>
-                            </div>
-                            <div class="progress-bar-bg mt-1">
-                                <div class="progress-bar bg-gradient-to-r from-amber-300 to-yellow-400" style="width: ${progressPercent}%;"></div>
-                            </div>
-                            <div class="mt-2 space-y-1">
-                                ${ach.tiers.map((tier, i) => {
-                                    const statusKey = `${ach.id}_${i}`;
-                                    const isClaimed = state.achievementStatus[statusKey];
-                                    const canClaim = progress >= tier.goal && !isClaimed;
-                                    
-                                    let rewardText = Object.entries(tier.rewards).map(([key, value]) => {
-                                        if (key === 'exp') return `+${value} EXP`;
-                                        if (key === 'play_coin') return `+${value} เหรียญเล่นม่อน`;
-                                        if (key === 'background') return `ปลดล็อก "${petBackgroundDefinitions[value]?.name || value}"`;
-                                        if (key === 'item') return `+${value.amount} ${consumableItems[value.id]?.name || value.id}`;
-                                        return '';
-                                    }).join(', ');
-
-                                    let buttonHtml;
-                                    if (isClaimed) {
-                                        buttonHtml = `<button disabled class="text-xs px-2 py-1 rounded bg-gray-300 text-gray-500">รับแล้ว</button>`;
-                                    } else if (canClaim) {
-                                        buttonHtml = `<button data-id="${ach.id}" data-tier="${i}" class="claim-achievement-btn btn-base text-xs px-2 py-1 rounded bg-green-500 text-white font-semibold">รับ</button>`;
-                                    } else {
-                                        buttonHtml = `<button disabled class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-400">ยังไม่ถึง</button>`;
-                                    }
-
-                                    return `<div class="flex justify-between items-center text-sm p-1 rounded ${isClaimed ? 'bg-green-50 text-gray-400 line-through' : 'bg-gray-100'}">
-                                                <span>เป้าหมาย ${tier.goal}: ${rewardText}</span>
-                                                ${buttonHtml}
-                                            </div>`;
-                                }).join('')}
-                            </div>
-                        `;
-                        categoryEl.appendChild(achEl);
-                    });
-                    achievementsContent.appendChild(categoryEl);
-                }
-
-                document.querySelectorAll('.claim-achievement-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = e.target.dataset.id;
-                        const tierIndex = parseInt(e.target.dataset.tier);
-                        claimAchievementReward(id, tierIndex);
-                    });
-                });
-            }
-
-            function claimAchievementReward(id, tierIndex) {
-                const achievement = achievementDefinitions[id];
-                if (!achievement) return;
-
-                const tier = achievement.tiers[tierIndex];
-                const progress = state.achievementProgress[id] || 0;
-                const statusKey = `${id}_${tierIndex}`;
-
-                if (progress >= tier.goal && !state.achievementStatus[statusKey]) {
-                    state.achievementStatus[statusKey] = true;
-
-                    // Grant rewards
-                    if (tier.rewards.exp) addPetExp(tier.rewards.exp);
-                    if (tier.rewards.play_coin) state.playCoins += tier.rewards.play_coin;
-                    if (tier.rewards.item) {
-                        state.inventory[tier.rewards.item.id] = (state.inventory[tier.rewards.item.id] || 0) + tier.rewards.item.amount;
-                    }
-                    if (tier.rewards.background) {
-                        if (!state.pet.ownedBackgrounds.includes(tier.rewards.background)) {
-                            state.pet.ownedBackgrounds.push(tier.rewards.background);
-                        }
-                    }
-                    
-                    saveState();
+                if (effect.monCoins) {
+                    state.monCoins += effect.monCoins;
                     updateCoinDisplays();
+                    message = "ว้าว! เจอเหรียญด้วยล่ะ";
+                    rewards.push(`ได้รับ ${effect.monCoins} เหรียญม่อน`);
+                }
+                if (effect.item) {
+                    state.inventory[effect.item.id] = (state.inventory[effect.item.id] || 0) + effect.item.amount;
                     renderInventory();
-                    renderAchievements(); // Re-render to update button state
-                    updateAchievementNotification(); // Check for other notifications
-                    alert('รับรางวัลสำเร็จ!');
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    message = "ได้รับไอเทม!";
+                    rewards.push(`ได้รับ ${consumableItems[effect.item.id]?.name || effect.item.id} x${effect.item.amount}`);
                 }
-            }
-
-
-            // --- Drag and Drop for Floating Pet ---
-            let isDragging = false;
-            let dragStartX, dragStartY;
-            let lastTranslateX = 0, lastTranslateY = 0;
-
-            function dragStart(e) {
-                isDragging = false;
-                
-                if (e.type === 'touchstart') {
-                    dragStartX = e.touches[0].clientX;
-                    dragStartY = e.touches[0].clientY;
-                } else {
-                    dragStartX = e.clientX;
-                    dragStartY = e.clientY;
+                if (effect.race) {
+                    if (Math.random() > 0.5) {
+                        petSystem.addPetExp(10);
+                        state.playCoins += 5;
+                        updateCoinDisplays();
+                        message = "เย้! วิ่งแข่งชนะเพื่อนด้วย";
+                        rewards.push("EXP +10", "เหรียญเล่นม่อน +5");
+                    } else {
+                        petSystem.changeStamina(-10);
+                        message = "แฮ่กๆ... วิ่งแข่งแพ้ซะได้";
+                        rewards.push("เสียพลังงาน -10");
+                    }
                 }
-                floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1.1)`;
-                floatingPetContainer.style.transition = 'none';
-
-                document.addEventListener('mousemove', dragMove);
-                document.addEventListener('touchmove', dragMove);
-                document.addEventListener('mouseup', dragEnd);
-                document.addEventListener('touchend', dragEnd);
-            }
-
-            function dragMove(e) {
-                isDragging = true;
-                e.preventDefault();
-                
-                let currentX, currentY;
-                if (e.type === 'touchmove') {
-                    currentX = e.touches[0].clientX;
-                    currentY = e.touches[0].clientY;
-                } else {
-                    currentX = e.clientX;
-                    currentY = e.clientY;
+                if (effect.openBox) {
+                    const roll = Math.random();
+                    if (roll < 0.6) { // 60% chance for good reward
+                        const coinsWon = 25;
+                        state.monCoins += coinsWon;
+                        updateCoinDisplays();
+                        message = "เปิดกล่องเจอสมบัติ!";
+                        rewards.push(`ได้รับ ${coinsWon} เหรียญม่อน`);
+                    } else if (roll < 0.9) { // 30% chance for neutral
+                        message = "กล่องว่างเปล่า...";
+                        rewards.push("ไม่มีอะไรเกิดขึ้น");
+                    } else { // 10% chance for bad outcome
+                        petSystem.changeHappiness(-10);
+                        message = "โอ๊ย! ของเล่นงูเด้งออกมา";
+                        rewards.push("ความสุขลดลง -10");
+                    }
                 }
-                const dx = currentX - dragStartX;
-                const dy = currentY - dragStartY;
-                floatingPetContainer.style.transform = `translate(${lastTranslateX + dx}px, ${lastTranslateY + dy}px) scale(1.1)`;
-            }
+                if (effect.guess) {
+                    const drawnCard = Math.ceil(Math.random() * 13);
+                    let cardValue = drawnCard;
+                    if (drawnCard > 10) cardValue = 10; // J, Q, K = 10
 
-            function dragEnd(e) {
-                if (isDragging) {
-                     let finalX, finalY;
-                     if (e.type === 'touchend' && e.changedTouches.length > 0) {
-                         finalX = e.changedTouches[0].clientX;
-                         finalY = e.changedTouches[0].clientY;
-                     } else {
-                         finalX = e.clientX;
-                         finalY = e.clientY;
-                     }
-                     lastTranslateX += finalX - dragStartX;
-                     lastTranslateY += finalY - dragStartY;
+                    let cardDisplay = cardValue.toString();
+                    if (drawnCard === 1) cardDisplay = 'A';
+                    if (drawnCard === 11) cardDisplay = 'J';
+                    if (drawnCard === 12) cardDisplay = 'Q';
+                    if (drawnCard === 13) cardDisplay = 'K';
+                    
+                    const isHigh = cardValue > 7;
+                    const isLow = cardValue < 7;
+                    const guessIsCorrect = (effect.guess === 'high' && isHigh) || (effect.guess === 'low' && isLow);
+
+                    message = `ไพ่ที่ออกคือ ${cardDisplay}! `;
+
+                    if (cardValue === 7) {
+                        message += "\nออก 7 พอดี! เสมอกันไป";
+                        rewards.push("ไม่มีอะไรเกิดขึ้น");
+                    } else if (guessIsCorrect) {
+                        state.monCoins += 15;
+                        state.playCoins += 2;
+                        updateCoinDisplays();
+                        message += "คุณทายถูก!";
+                        rewards.push("+15 เหรียญม่อน", "+2 เหรียญเล่นม่อน");
+                    } else {
+                        state.monCoins = Math.max(0, state.monCoins - 5);
+                        updateCoinDisplays();
+                        message += "คุณทายผิด!";
+                        rewards.push("เสีย 5 เหรียญม่อน");
+                    }
                 }
                 
-                floatingPetContainer.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(1)`;
-                floatingPetContainer.style.transition = 'transform 0.2s ease-out';
-                
-                document.removeEventListener('mousemove', dragMove);
-                document.removeEventListener('touchmove', dragMove);
-                document.removeEventListener('mouseup', dragEnd);
-                document.removeEventListener('touchend', dragEnd);
+                if (rewards.length > 0) {
+                    message += `\n\n${rewards.join('\n')}`;
+                }
+
+                alert(message);
+                saveState();
             }
 
 
@@ -2600,72 +1670,35 @@
                 closeGachaRatesModalBtn.addEventListener('click', hideGachaRatesModal);
                 gachaRatesModal.addEventListener('click', (e) => { if (e.target === gachaRatesModal) hideGachaRatesModal(); });
 
-                floatingPetContainer.addEventListener('mousedown', dragStart);
-                floatingPetContainer.addEventListener('touchstart', dragStart);
-                floatingPetContainer.addEventListener('click', () => {
-                    if (!isDragging) {
-                        renderPetStats();
-                        petStatsModal.classList.add('visible');
-                    }
-                });
-                
-                closePetStatsModalBtn.addEventListener('click', () => petStatsModal.classList.remove('visible'));
-                eggImage.addEventListener('click', handleEggTap);
-                confirmNameBtn.addEventListener('click', confirmPetName);
-                feedPetBtn.addEventListener('click', showFeedModal);
-                closeFeedModalBtn.addEventListener('click', () => feedModal.classList.remove('visible'));
-                playWithPetBtn.addEventListener('click', showPlayModal);
-                closePlayModalBtn.addEventListener('click', hidePlayModal);
                 claimRewardsBtn.addEventListener('click', () => {
                     if (state.pet.exploration) {
                         handleExplorationCompletion(state.pet.exploration.locationId);
                     }
                 });
-
-                changeBgBtn.addEventListener('click', () => {
-                    renderPetBackgroundsUI();
-                    backgroundModal.classList.add('visible');
-                });
-                closeBackgroundModalBtn.addEventListener('click', () => backgroundModal.classList.remove('visible'));
                 
-				cancelBackgroundChangeBtn.addEventListener('click', () => {
-					backgroundConfirmModal.classList.remove('visible'); // ซ่อนหน้าต่างยืนยัน
-					backgroundModal.classList.add('visible'); // แสดงหน้าต่างเลือกพื้นหลังอีกครั้ง
-				});
-				
-                upgradePetBtn.addEventListener('click', () => {
-                    renderUpgradesUI();
-                    upgradeModal.classList.add('visible');
-                });
-                closeUpgradeModalBtn.addEventListener('click', () => upgradeModal.classList.remove('visible'));
-                
-                useItemBtn.addEventListener('click', showUseItemModal);
-                closeUseItemModalBtn.addEventListener('click', hideUseItemModal);
-
-                achievementsBtn.addEventListener('click', () => {
-                    renderAchievements();
-                    achievementsModal.classList.add('visible');
-                });
-                closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('visible'));
+                testEventBtn.addEventListener('click', () => triggerRandomEvent(true));
             }
 
             // --- Initialization ---
             function init() {
                 loadState();
                 
-                if (!state.pet.exists) {
-                    hatchModal.classList.add('visible');
-                } else {
-                    updatePetStatusOverTime();
-                    renderFloatingPet();
-                    renderExplorationStatus();
-					updateAttunementStatus();
-                }
+                // Initialize Pet System from pet.js
+                petSystem = PetSystem(state, {
+                    saveState,
+                    updateCoinDisplays,
+                    renderInventory,
+                    consumableItems,
+                    explorationLocations
+                });
+                petSystem.init();
+
 
                 const today = new Date().toDateString();
                 if(state.lastMissionDate !== today) {
                     generateNewMissions();
                     state.lastMissionDate = today;
+                    state.eventTracker.dailyCount = 0; // Reset daily event count on new day
                     saveState();    
                 }
                 updateCoinDisplays();
@@ -2674,9 +1707,15 @@
                 renderShopItems();
                 renderInventory(); 
                 pickDailyBonusGame();
-                updateAchievementNotification();
                 setupEventListeners();
                 showScreen('menu'); 
+
+                if (state.pet.exists) {
+                    renderExplorationStatus();
+                    if (!randomEventInterval) {
+                        randomEventInterval = setInterval(triggerRandomEvent, 60 * 1000); // Check every minute
+                    }
+                }
 
                 document.querySelectorAll('.game-card').forEach(card => {
                     card.addEventListener('click', (event) => {
@@ -2685,7 +1724,7 @@
                         let targetUrl = card.href;
                         const isBonusGame = gameId === state.dailyBonusGameId;
 
-                        const gameCost = 0;
+                        const gameCost = 0; // Game cost is 1 play coin
 
                         if (state.playCoins >= gameCost) {
                             state.playCoins -= gameCost;
