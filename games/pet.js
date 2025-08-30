@@ -3,6 +3,8 @@
 function PetSystem(state, helpers) {
     const { saveState, updateCoinDisplays, renderInventory, consumableItems } = helpers;
     let attunementInterval = null;
+    let idleAnimationInterval = null;
+    let currentPetEmotion = null; 
 
     // PET DEFINITIONS
     const petBackgroundDefinitions = {
@@ -54,7 +56,15 @@ function PetSystem(state, helpers) {
         'บรอกโคลี': { hunger: 40, exp: 12, cost: 0 }, 
         'สตรอว์เบอร์รี': { hunger: 50, exp: 20, cost: 0 } 
     };
-    const petEmotions = { normal: 'idle.gif', happy: 'happy.png', sad: 'cry.png', angry: 'angry.png' };
+    
+    // [EDIT HERE] -> คุณสามารถเปลี่ยนชื่อไฟล์รูปภาพ idle ของคุณตรงนี้ได้เลย
+    const petEmotions = { 
+        normal: ['idle.gif', 'idle2.gif', 'idle3.gif', 'idle4.gif'], 
+        happy: 'happy.png', 
+        sad: 'cry.png', 
+        angry: 'angry.png' 
+    };
+
     const achievementDefinitions = {
         'feed_bread': { category: 'การป้อนอาหาร', name: 'นักชิมขนมปัง 🍞', icon: '🍞', tiers: [ { goal: 5, rewards: { exp: 10, play_coin: 1 } }, { goal: 10, rewards: { exp: 20, play_coin: 2 } }, { goal: 30, rewards: { exp: 40, play_coin: 3 } }, { goal: 50, rewards: { exp: 60, play_coin: 4 } }, { goal: 70, rewards: { exp: 80, play_coin: 5 } }, { goal: 100, rewards: { exp: 100, background: 'mythical_garden' } } ] },
         'feed_cake': { category: 'การป้อนอาหาร', name: 'คนรักเค้ก 🍰', icon: '🍰', tiers: [ { goal: 5, rewards: { exp: 15, play_coin: 1 } }, { goal: 10, rewards: { exp: 25, play_coin: 2 } }, { goal: 30, rewards: { exp: 50, play_coin: 3 } }, { goal: 50, rewards: { exp: 70, play_coin: 4 } }, { goal: 70, rewards: { exp: 90, play_coin: 5 } }, { goal: 100, rewards: { exp: 120, background: 'cake_shop' } } ] },
@@ -173,7 +183,6 @@ function PetSystem(state, helpers) {
             state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
             state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
             if (!state.pet.exploration || state.pet.exploration.endTime < now) {
-                // [CODE EDITED] Use dynamic max stamina for regeneration
                 const maxStamina = 100 + ((state.pet.level - 1) * 2);
                 state.pet.stamina = Math.min(maxStamina, state.pet.stamina + staminaGain);
             }
@@ -184,21 +193,54 @@ function PetSystem(state, helpers) {
 
     function updatePetEmotion() {
         if (!state.pet.exists) return;
-        let currentEmotion = 'normal';
+
+        let newEmotion = 'normal';
         let isBubbleVisible = false;
+        let bubbleText = '';
+
         if (state.pet.hunger <= 50) {
-            currentEmotion = 'sad';
-            petSpeechBubble.textContent = 'หิวแน้ววว';
+            newEmotion = 'sad';
+            bubbleText = 'หิวแน้ววว';
             isBubbleVisible = true;
         } else if (state.pet.happiness <= 50) {
-            currentEmotion = 'angry';
-            petSpeechBubble.textContent = 'ไม่คิดถึงกันหรอ';
+            newEmotion = 'angry';
+            bubbleText = 'ไม่คิดถึงกันหรอ';
             isBubbleVisible = true;
         }
-        petSpeechBubble.classList.toggle('hidden', !isBubbleVisible);
-        const imageUrl = petEmotions[currentEmotion];
-        floatingPetImage.src = imageUrl;
-        petModalImageEl.src = imageUrl;
+        
+        if (newEmotion !== currentPetEmotion) {
+            currentPetEmotion = newEmotion;
+
+            if (idleAnimationInterval) {
+                clearInterval(idleAnimationInterval);
+                idleAnimationInterval = null;
+            }
+
+            petSpeechBubble.textContent = bubbleText;
+            petSpeechBubble.classList.toggle('hidden', !isBubbleVisible);
+
+            if (currentPetEmotion === 'normal') {
+                const setRandomIdle = () => {
+                    const idleAnimations = petEmotions.normal;
+                    if (!idleAnimations || idleAnimations.length === 0) return;
+                    const randomIndex = Math.floor(Math.random() * idleAnimations.length);
+                    const imageUrl = idleAnimations[randomIndex];
+                    
+                    if (!floatingPetImage.src.endsWith(imageUrl)) {
+                        floatingPetImage.src = imageUrl;
+                        petModalImageEl.src = imageUrl;
+                    }
+                };
+                setRandomIdle();
+                idleAnimationInterval = setInterval(setRandomIdle, Math.random() * 5000 + 5000);
+            } else {
+                const imageUrl = petEmotions[currentPetEmotion];
+                if (!floatingPetImage.src.endsWith(imageUrl)) {
+                    floatingPetImage.src = imageUrl;
+                    petModalImageEl.src = imageUrl;
+                }
+            }
+        }
     }
 
     function renderFloatingPet() {
@@ -217,7 +259,6 @@ function PetSystem(state, helpers) {
         const pet = state.pet;
         const maxExp = pet.level * 100;
         
-        // [CODE EDITED] Calculate max stats based on level and upgrades
         const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
         const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
@@ -272,7 +313,7 @@ function PetSystem(state, helpers) {
         while (pet.exp >= maxExp) {
             pet.level++;
             pet.exp -= maxExp;
-            maxExp = pet.level * 100; // Update maxExp for the new level
+            maxExp = pet.level * 100; 
             alert(`ยินดีด้วย! ${pet.name} เลเวลอัปเป็น Lv. ${pet.level} แล้ว!`);
         }
         saveState();
@@ -327,7 +368,6 @@ function PetSystem(state, helpers) {
                 if (state.pet.activeBackground === 'cute_cafe') happinessGain += 10;
                 if (state.pet.activeBackground === 'cake_shop' && foodName === 'เค้ก') happinessGain += 15;
                 
-                // [CODE EDITED] Use dynamic max stats for clamping
                 const maxHunger = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bowl >= 2 ? 5 : 0);
                 const maxHappiness = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0);
 
@@ -415,7 +455,6 @@ function PetSystem(state, helpers) {
             if (achievementKeyMap[action]) trackAchievement(achievementKeyMap[action]);
         }
 
-        // [CODE EDITED] Use dynamic max happiness for clamping
         const maxHappiness = 100 + ((state.pet.level - 1) * 2) + (state.pet.upgradeLevels.bed >= 2 ? 5 : 0);
         state.pet.happiness = Math.min(maxHappiness, state.pet.happiness + happinessGain);
 
