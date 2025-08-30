@@ -1488,7 +1488,7 @@
                     const isExploring = state.pet.exploration && state.pet.exploration.endTime > Date.now();
                     const isModalOpen = document.querySelector('.modal-overlay.visible');
                     
-                    if (!canTrigger || isExploring || isModalOpen || Math.random() > 0.2) {
+                    if (!canTrigger || !isExploring || isModalOpen || Math.random() > 0.2) {
                         return;
                     }
                 }
@@ -1740,4 +1740,5 @@
     </script>
 </body>
 </html>
+
 
