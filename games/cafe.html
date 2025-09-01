@@ -446,29 +446,53 @@
             // --- Item & Customer Logic ---
             function shuffleAndRenderItems() {
                 itemSelectionContainer.innerHTML = '';
-                let itemsToShuffle = Object.entries(currentRoundItems);
+                let gridItems = [];
 
+                // 1. Always include the items from the current order
+                currentOrder.items.forEach(itemName => {
+                    gridItems.push([itemName, currentRoundItems[itemName]]);
+                });
+
+                // 2. Determine how many filler items are needed
+                let gridSize;
                 if (difficulty === 'expert') {
+                    gridSize = 16; // 12 real + 4 decoys
                     itemSelectionContainer.classList.remove('grid-cols-3');
                     itemSelectionContainer.classList.add('grid-cols-4');
-                    const shuffledDecoys = Object.entries(decoyItems).sort(() => 0.5 - Math.random());
-                    const decoysToAdd = shuffledDecoys.slice(0, 4);
-                    itemsToShuffle = [...itemsToShuffle.slice(0,12), ...decoysToAdd];
                 } else if (difficulty === 'hard') {
+                    gridSize = 12;
                     itemSelectionContainer.classList.add('grid-cols-4');
                     itemSelectionContainer.classList.remove('grid-cols-3');
-                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 12);
                 } else if (difficulty === 'medium') {
+                    gridSize = 9;
                     itemSelectionContainer.classList.add('grid-cols-3');
                     itemSelectionContainer.classList.remove('grid-cols-4');
-                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 9);
                 } else { // Easy
+                    gridSize = 6;
                     itemSelectionContainer.classList.add('grid-cols-3');
                     itemSelectionContainer.classList.remove('grid-cols-4');
-                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 6);
                 }
                 
-                const shuffledItems = itemsToShuffle.sort(() => Math.random() - 0.5);
+                const fillerNeeded = gridSize - gridItems.length;
+
+                // 3. Create a pool of filler items (non-ordered items)
+                const fillerPool = Object.entries(currentRoundItems).filter(
+                    ([name, emoji]) => !currentOrder.items.includes(name)
+                );
+                
+                // Add decoys for expert mode
+                if (difficulty === 'expert') {
+                    const shuffledDecoys = Object.entries(decoyItems).sort(() => 0.5 - Math.random());
+                    const decoysToAdd = shuffledDecoys.slice(0, 4);
+                    fillerPool.push(...decoysToAdd);
+                }
+
+                // 4. Shuffle the filler pool and add them to the grid
+                fillerPool.sort(() => 0.5 - Math.random());
+                gridItems.push(...fillerPool.slice(0, fillerNeeded));
+
+                // 5. Final shuffle and render
+                const shuffledItems = gridItems.sort(() => Math.random() - 0.5);
                 
                 shuffledItems.forEach(([name, emoji]) => {
                     const button = document.createElement('button');
@@ -524,6 +548,7 @@
                     customerContainer.innerHTML = `<div class="relative"><div class="text-9xl">${customerType}</div><div class="speech-bubble absolute -top-20 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
                     
                     customerContainer.classList.add('active');
+                    shuffleAndRenderItems(); // Re-render items after a new customer has been decided
                 }, 400);
             }
             
@@ -571,7 +596,6 @@
                 showFeedback(true, `+${Math.round(points) + comboBonus}`);
                 updateComboDisplay();
                 resetSelection();
-                shuffleAndRenderItems();
                 
                 if (feverMeter >= FEVER_THRESHOLD && !isFeverTime) {
                     startFeverTime();
@@ -625,6 +649,7 @@
                        speechBubbleEl.style.animation = 'pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
                     });
                 }
+                shuffleAndRenderItems();
             }
             
             // --- Fever Time ---
