@@ -824,6 +824,7 @@
                 { id: 'kitchen', name: 'พื้นหลัง: ห้องครัว', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
                 { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
 				{ id: 'นินเท็นโด้', name: 'นินเท็นโด้', basePrice: 200, type: 'consumable', category: 'ของเล่น' },
+				{ id: 'ปุ๋ยเร่งโต', name: 'ปุ๋ยเร่งโต', basePrice: 100, type: 'consumable', category: 'ไอเทมสวน' },
             ];
             
             const consumableItems = {
@@ -850,6 +851,7 @@
                 'เมล็ดสตรอว์เบอร์รี': { name: 'เมล็ดสตรอว์เบอร์รี' },
                 'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
 				'นินเท็นโด้': { name: 'นินเท็นโด้' },
+				'ปุ๋ยเร่งโต': { name: 'ปุ๋ยเร่งโต' },
             };
 
             const allPlayableGames = [
@@ -1488,7 +1490,7 @@
                     const isExploring = state.pet.exploration && state.pet.exploration.endTime > Date.now();
                     const isModalOpen = document.querySelector('.modal-overlay.visible');
                     
-                    if (!canTrigger || !isExploring || isModalOpen || Math.random() > 0.2) {
+                    if (!canTrigger || isExploring || isModalOpen || Math.random() > 0.2) {
                         return;
                     }
                 }
@@ -1740,5 +1742,3 @@
     </script>
 </body>
 </html>
-
-
