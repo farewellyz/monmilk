@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แปลงผัก</title>
+    <title>สวนผักของฉัน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,113 +11,262 @@
     <style>
         body { 
             font-family: 'Kanit', sans-serif; 
-            background-color: #e8f5e9; /* A light, grassy green */
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a5d6a7' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-color: #a7d9b5; /* Base green for garden feel */
+            background-image: url('garden_background.gif'); /* Your garden background image */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            position: relative;
+        }
+        /* Add a subtle overlay to make text more readable */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(167, 217, 181, 0.4); /* Greenish overlay */
+            z-index: -1;
         }
         .app-container {
-            background-color: #f1f8e9;
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white for content */
             border-radius: 2rem;
-            border: 10px solid #558b2f; /* Dark wood-like border */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.1);
+            border: 10px solid #8B4513; /* Darker wood border */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3), inset 0 0 25px rgba(0,0,0,0.15);
+            max-width: 500px; /* Slightly wider for better plot display */
+            width: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .header-image {
+            width: 100%;
+            height: 120px;
+            background-image: url('garden_header.png'); /* A nice header image for the garden */
+            background-size: cover;
+            background-position: center;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 3px solid #6D4C41; /* Soil like border */
         }
         .card-base {
-            border: 4px solid #a1887f; /* Lighter wood border */
-            background-color: #efebe9; /* Light parchment color */
+            border: 3px solid #a1887f; /* Lighter wood border */
+            background-color: #fffef0; /* Creamy parchment color */
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
         }
         .btn-base {
-            transform: translateY(0);
-            transition: transform 0.2s ease, filter 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            border-bottom: 4px solid;
+            background-image: linear-gradient(to bottom, #f9f9e0, #e0e0c0); /* Gentle gradient for a natural look */
+            color: #4A4A4A;
         }
         .btn-base:hover { 
             transform: translateY(-2px); 
             filter: brightness(1.05);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
         }
         .btn-base:active {
             transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+        .btn-primary {
+            background-image: linear-gradient(to bottom, #8BC34A, #689F38); /* Green gradient */
+            border-color: #558B2F;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .btn-secondary {
+            background-image: linear-gradient(to bottom, #FFD54F, #FFB300); /* Amber gradient */
+            border-color: #FF8F00;
+            color: #6D4C41;
+            text-shadow: 1px 1px 1px rgba(255,255,255,0.3);
+        }
+        .btn-cancel {
+            background-image: linear-gradient(to bottom, #BDBDBD, #757575); /* Gray gradient */
+            border-color: #616161;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
         .plot {
-            background-color: #6d4c41; /* Dark soil */
-            border: 2px solid #4e342e; /* Darker soil edge */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
-            border-radius: 1rem;
+            background-color: #6D4C41; /* Dark soil */
+            background-image: url('soil_texture.png'); /* A soil texture image */
+            background-size: cover;
+            border: 4px solid #8B4513; /* Wood-like border for plot edge */
+            border-radius: 1.25rem; /* More rounded */
             aspect-ratio: 1 / 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease-in-out;
             position: relative;
+            overflow: hidden; /* Ensure content stays within borders */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.1);
         }
         .plot:hover {
-            transform: scale(1.05);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.7), 0 0 15px rgba(139, 69, 19, 0.5);
+            transform: translateY(-3px) scale(1.03); /* Lift and scale slightly */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.2);
         }
         .plot.planted {
-             background-image: repeating-linear-gradient(45deg, #5d4037, #5d4037 10px, #6d4c41 10px, #6d4c41 20px);
+             /* A subtle pattern or darker soil for planted */
+             background-image: url('planted_soil_texture.png'); 
+             background-size: cover;
         }
+        .plot.needs-water {
+            background-color: #A0522D; /* Lighter, drier soil */
+            background-image: url('dry_soil_texture.png'); /* Dry soil texture */
+            color: #8B4513; /* Brownish text for dry state */
+        }
+        .plot .plot-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+        }
+        .plot .plot-icon {
+            font-size: 3.5rem; /* Larger icons */
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            animation: growIn 0.5s ease-out; /* Simple grow in animation */
+        }
+        .plot.needs-water .plot-icon {
+            font-size: 4rem; /* Even larger water drop */
+            color: #4CAF50; /* Greenish blue for water */
+            animation: pulseWater 1.5s infinite ease-in-out;
+        }
+        .plot.ready .plot-icon {
+            animation: bounceHarvest 0.8s infinite ease-in-out;
+            color: #FFEB3B; /* Golden glow for ready */
+            text-shadow: 0 0 10px rgba(255,235,59,0.7);
+        }
+        @keyframes growIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulseWater {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+        @keyframes bounceHarvest {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
         .plot-timer {
             position: absolute;
-            bottom: -12px;
+            bottom: 8px; /* Adjusted position */
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.6);
+            background-color: rgba(0,0,0,0.7); /* Darker background for readability */
             color: white;
-            padding: 2px 10px;
+            padding: 3px 12px;
             border-radius: 99px;
-            font-size: 0.75rem;
+            font-size: 0.85rem; /* Slightly larger font */
             font-weight: bold;
-            border: 2px solid white;
+            border: 2px solid rgba(255,255,255,0.8);
+            white-space: nowrap; /* Prevent timer from wrapping */
         }
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); display: flex;
+            background-color: rgba(0, 0, 0, 0.7); display: flex;
             justify-content: center; align-items: center; z-index: 1000;
             opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            background: #fffef0; padding: 1.5rem; border-radius: 1.5rem;
-            text-align: center; width: 90%; max-width: 380px;
+            background: #fff8e1; /* Lighter parchment for modal */
+            padding: 2rem; border-radius: 1.5rem;
+            text-align: center; width: 90%; max-width: 420px;
             transform: scale(0.9); transition: transform 0.3s ease;
-            border: 4px solid #a1887f;
+            border: 5px solid #A1887F; /* Thicker wood border */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 {
+            color: #6D4C41; /* Brownish header */
+            margin-bottom: 1.5rem;
+        }
+        .item-list-option {
+            background-color: #F5F5DC; /* Beige for item options */
+            border: 2px solid #D7CCC8;
+            border-left: 6px solid #8BC34A; /* Green accent */
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #5D4037;
+            transition: all 0.2s;
+        }
+        .item-list-option:hover {
+            transform: translateX(5px);
+            background-color: #E6E6CC;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="p-4">
-    <div class="app-container max-w-md mx-auto min-h-[95vh] p-4">
-        <header class="flex items-center mb-6 text-center relative">
-            <a href="index.html" class="text-3xl text-green-800 hover:text-green-900 transition absolute left-0 top-1/2 -translate-y-1/2">&larr;</a>
-            <h1 class="text-4xl font-bold text-green-800 w-full [text-shadow:1px_1px_2px_rgba(255,255,255,0.7)]">
-                แปลงผัก
+    <div class="app-container">
+        <header class="relative text-center mb-4">
+            <a href="index.html" class="text-3xl text-green-800 hover:text-green-900 transition absolute left-0 top-1/2 -translate-y-1/2 z-10">&larr;</a>
+            <div class="header-image"></div> <h1 class="text-4xl font-bold text-lime-800 [text-shadow:2px_2px_4px_rgba(255,255,255,0.8)] mt-2">
+                สวนผักของฉัน
             </h1>
         </header>
 
-        <div class="card-base p-4 rounded-2xl mb-6">
+        <div class="card-base">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-lime-800">แปลงผัก</h2>
+                <span id="plot-count" class="font-bold text-gray-600"></span>
             </div>
-            <div id="plots-grid" class="grid grid-cols-3 gap-4">
-                <!-- Garden plots will be generated here -->
-            </div>
+            <div id="plots-grid" class="grid grid-cols-3 gap-4 mb-4">
+                </div>
+            <div id="garden-actions">
+                </div>
         </div>
 
-        <div class="card-base p-4 rounded-2xl">
-            <h2 class="text-2xl font-semibold text-lime-800 mb-4 text-center">เมล็ดพันธุ์ที่มี</h2>
+        <div class="card-base">
+            <h2 class="text-2xl font-semibold text-lime-800 mb-4 text-center">เมล็ดพันธุ์/ไอเทมสวน</h2>
             <div id="seeds-inventory" class="space-y-2">
-                <p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์เลย! ลองไปสำรวจดูสิ</p>
+                <p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์หรือไอเทมสวนเลย!</p>
             </div>
         </div>
     </div>
 
-    <!-- Plant Seed Modal -->
     <div id="plant-seed-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-2xl font-bold text-lime-700 mb-4">เลือกเมล็ดพันธุ์ที่จะปลูก</h2>
+            <h2 class="text-2xl font-bold text-lime-700 mb-4">เลือกเมล็ดพันธุ์</h2>
             <div id="seed-options-list" class="space-y-3"></div>
-            <button id="close-plant-seed-modal-btn" class="btn-base w-full mt-4 px-4 py-2 text-md font-semibold text-gray-700 bg-gray-200 rounded-xl">ยกเลิก</button>
+            <button id="close-plant-seed-modal-btn" class="btn-base btn-cancel w-full mt-6">ยกเลิก</button>
+        </div>
+    </div>
+    
+    <div id="plot-actions-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-lime-700 mb-4">ดูแลแปลงผัก</h2>
+            <div id="plot-actions-list" class="space-y-3"></div>
+            <button id="close-plot-actions-modal-btn" class="btn-base btn-cancel w-full mt-6">ปิด</button>
         </div>
     </div>
 
@@ -125,6 +274,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             let state = {};
             let gardenInterval = null;
+            const WATERING_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+            const MAX_PLOTS = 12; // Maximum plots set to 12
 
             const seedData = {
                 'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', icon: '🌱', readyIcon: '🍅', exp: 15 },
@@ -132,20 +283,30 @@
                 'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', icon: '🌱', readyIcon: '🥦', exp: 40 },
                 'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', icon: '🍓', readyIcon: '🍓', exp: 100 },
             };
+            
+            const fertilizerData = {
+                'ปุ๋ยเร่งโต': { timeReduction: 60 * 60 * 1000 } // 1 hour
+            };
 
             const plantSeedModal = document.getElementById('plant-seed-modal');
             const seedOptionsList = document.getElementById('seed-options-list');
             const closePlantSeedModalBtn = document.getElementById('close-plant-seed-modal-btn');
+            
+            const plotActionsModal = document.getElementById('plot-actions-modal');
+            const plotActionsList = document.getElementById('plot-actions-list');
+            const closePlotActionsModalBtn = document.getElementById('close-plot-actions-modal-btn');
 
             function loadState() {
                 const savedData = localStorage.getItem('monGameDataV17');
                 if (savedData) {
                     state = JSON.parse(savedData);
                     if (!state.garden) {
-                        state.garden = { plots: [null, null, null, null, null, null] };
+                        // Start with 6 plots
+                        state.garden = { plots: Array(6).fill(null) }; 
                     }
                 } else {
-                    window.location.href = 'index.html';
+                    // Redirect if no game data (should happen from index.html)
+                    window.location.href = 'index.html'; 
                 }
             }
 
@@ -158,8 +319,7 @@
                 let s = Math.floor(ms / 1000);
                 let m = Math.floor(s / 60);
                 let h = Math.floor(m / 60);
-                s %= 60;
-                m %= 60;
+                s %= 60; m %= 60;
                 
                 if (h > 0) return `${h} ชม. ${m} นาที`;
                 if (m > 0) return `${m} นาที`;
@@ -175,9 +335,10 @@
                 return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
 
-            function renderGarden() {
+            function renderAll() {
                 renderPlots();
                 renderSeedsInventory();
+                renderGardenActions();
             }
 
             function renderPlots() {
@@ -190,63 +351,129 @@
                     plotEl.className = 'plot';
                     
                     if (plot) {
-                        const remainingTime = plot.plantTime + seedData[plot.seedName].growTime - Date.now();
+                        const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
+                        const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
+
                         if (remainingTime > 0) {
-                            plotEl.classList.add('planted');
-                            plotEl.innerHTML = `
-                                <div class="text-center text-white">
-                                    <div class="text-4xl">${seedData[plot.seedName].icon}</div>
-                                </div>
-                                <div class="plot-timer" id="timer-${index}">${formatCountdown(remainingTime)}</div>
-                            `;
+                            if (needsWater) {
+                                plotEl.classList.add('needs-water');
+                                plotEl.innerHTML = `
+                                    <div class="plot-content">
+                                        <div class="plot-icon">💧</div>
+                                        <span class="text-sm font-semibold text-amber-900">ดินแห้ง! รดน้ำเลย</span>
+                                    </div>
+                                `;
+                                plotEl.onclick = () => waterPlot(index);
+                            } else {
+                                plotEl.classList.add('planted');
+                                plotEl.innerHTML = `
+                                    <div class="plot-content">
+                                        <div class="plot-icon">${seedData[plot.seedName].icon}</div>
+                                    </div>
+                                    <div class="plot-timer" id="timer-${index}">${formatCountdown(remainingTime)}</div>
+                                `;
+                                plotEl.onclick = () => showPlotActionsModal(index);
+                            }
                         } else {
-                            plotEl.classList.add('bg-green-400', 'border-green-600');
-                            plotEl.innerHTML = `<div class="text-4xl animate-bounce">${seedData[plot.seedName].readyIcon}</div>`;
+                            plotEl.classList.add('ready');
+                            plotEl.innerHTML = `
+                                <div class="plot-content">
+                                    <div class="plot-icon">${seedData[plot.seedName].readyIcon}</div>
+                                    <span class="text-sm font-semibold text-green-900 mt-1">เก็บเกี่ยวได้แล้ว!</span>
+                                </div>
+                            `;
                             plotEl.onclick = () => harvest(index);
                         }
                     } else {
-                        plotEl.innerHTML = '<span class="text-white opacity-50">+</span>';
+                        plotEl.innerHTML = `
+                            <div class="plot-content text-gray-500 opacity-60">
+                                <span class="plot-icon">+</span>
+                                <span class="text-sm font-semibold">ปลูก</span>
+                            </div>
+                        `;
                         plotEl.onclick = () => showPlantSeedModal(index);
                     }
                     plotsGrid.appendChild(plotEl);
                 });
 
+                document.getElementById('plot-count').textContent = `${state.garden.plots.length}/${MAX_PLOTS} แปลง`;
                 gardenInterval = setInterval(updateTimers, 1000);
             }
 
             function updateTimers() {
+                let needsRender = false;
                 state.garden.plots.forEach((plot, index) => {
                     if (plot) {
                         const timerEl = document.getElementById(`timer-${index}`);
-                        if (timerEl) {
-                            const remainingTime = plot.plantTime + seedData[plot.seedName].growTime - Date.now();
-                            if (remainingTime > 0) {
-                                timerEl.textContent = formatCountdown(remainingTime);
+                        if (timerEl) { // Only update timer if it exists (i.e., not needing water or ready)
+                            const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
+                            const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
+                            
+                            if (remainingTime <= 0) {
+                                needsRender = true; // Plant is ready
+                            } else if (needsWater) {
+                                needsRender = true; // Plot now needs water
                             } else {
-                                renderPlots(); // Re-render when a plant is ready
+                                timerEl.textContent = formatCountdown(remainingTime);
                             }
                         }
                     }
                 });
+                if (needsRender) renderPlots(); // Re-render if any state change requires it
+            }
+            
+            function renderGardenActions() {
+                const container = document.getElementById('garden-actions');
+                container.innerHTML = '';
+                if (state.garden.plots.length < MAX_PLOTS) {
+                    // Cost formula adjusted for 6 starting plots. First upgrade is plot 7.
+                    const currentCost = 50 * Math.pow(2, state.garden.plots.length - 6); 
+                    const button = document.createElement('button');
+                    button.className = 'btn-base btn-secondary w-full';
+                    button.innerHTML = `ซื้อแปลงผักเพิ่ม (${currentCost} <img src="mon_coin_icon.png" class="w-5 h-5 ml-1 inline-block" onerror="this.src='placeholder_coin.png'">)`;
+                    button.onclick = () => buyPlot(currentCost);
+                    container.appendChild(button);
+                }
+            }
+
+            function buyPlot(cost) {
+                if (state.monCoins >= cost) {
+                    if (confirm(`คุณต้องการซื้อแปลงผักใหม่ในราคา ${cost} เหรียญหรือไม่?`)) {
+                        state.monCoins -= cost;
+                        state.garden.plots.push(null);
+                        saveState();
+                        renderAll();
+                        alert('ซื้อแปลงผักสำเร็จ!');
+                    }
+                } else {
+                    alert('เหรียญม่อนไม่พอจ้า!');
+                }
             }
 
             function renderSeedsInventory() {
                 const seedsInventory = document.getElementById('seeds-inventory');
                 seedsInventory.innerHTML = '';
-                const ownedSeeds = Object.keys(state.inventory).filter(item => seedData[item] && state.inventory[item] > 0);
+                const ownedItems = Object.keys(state.inventory).filter(item => (seedData[item] || fertilizerData[item]) && state.inventory[item] > 0);
 
-                if (ownedSeeds.length > 0) {
-                    ownedSeeds.forEach(seedName => {
-                        const seedEl = document.createElement('div');
-                        seedEl.className = 'flex justify-between items-center bg-yellow-50 p-3 rounded-lg';
-                        seedEl.innerHTML = `
-                            <span class="font-semibold text-gray-700">${seedName}</span>
-                            <span class="font-bold text-lime-600">x${state.inventory[seedName]}</span>
+                if (ownedItems.length > 0) {
+                    ownedItems.sort((a, b) => { // Sort items for consistent display
+                        const typeA = seedData[a] ? 0 : 1; // Seeds first
+                        const typeB = seedData[b] ? 0 : 1;
+                        if (typeA !== typeB) return typeA - typeB;
+                        return a.localeCompare(b);
+                    });
+
+                    ownedItems.forEach(itemName => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'flex justify-between items-center bg-lime-50 p-3 rounded-lg border border-lime-200 shadow-sm';
+                        itemEl.innerHTML = `
+                            <span class="font-semibold text-gray-700">${itemName}</span>
+                            <span class="font-bold text-lime-600">x${state.inventory[itemName]}</span>
                         `;
-                        seedsInventory.appendChild(seedEl);
+                        seedsInventory.appendChild(itemEl);
                     });
                 } else {
-                    seedsInventory.innerHTML = '<p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์เลย! ลองไปสำรวจดูสิ</p>';
+                    seedsInventory.innerHTML = '<p class="text-center text-gray-500">ไม่มีเมล็ดพันธุ์หรือไอเทมสวนเลย!</p>';
                 }
             }
 
@@ -256,37 +483,111 @@
 
                 if (ownedSeeds.length === 0) {
                     alert('คุณไม่มีเมล็ดพันธุ์สำหรับปลูกเลย!');
+                    hidePlantSeedModal();
                     return;
                 }
 
                 ownedSeeds.forEach(seedName => {
                     const seed = seedData[seedName];
                     const optionEl = document.createElement('button');
-                    optionEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-lime-50 rounded-lg border-l-4 border-lime-200';
+                    optionEl.className = 'item-list-option';
                     optionEl.innerHTML = `
-                        <span>${seedName} (โตใน ${formatTime(seed.growTime)})</span>
-                        <span class="font-bold text-gray-600">มี ${state.inventory[seedName]} เมล็ด</span>
+                        <span>${seedName} <span class="text-xs text-gray-500">(${formatTime(seed.growTime)})</span></span>
+                        <span class="font-bold text-green-700">มี ${state.inventory[seedName]}</span>
                     `;
                     optionEl.onclick = () => plantSeed(plotIndex, seedName);
                     seedOptionsList.appendChild(optionEl);
                 });
                 plantSeedModal.classList.add('visible');
             }
+            
+            function showPlotActionsModal(plotIndex) {
+                plotActionsList.innerHTML = '';
+                const plot = state.garden.plots[plotIndex];
+                if (!plot) return;
+                
+                let canDoAction = false;
 
-            function hidePlantSeedModal() {
-                plantSeedModal.classList.remove('visible');
+                // Option to Water (if needed) - high priority
+                const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
+                if (needsWater) {
+                    canDoAction = true;
+                    const optionEl = document.createElement('button');
+                    optionEl.className = 'item-list-option btn-primary';
+                    optionEl.innerHTML = `<span>รดน้ำแปลงนี้ 💧</span>`;
+                    optionEl.onclick = () => { waterPlot(plotIndex); plotActionsModal.classList.remove('visible'); };
+                    plotActionsList.appendChild(optionEl);
+                }
+
+                // Option to use Fertilizer (if available and not already fertilized)
+                if (!plot.isFertilized && state.inventory['ปุ๋ยเร่งโต'] > 0 && !needsWater) { // Can't use fertilizer on dry soil
+                    canDoAction = true;
+                    const fertilizerName = 'ปุ๋ยเร่งโต';
+                    const optionEl = document.createElement('button');
+                    optionEl.className = 'item-list-option';
+                    optionEl.innerHTML = `
+                        <span>ใช้ ${fertilizerName} <span class="text-xs text-gray-500">(ลดเวลา 1 ชม.)</span></span>
+                        <span class="font-bold text-green-700">มี ${state.inventory[fertilizerName]}</span>
+                    `;
+                    optionEl.onclick = () => useFertilizer(plotIndex, fertilizerName);
+                    plotActionsList.appendChild(optionEl);
+                }
+
+                if (!canDoAction) {
+                    plotActionsList.innerHTML = '<p class="text-center text-gray-500">ไม่มีไอเทมสำหรับใช้งาน หรือแปลงผักไม่ต้องการการดูแลตอนนี้</p>';
+                }
+                plotActionsModal.classList.add('visible');
+            }
+            
+            function useFertilizer(plotIndex, fertilizerName) {
+                const plot = state.garden.plots[plotIndex];
+                if (!plot || plot.isFertilized || !state.inventory[fertilizerName] || state.inventory[fertilizerName] <= 0) {
+                    // This should be prevented by UI, but good for safety
+                    alert('ไม่สามารถใช้ปุ๋ยได้');
+                    return;
+                }
+                
+                state.inventory[fertilizerName]--;
+                plot.plantTime -= fertilizerData[fertilizerName].timeReduction;
+                plot.isFertilized = true;
+                
+                alert('ใช้ปุ๋ยสำเร็จ! พืชจะโตไวขึ้น 1 ชั่วโมง!');
+                saveState();
+                renderAll();
+                plotActionsModal.classList.remove('visible');
             }
 
             function plantSeed(plotIndex, seedName) {
                 if (state.inventory[seedName] > 0) {
                     state.inventory[seedName]--;
+                    
+                    let growTime = seedData[seedName].growTime;
+                    if (state.pet && state.pet.activeBackground === 'vegetable_garden') {
+                        growTime *= 0.9; // Buff: -10% grow time
+                    }
+
                     state.garden.plots[plotIndex] = {
                         seedName: seedName,
-                        plantTime: Date.now()
+                        plantTime: Date.now(),
+                        lastWatered: Date.now(),
+                        effectiveGrowTime: growTime,
+                        isFertilized: false
                     };
                     saveState();
-                    renderGarden();
+                    renderAll();
                     hidePlantSeedModal();
+                } else {
+                    alert('เมล็ดพันธุ์ไม่พอ!');
+                }
+            }
+            
+            function waterPlot(plotIndex) {
+                const plot = state.garden.plots[plotIndex];
+                if (plot) {
+                    plot.lastWatered = Date.now();
+                    saveState();
+                    renderPlots(); // Re-render to update visual state (e.g., remove dry look)
+                    alert('รดน้ำแปลงผักแล้ว!');
                 }
             }
 
@@ -295,19 +596,25 @@
                 if (plot) {
                     const seed = seedData[plot.seedName];
                     state.inventory[seed.result] = (state.inventory[seed.result] || 0) + 1;
-                    state.pet.exp += seed.exp;
+                    
+                    if (state.pet) {
+                       state.pet.exp = (state.pet.exp || 0) + seed.exp;
+                    }
+                    
                     state.garden.plots[plotIndex] = null;
                     
                     alert(`เก็บเกี่ยว ${seed.result} ได้สำเร็จ! ได้รับ ${seed.exp} EXP!`);
                     saveState();
-                    renderGarden();
+                    renderAll();
                 }
             }
 
+            function hidePlantSeedModal() { plantSeedModal.classList.remove('visible'); }
             closePlantSeedModalBtn.addEventListener('click', hidePlantSeedModal);
+            closePlotActionsModalBtn.addEventListener('click', () => plotActionsModal.classList.remove('visible'));
             
             loadState();
-            renderGarden();
+            renderAll();
         });
     </script>
 </body>
