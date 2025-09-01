@@ -211,7 +211,7 @@
                 <div class="w-full h-4 fever-bar-bg rounded-full overflow-hidden mb-2 border border-amber-300"> <div id="fever-bar" class="fever-bar-fg h-full rounded-full text-center text-xs text-white font-bold flex items-center justify-center">FEVER</div> </div>
                 <div class="customer-area flex-grow flex items-center justify-center"> <div id="customer" class="text-center"></div> <div id="feedback-container" class="feedback-container"></div> </div>
                 <div class="mt-auto">
-                    <div class="w-full h-4 bg-violet-300 rounded-lg mt-2 shadow-inner"></div>
+                    <div id="fever-countdown-container" class="w-full h-8 bg-amber-400 rounded-lg mt-2 shadow-inner flex items-center justify-center text-white font-bold text-lg tracking-widest" style="visibility: hidden;"></div>
                     <div class="mt-4"> <p class="font-semibold mb-2">เลือกเมนูเสิร์ฟให้คุณลูกค้า</p> <div id="item-selection" class="grid grid-cols-3 gap-2"></div> </div>
                 </div>
             </div>
@@ -256,6 +256,7 @@
             const feedbackContainer = document.getElementById('feedback-container');
             const comboDisplay = document.getElementById('combo-display');
             const comboCountEl = document.getElementById('combo-count');
+            const feverCountdownContainer = document.getElementById('fever-countdown-container');
 
             // Modals & Shop UI
             const gameOverModal = document.getElementById('game-over-modal');
@@ -286,7 +287,7 @@
             
             // Game State
             let score, totalHearts, timer, timeLeft, currentOrder, playerSelection, gameActive, difficulty;
-            let combo, feverMeter, isFeverTime;
+            let combo, feverMeter, isFeverTime, feverTimeLeft;
             let upgrades = {};
             let mainGameState = {}; 
             const isBonusGame = new URLSearchParams(window.location.search).has('bonus');
@@ -406,6 +407,7 @@
                 isFeverTime = false;
                 
                 scoreEl.textContent = score;
+                feverCountdownContainer.style.visibility = 'hidden';
                 updateFeverBar();
                 updateComboDisplay();
                 gameOverModal.classList.remove('show');
@@ -599,6 +601,9 @@
             // --- Fever Time ---
             function startFeverTime() {
                 isFeverTime = true;
+                feverTimeLeft = FEVER_DURATION;
+                feverCountdownContainer.style.visibility = 'visible';
+                feverCountdownContainer.textContent = `FEVER TIME: ${feverTimeLeft}s`;
                 gameViewBorder.classList.add('fever');
                 updateOrderForFever();
                 setTimeout(endFeverTime, FEVER_DURATION * 1000);
@@ -607,6 +612,7 @@
             function endFeverTime() {
                 isFeverTime = false;
                 feverMeter = 0;
+                feverCountdownContainer.style.visibility = 'hidden';
                 updateFeverBar();
                 gameViewBorder.classList.remove('fever');
                 newCustomer();
@@ -643,6 +649,10 @@
 
                 if (isFeverTime) {
                     timeLeft -= 0.5;
+                    feverTimeLeft -= 1;
+                    if (feverTimeLeft >= 0) {
+                        feverCountdownContainer.textContent = `FEVER TIME: ${feverTimeLeft}s`;
+                    }
                 } else {
                     timeLeft--;
                 }
