@@ -87,21 +87,33 @@
         .customer { transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(200px) scale(0.5); }
         .customer.active { transform: translateY(0) scale(1); }
         
+        /* === NEW SPEECH BUBBLE STYLE === */
         .speech-bubble {
-            background-color: white; border: 2px solid #c4b5fd;
-            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            background-color: white;
+            border: 2px solid #c4b5fd;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: opacity 0.3s ease-out, visibility 0.3s ease-out; 
-            /* ปรับตรงนี้ */
-            left: 55%; /* เลื่อนไปทางขวา 5% */
+            position: relative;
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .speech-bubble:before, .speech-bubble:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        .speech-bubble:before {
+            border-width: 17px;
+            border-color: transparent #c4b5fd transparent transparent;
+            margin-left: -36px;
         }
         .speech-bubble:after {
-            content: ''; position: absolute; bottom: 0; width: 0; height: 0;
-            border: 15px solid transparent; border-top-color: white; border-bottom: 0;
-            /* ปรับตรงนี้ */
-            left: 45%; /* ปรับปลายแหลมให้เลื่อนมาทางซ้ายนิดหน่อย */
-            margin-left: -20px; /* ชดเชยให้ปลายแหลมยังชี้ไปที่รูปภาพ */
-            margin-bottom: -15px;
+            border-width: 15px;
+            border-color: transparent white transparent transparent;
+            margin-left: -32px;
         }
 
         .action-button {
@@ -227,7 +239,7 @@
                 </div>
 
                 <div class="customer-area flex-grow flex items-center justify-center">
-                    <div id="customer" class="text-center"></div>
+                    <div id="customer" class="text-center w-full"></div>
                     <div id="feedback-container" class="feedback-container"></div>
                 </div>
 
@@ -286,7 +298,7 @@
             const gameOverModal = document.getElementById('game-over-modal');
             const finalScoreEl = document.getElementById('final-score');
             const heartsEarnedEl = document.getElementById('hearts-earned');
-            const monCoinsEarnedEl = document = document.getElementById('mon-coins-earned');
+            const monCoinsEarnedEl = document.getElementById('mon-coins-earned');
             const bonusTextEl = document.getElementById('bonus-text');
             const restartButton = document.getElementById('restart-button');
             const shopTotalHeartsEl = document.getElementById('shop-total-hearts');
@@ -572,14 +584,18 @@
                     
                     currentOrder = { items: orderItems, isVip: customerType === vipCustomer, customerEmoji: customerType };
                     const orderEmojis = currentOrder.items.map(name => currentRoundItems[name]).join(' ');
-
-                    // ปรับตำแหน่งรูปภาพลูกค้า โดยเพิ่ม class 'mr-4' (margin-right: 1rem)
-                    customerContainer.innerHTML = `<div class="relative flex items-end justify-center">
-                                                    <img src="${customerType}" class="w-40 h-40 object-contain mr-4"> 
-                                                    <div class="speech-bubble absolute -top-16 -right-2 w-auto min-w-[10rem] px-4 py-2 rounded-lg -translate-x-1/2">
-                                                        <span class="text-4xl">${orderEmojis}</span>
-                                                    </div>
-                                                </div>`;
+                    
+                    // === NEW CUSTOMER LAYOUT ===
+                    customerContainer.innerHTML = `<div class="w-full flex justify-center items-center space-x-2 px-4">
+                        <div class="w-2/5 flex-shrink-0">
+                            <img src="${customerType}" class="w-full h-auto object-contain">
+                        </div>
+                        <div class="w-3/5">
+                             <div class="speech-bubble w-full min-h-[80px] flex items-center justify-center p-2 rounded-lg break-all">
+                                <span class="text-3xl">${orderEmojis}</span>
+                            </div>
+                        </div>
+                    </div>`;
                     
                     customerContainer.classList.add('active');
                     shuffleAndRenderItems();
