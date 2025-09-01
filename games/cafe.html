@@ -580,7 +580,10 @@
 
             function updateTimer() {
                 if (!gameActive) return;
-                timeLeft--;
+                if (isFeverTime) {
+                    timeLeft -= 0.5; // ในโหมด Fever เวลาจะเดินช้าลง 50%
+                } else {
+                    timeLeft--; // โหมดปกติ
                 const duration = BASE_GAME_DURATION + upgrades.time.level * 2;
                 const percentage = (timeLeft / duration) * 100;
                 timerBar.style.width = `${percentage}%`;
@@ -713,4 +716,5 @@
 </body>
 
 </html>
+
 
