@@ -301,7 +301,7 @@
             let combo, feverMeter, isFeverTime, feverTimeLeft;
             let upgrades = {};
             let mainGameState = {};
-            let currentRoundItems = {}; // To be populated each round
+            let currentRoundItems = {};
             const isBonusGame = new URLSearchParams(window.location.search).has('bonus');
 
             const defaultUpgrades = {
@@ -435,7 +435,6 @@
                 gameOverModal.classList.remove('show');
                 gameViewBorder.classList.remove('fever');
                 
-                shuffleAndRenderItems();
                 newCustomer();
                 
                 if (timer) clearInterval(timer);
@@ -448,15 +447,17 @@
                 itemSelectionContainer.innerHTML = '';
                 let gridItems = [];
 
-                // 1. Always include the items from the current order
+                if (!currentOrder || !currentOrder.items) return;
+
                 currentOrder.items.forEach(itemName => {
-                    gridItems.push([itemName, currentRoundItems[itemName]]);
+                    if (currentRoundItems[itemName]) {
+                        gridItems.push([itemName, currentRoundItems[itemName]]);
+                    }
                 });
 
-                // 2. Determine how many filler items are needed
                 let gridSize;
                 if (difficulty === 'expert') {
-                    gridSize = 16; // 12 real + 4 decoys
+                    gridSize = 16;
                     itemSelectionContainer.classList.remove('grid-cols-3');
                     itemSelectionContainer.classList.add('grid-cols-4');
                 } else if (difficulty === 'hard') {
@@ -475,23 +476,19 @@
                 
                 const fillerNeeded = gridSize - gridItems.length;
 
-                // 3. Create a pool of filler items (non-ordered items)
                 const fillerPool = Object.entries(currentRoundItems).filter(
                     ([name, emoji]) => !currentOrder.items.includes(name)
                 );
                 
-                // Add decoys for expert mode
                 if (difficulty === 'expert') {
                     const shuffledDecoys = Object.entries(decoyItems).sort(() => 0.5 - Math.random());
                     const decoysToAdd = shuffledDecoys.slice(0, 4);
                     fillerPool.push(...decoysToAdd);
                 }
 
-                // 4. Shuffle the filler pool and add them to the grid
                 fillerPool.sort(() => 0.5 - Math.random());
                 gridItems.push(...fillerPool.slice(0, fillerNeeded));
 
-                // 5. Final shuffle and render
                 const shuffledItems = gridItems.sort(() => Math.random() - 0.5);
                 
                 shuffledItems.forEach(([name, emoji]) => {
@@ -548,7 +545,7 @@
                     customerContainer.innerHTML = `<div class="relative"><div class="text-9xl">${customerType}</div><div class="speech-bubble absolute -top-20 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
                     
                     customerContainer.classList.add('active');
-                    shuffleAndRenderItems(); // Re-render items after a new customer has been decided
+                    shuffleAndRenderItems();
                 }, 400);
             }
             
