@@ -139,6 +139,7 @@
                 <button id="btn-easy" data-difficulty="easy" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ง่ายๆ</button>
                 <button id="btn-medium" data-difficulty="medium" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ปานกลาง</button>
                 <button id="btn-hard" data-difficulty="hard" class="action-button difficulty-button w-full p-4 text-xl font-semibold">ท้าทาย</button>
+                <button id="btn-expert" data-difficulty="expert" class="action-button difficulty-button w-full p-4 text-xl font-semibold" style="border-bottom-color: #701a75;">ฝันร้ายของม่อน</button>
             </div>
             <button id="btn-shop" class="action-button shop-button w-full p-3 text-lg font-semibold mt-6">❤️ ร้านค้าอัปเกรด ❤️</button>
              <button id="btn-back-to-main" class="action-button shop-button w-full p-3 text-lg font-semibold mt-4" style="border-bottom-color: #be185d;">กลับหน้าหลัก</button>
@@ -246,11 +247,10 @@
             let mainGameState = {}; 
             const isBonusGame = new URLSearchParams(window.location.search).has('bonus');
 
-
             const defaultUpgrades = {
-                time: { name: "เพิ่มเวลา", level: 0, maxLevel: 5, cost: [50, 100, 200, 400, 800], effect: level => `+${level*2} วินาที` },
-                vipChance: { name: "เพิ่มโอกาสเจอ VIP", level: 0, maxLevel: 5, cost: [75, 150, 300, 600, 1200], effect: level => `+${level*2}%` },
-                startFever: { name: "เกจฟีเวอร์เริ่มต้น", level: 0, maxLevel: 3, cost: [100, 250, 500], effect: level => `+${level*10}%` }
+                time: { name: "เพิ่มเวลา", level: 0, maxLevel: 8, cost: [50, 100, 200, 400, 800, 1500, 3000, 5000], effect: level => `+${level*2} วินาที` },
+                vipChance: { name: "เพิ่มโอกาสเจอ VIP", level: 0, maxLevel: 7, cost: [75, 150, 300, 600, 1200, 2500, 4000], effect: level => `+${level*2}%` },
+                startFever: { name: "เกจฟีเวอร์เริ่มต้น", level: 0, maxLevel: 5, cost: [100, 250, 500, 1000, 2000], effect: level => `+${level*10}%` }
             };
             
             function loadMainState() {
@@ -433,6 +433,7 @@
                         if (difficulty === 'easy') numItems = 2;
                         else if (difficulty === 'medium') numItems = Math.random() < 0.5 ? 3 : 4;
                         else if (difficulty === 'hard') numItems = Math.random() < 0.5 ? 4 : 5;
+                        else if (difficulty === 'expert') numItems = Math.random() < 0.5 ? 5 : 6;
                     }
                     
                     const shuffledValidItems = [...Object.keys(allItems)].sort(() => 0.5 - Math.random());
@@ -460,6 +461,7 @@
                 let feverGain = 10;
                 if (difficulty === 'medium') feverGain = 8;
                 if (difficulty === 'hard') feverGain = 6;
+                if (difficulty === 'expert') feverGain = 5;
                 feverMeter += feverGain;
                 updateFeverBar();
 
@@ -467,8 +469,7 @@
                 if (difficulty === 'easy') basePoints = 2;
                 else if (difficulty === 'medium') basePoints = 4;
                 else if (difficulty === 'hard') basePoints = 6;
-
-                let points = basePoints;
+                else if (difficulty === 'expert') basePoints = 8;
                 
                 if (isFeverTime) points *= 1.5;
                 if (currentOrder.isVip) points *= 3;
@@ -486,7 +487,8 @@
             function wrongOrder() {
                 feverMeter = Math.max(0, feverMeter - 20);
                 updateFeverBar();
-                timeLeft = Math.max(0, timeLeft - 3);
+                const timePenalty = difficulty === 'expert' ? 5 : 3;
+                timeLeft = Math.max(0, timeLeft - timePenalty);
                 updateTimer();
                 showFeedback(false, 'พลาดไปนิดนึง~');
                 resetSelection();
