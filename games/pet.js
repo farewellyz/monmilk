@@ -1,7 +1,7 @@
 // pet.js
 
 function PetSystem(state, helpers) {
-    const { saveState, updateCoinDisplays, renderInventory, consumableItems } = helpers;
+    const { saveState, updateCoinDisplays, renderInventory, consumableItems, explorationLocations } = helpers;
     let attunementInterval = null;
     let idleAnimationInterval = null;
     let currentPetEmotion = null; 
@@ -165,31 +165,64 @@ function PetSystem(state, helpers) {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    // ========== START: REPLACED FUNCTION ==========
     function updatePetStatusOverTime() {
         if (!state.pet.exists) return;
+
         const now = Date.now();
         const elapsedMinutes = Math.floor((now - state.pet.lastStatusUpdate) / (1000 * 60));
+
         if (elapsedMinutes > 0) {
-            let hungerMultiplier = 1.0, happinessMultiplier = 1.0, staminaRegenMultiplier = 1.0;
+            let hungerLossPerMinute;
+            let happinessLossPerMinute;
+
+            // เช็คว่าตอนนี้กำลังสำรวจอยู่หรือไม่
+            const isExploring = state.pet.exploration && state.pet.exploration.endTime > now;
+
+            if (isExploring) {
+                // ---- อัตราการลด (เมื่อสำรวจ) ----
+                hungerLossPerMinute = 8; // ลด 8 หน่วยต่อนาที
+                happinessLossPerMinute = 6; // ลด 6 หน่วยต่อนาที
+            } else {
+                // ---- อัตราการลด (เมื่อไม่ได้สำรวจ) ----
+                hungerLossPerMinute = 4;  // ลด 4 หน่วยต่อนาที
+                happinessLossPerMinute = 3; // ลด 3 หน่วยต่อนาที
+            }
+            
+            // ใช้ Multiplier จากพื้นหลัง (ถ้ามี)
+            let hungerMultiplier = 1.0, happinessMultiplier = 1.0;
             const activeBg = state.pet.activeBackground;
             if (activeBg === 'kitchen' || activeBg === 'coffee_lounge') hungerMultiplier *= 0.9;
             if (activeBg === 'bedroom') happinessMultiplier *= 0.9;
-            if (activeBg === 'gym_room') staminaRegenMultiplier *= 1.2;
-            const hungerLoss = Math.floor(elapsedMinutes / 7.5 * hungerMultiplier);
-            const happinessLoss = Math.floor(elapsedMinutes / 10 * happinessMultiplier);
-            const bedLevel = state.pet.upgradeLevels.bed;
-            const finalRegenInterval = Math.max(1, 10 - (bedLevel * 0.5));
-            const staminaGain = Math.floor((elapsedMinutes / finalRegenInterval) * staminaRegenMultiplier);
+
+            // คำนวณค่าที่จะลดลงตามเวลาที่ผ่านไป
+            const hungerLoss = Math.floor(elapsedMinutes * hungerLossPerMinute * hungerMultiplier);
+            const happinessLoss = Math.floor(elapsedMinutes * happinessLossPerMinute * happinessMultiplier);
+
+            // ลดค่าสถานะ
             state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
             state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
-            if (!state.pet.exploration || state.pet.exploration.endTime < now) {
+
+            // ส่วนของการฟื้นฟูพลังงาน (Stamina) จะทำงานเฉพาะตอนที่ "ไม่ได้" สำรวจเท่านั้น
+            if (!isExploring) {
+                let staminaRegenMultiplier = 1.0;
+                if (activeBg === 'gym_room') staminaRegenMultiplier *= 1.2;
+                if (activeBg === 'cozy_bedroom') staminaRegenMultiplier *= 1.25;
+
+                const bedLevel = state.pet.upgradeLevels.bed;
+                const finalRegenInterval = Math.max(1, 10 - (bedLevel * 0.5)); 
+                const staminaGain = Math.floor((elapsedMinutes / finalRegenInterval) * staminaRegenMultiplier);
+                
                 const maxStamina = 100 + ((state.pet.level - 1) * 2);
                 state.pet.stamina = Math.min(maxStamina, state.pet.stamina + staminaGain);
             }
+
+            // อัปเดตเวลาล่าสุดและบันทึกข้อมูล
             state.pet.lastStatusUpdate = now;
             saveState();
         }
     }
+    // ========== END: REPLACED FUNCTION ==========
 
     function updatePetEmotion() {
         if (!state.pet.exists) return;
@@ -813,4 +846,3 @@ function PetSystem(state, helpers) {
         },
     };
 }
-
