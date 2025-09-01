@@ -117,6 +117,8 @@
         
         .upgrade-button:disabled { background-color: #f3f4f6; border-bottom-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
         .upgrade-button:disabled:hover { transform: translateY(0) translateZ(20px); border-bottom-width: 8px; filter: brightness(1); }
+        
+        #combo-display { transition: all 0.1s ease-out; }
 
     </style>
 </head>
@@ -160,7 +162,13 @@
         <div id="game-screen" class="hidden">
             <div id="game-view-border" class="game-view w-full rounded-3xl p-4 relative flex flex-col h-[90vh] max-h-[700px]">
                 <header class="mb-2 flex justify-between items-center w-full">
-                    <div class="text-left"> <span class="text-violet-500 text-sm">คะแนน</span> <p id="score" class="text-2xl font-bold">0</p> </div>
+                    <div class="text-left">
+                        <span class="text-violet-500 text-sm">คะแนน</span>
+                        <p id="score" class="text-2xl font-bold">0</p>
+                        <div id="combo-display" class="hidden mt-1">
+                             <span class="font-bold text-orange-500 text-xl" style="text-shadow: 0 0 5px white;">COMBO x<span id="combo-count">0</span></span>
+                        </div>
+                    </div>
                     <div class="flex items-center space-x-2">
                         <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2"> <span class="text-2xl">💰</span> <p id="total-mon-coins" class="text-2xl font-bold text-amber-600">0</p> </div>
                         <div class="text-right bg-white px-3 py-1 rounded-xl shadow-inner flex items-center space-x-2"> <span class="text-2xl text-red-500">❤️</span> <p id="total-hearts" class="text-2xl font-bold text-rose-600">0</p> </div>
@@ -213,6 +221,8 @@
             const customerContainer = document.getElementById('customer');
             const itemSelectionContainer = document.getElementById('item-selection');
             const feedbackContainer = document.getElementById('feedback-container');
+            const comboDisplay = document.getElementById('combo-display');
+            const comboCountEl = document.getElementById('combo-count');
 
             // Modals & Shop UI
             const gameOverModal = document.getElementById('game-over-modal');
@@ -325,18 +335,15 @@
                 backToMainButton.addEventListener('click', () => {
                     window.location.href = 'index.html';
                 });
-
                 backToMainFromModalButton.addEventListener('click', () => {
                     window.location.href = 'index.html';
                 });
-
                 restartButton.addEventListener('click', () => {
                     loadMainState(); 
                     if (mainGameState.playCoins > 0) {
                         mainGameState.playCoins--;
                         saveMainState();
                         gameOverModal.classList.remove('show');
-                        // Go back to start screen instead of restarting immediately
                         gameScreen.classList.add('hidden');
                         startScreen.classList.remove('hidden');
                     } else {
@@ -367,6 +374,7 @@
                 
                 scoreEl.textContent = score;
                 updateFeverBar();
+                updateComboDisplay();
                 gameOverModal.classList.remove('show');
                 gameViewBorder.classList.remove('fever');
                 
@@ -440,7 +448,7 @@
                         if (difficulty === 'easy') numItems = 2;
                         else if (difficulty === 'medium') numItems = Math.random() < 0.5 ? 3 : 4;
                         else if (difficulty === 'hard') numItems = Math.random() < 0.5 ? 4 : 5;
-                        else if (difficulty === 'expert') numItems = Math.floor(Math.random() * 3) + 5; // Randomly 5, 6, or 7
+                        else if (difficulty === 'expert') numItems = Math.floor(Math.random() * 3) + 5;
                     }
                     
                     const shuffledValidItems = [...Object.keys(allItems)].sort(() => 0.5 - Math.random());
@@ -465,6 +473,7 @@
             }
 
             function correctOrder() {
+                combo++;
                 let feverGain = 10;
                 if (difficulty === 'medium') feverGain = 8;
                 if (difficulty === 'hard') feverGain = 6;
@@ -478,14 +487,20 @@
                 else if (difficulty === 'hard') basePoints = 6;
                 else if (difficulty === 'expert') basePoints = 8;
                 
-                let points = basePoints; // BUG FIX: Initialize points
+                let points = basePoints;
                 
                 if (isFeverTime) points *= 1.5;
                 if (currentOrder.isVip) points *= 3;
                 
-                score += Math.round(points);
+                let comboBonus = 0;
+                if (difficulty === 'expert' && combo >= 2) {
+                    comboBonus = 2;
+                }
+
+                score += Math.round(points) + comboBonus;
                 scoreEl.textContent = score;
-                showFeedback(true, `+${Math.round(points)}`);
+                showFeedback(true, `+${Math.round(points) + comboBonus}`);
+                updateComboDisplay();
                 resetSelection();
                 shuffleAndRenderItems();
                 
@@ -494,6 +509,8 @@
             }
 
             function wrongOrder() {
+                combo = 0;
+                updateComboDisplay();
                 feverMeter = Math.max(0, feverMeter - 20);
                 updateFeverBar();
                 const timePenalty = difficulty === 'expert' ? 5 : 3;
@@ -501,6 +518,17 @@
                 updateTimer();
                 showFeedback(false, 'พลาดไปนิดนึง~');
                 resetSelection();
+            }
+
+            function updateComboDisplay() {
+                if (difficulty === 'expert' && combo >= 2) {
+                    comboDisplay.classList.remove('hidden');
+                    comboCountEl.textContent = combo;
+                    comboDisplay.style.transform = 'scale(1.25)';
+                    setTimeout(() => { comboDisplay.style.transform = 'scale(1)'; }, 120);
+                } else {
+                    comboDisplay.classList.add('hidden');
+                }
             }
             
             function resetSelection() {
