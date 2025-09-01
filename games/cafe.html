@@ -280,16 +280,28 @@
             const FEVER_THRESHOLD = 50;
             const customers = ['🐰', '🐻', '🐱', '🐶', '🦊', '🐼', '🐨'];
             const vipCustomer = '👑🐻';
-            const cakes = { 'เค้กสตรอว์เบอร์รี': '🍓', 'เค้กช็อกโกแลต': '🍫', 'เค้กผลไม้': '🍰', 'ชีสเค้ก': '🧀' };
-            const drinks = { 'กาแฟ': '☕', 'ชาเขียว': '🍵', 'น้ำผลไม้': '🍹', 'นมปั่น': '🥤' };
-            const allItems = {...cakes, ...drinks};
-            const decoyItems = { 'บรอกโคลี': '🥦', 'พิซซ่า': '🍕', 'แฮมเบอร์เกอร์': '🍔', 'ซูชิ': '🍣', 'โดนัท': '🍩', 'ไอศกรีม': '🍦' };
+
+            // --- MASTER MENU POOL ---
+            const masterCakes = {
+                'เค้กสตรอว์เบอร์รี': '🍓', 'เค้กช็อกโกแลต': '🍫', 'เค้กผลไม้': '🍰', 'ชีสเค้ก': '🧀',
+                'พุดดิ้ง': '🍮', 'วาฟเฟิล': '🧇', 'ครัวซองต์': '🥐', 'แพนเค้ก': '🥞',
+                'โดนัท': '🍩', 'คุกกี้': '🍪', 'คัพเค้ก': '🧁', 'พาย': '🥧',
+                'น้ำแข็งไส': '🍧', 'ไอศกรีมซันเด': '🍨', 'เค้กวันเกิด': '🎂', 'เพรทเซล': '🥨'
+            };
+            const masterDrinks = {
+                'กาแฟ': '☕', 'ชาเขียว': '🍵', 'น้ำผลไม้': '🍹', 'นมปั่น': '🥤',
+                'นมสด': '🥛', 'น้ำมะพร้าว': '🥥', 'น้ำแอปเปิ้ล': '🍏', 'ชาเย็น': '🥃',
+                'ชานมไข่มุก': '🧉', 'น้ำส้ม': '🍊', 'น้ำมะนาว': '🍋', 'น้ำแตงโม': '🍉',
+                'น้ำกีวี่': '🥝', 'น้ำองุ่น': '🍇', 'น้ำสับปะรด': '🍍', 'น้ำเปล่า': '🧊'
+            };
+            const decoyItems = { 'บรอกโคลี': '🥦', 'พิซซ่า': '🍕', 'แฮมเบอร์เกอร์': '🍔', 'ซูชิ': '🍣', 'ฮอทดอก': '🌭', 'ทาโก้': '🌮' };
             
             // Game State
             let score, totalHearts, timer, timeLeft, currentOrder, playerSelection, gameActive, difficulty;
             let combo, feverMeter, isFeverTime, feverTimeLeft;
             let upgrades = {};
-            let mainGameState = {}; 
+            let mainGameState = {};
+            let currentRoundItems = {}; // To be populated each round
             const isBonusGame = new URLSearchParams(window.location.search).has('bonus');
 
             const defaultUpgrades = {
@@ -394,7 +406,16 @@
                 createStars();
             }
 
+            function setupNewRoundMenu() {
+                const allCakes = Object.entries(masterCakes).sort(() => 0.5 - Math.random());
+                const allDrinks = Object.entries(masterDrinks).sort(() => 0.5 - Math.random());
+                const roundCakes = allCakes.slice(0, 8);
+                const roundDrinks = allDrinks.slice(0, 8);
+                currentRoundItems = Object.fromEntries([...roundCakes, ...roundDrinks]);
+            }
+
             function initGame() {
+                setupNewRoundMenu();
                 const timeBonus = upgrades.time.level * 2;
                 const startFeverBonus = (upgrades.startFever.level * 10 / 100) * FEVER_THRESHOLD;
                 
@@ -408,6 +429,7 @@
                 
                 scoreEl.textContent = score;
                 feverCountdownContainer.style.visibility = 'hidden';
+                feverBar.textContent = 'FEVER';
                 updateFeverBar();
                 updateComboDisplay();
                 gameOverModal.classList.remove('show');
@@ -424,22 +446,29 @@
             // --- Item & Customer Logic ---
             function shuffleAndRenderItems() {
                 itemSelectionContainer.innerHTML = '';
-                let itemsToDisplayEntries;
+                let itemsToShuffle = Object.entries(currentRoundItems);
 
                 if (difficulty === 'expert') {
                     itemSelectionContainer.classList.remove('grid-cols-3');
                     itemSelectionContainer.classList.add('grid-cols-4');
                     const shuffledDecoys = Object.entries(decoyItems).sort(() => 0.5 - Math.random());
                     const decoysToAdd = shuffledDecoys.slice(0, 4);
-                    const combinedItems = [...Object.entries(allItems), ...decoysToAdd];
-                    itemsToDisplayEntries = combinedItems;
-                } else {
+                    itemsToShuffle = [...itemsToShuffle.slice(0,12), ...decoysToAdd];
+                } else if (difficulty === 'hard') {
+                    itemSelectionContainer.classList.add('grid-cols-4');
+                    itemSelectionContainer.classList.remove('grid-cols-3');
+                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 12);
+                } else if (difficulty === 'medium') {
                     itemSelectionContainer.classList.add('grid-cols-3');
                     itemSelectionContainer.classList.remove('grid-cols-4');
-                    itemsToDisplayEntries = Object.entries(allItems);
+                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 9);
+                } else { // Easy
+                    itemSelectionContainer.classList.add('grid-cols-3');
+                    itemSelectionContainer.classList.remove('grid-cols-4');
+                    itemsToShuffle = itemsToShuffle.sort(() => 0.5-Math.random()).slice(0, 6);
                 }
                 
-                const shuffledItems = itemsToDisplayEntries.sort(() => Math.random() - 0.5);
+                const shuffledItems = itemsToShuffle.sort(() => Math.random() - 0.5);
                 
                 shuffledItems.forEach(([name, emoji]) => {
                     const button = document.createElement('button');
@@ -486,11 +515,11 @@
                         else if (difficulty === 'expert') numItems = Math.floor(Math.random() * 3) + 5;
                     }
                     
-                    const shuffledValidItems = [...Object.keys(allItems)].sort(() => 0.5 - Math.random());
+                    const shuffledValidItems = [...Object.keys(currentRoundItems)].sort(() => 0.5 - Math.random());
                     const orderItems = shuffledValidItems.slice(0, numItems);
                     
                     currentOrder = { items: orderItems, isVip: customerType === vipCustomer, customerEmoji: customerType };
-                    const orderEmojis = currentOrder.items.map(name => allItems[name]).join(' ');
+                    const orderEmojis = currentOrder.items.map(name => currentRoundItems[name]).join(' ');
 
                     customerContainer.innerHTML = `<div class="relative"><div class="text-9xl">${customerType}</div><div class="speech-bubble absolute -top-20 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
                     
@@ -582,10 +611,10 @@
             }
 
             function updateOrderForFever() {
-                const shuffledValidItems = [...Object.keys(allItems)].sort(() => 0.5 - Math.random());
+                const shuffledValidItems = [...Object.keys(currentRoundItems)].sort(() => 0.5 - Math.random());
                 const orderItems = shuffledValidItems.slice(0, 1);
                 currentOrder.items = orderItems;
-                const orderEmojis = currentOrder.items.map(name => allItems[name]).join(' ');
+                const orderEmojis = currentOrder.items.map(name => currentRoundItems[name]).join(' ');
                 
                 const speechBubbleEl = customerContainer.querySelector('.speech-bubble');
                 if (speechBubbleEl) {
@@ -613,6 +642,7 @@
                 isFeverTime = false;
                 feverMeter = 0;
                 feverCountdownContainer.style.visibility = 'hidden';
+                feverBar.textContent = 'FEVER';
                 updateFeverBar();
                 gameViewBorder.classList.remove('fever');
                 newCustomer();
