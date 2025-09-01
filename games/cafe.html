@@ -474,10 +474,21 @@
 
             function correctOrder() {
                 combo++;
-                let feverGain = 10;
-                if (difficulty === 'medium') feverGain = 8;
-                if (difficulty === 'hard') feverGain = 6;
-                if (difficulty === 'expert') feverGain = 5;
+                 let feverGain = 10;
+                if (difficulty === 'medium') {
+                    feverGain = 8;
+                } else if (difficulty === 'hard') {
+                    feverGain = 6;
+                } else if (difficulty === 'expert') {
+                    // โลจิกใหม่: เกจฟีเวอร์เพิ่มตามคอมโบ
+                    if (combo < 5) {
+                        feverGain = 5; // คอมโบต่ำกว่า 5 ได้ 5 หน่วย
+                    } else if (combo < 10) {
+                        feverGain = 8; // คอมโบ 5-9 ได้ 8 หน่วย
+                    } else {
+                        feverGain = 12; // คอมโบ 10 ขึ้นไป ได้ 12 หน่วย
+                    }
+                }
                 feverMeter += feverGain;
                 updateFeverBar();
 
@@ -719,3 +730,4 @@
 </body>
 
 </html>
+
