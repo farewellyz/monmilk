@@ -494,7 +494,7 @@
                 
                 let comboBonus = 0;
                 if (difficulty === 'expert' && combo >= 2) {
-                    comboBonus = 2;
+                    comboBonus = combo;
                 }
 
                 score += Math.round(points) + comboBonus;
@@ -713,3 +713,4 @@
 </body>
 
 </html>
+
