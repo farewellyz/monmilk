@@ -9,6 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        @keyframes rainbow-animation { 
+            0% { background-position: 0% 50%; } 
+            50% { background-position: 100% 50%; } 
+            100% { background-position: 0% 50%; } 
+        }
+
         @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         @keyframes heart-animation { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(0.5); opacity: 0; } }
         @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
@@ -99,10 +105,38 @@
             transform: translateZ(20px);
             text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-        .item-button { font-size: 2.25rem; border-bottom-color: #c4b5fd; }
-        .difficulty-button, .shop-button { border-bottom-color: #8b5cf6; }
-        .action-button:hover { transform: translateY(-4px) translateZ(30px) rotateX(-8deg) rotateY(4deg); border-bottom-width: 12px; filter: brightness(1.05); }
-        .action-button:active, .item-button.selected { transform: translateY(2px) translateZ(15px); border-bottom-width: 2px; background-color: #f5f3ff; }
+        
+        .item-button { 
+            font-size: 2.25rem; 
+            border-bottom-color: #c4b5fd;
+        }
+        
+        .difficulty-button, .shop-button { 
+            border-bottom-color: #8b5cf6; 
+        }
+
+        .action-button:hover { 
+            transform: translateY(-4px) translateZ(30px) rotateX(-8deg) rotateY(4deg); 
+            border-bottom-width: 12px; 
+            filter: brightness(1.05); 
+        }
+
+        .action-button:active {
+            transform: translateY(2px) translateZ(15px); 
+            border-bottom-width: 2px; 
+            background-color: #f5f3ff;
+        }
+        
+        .item-button.selected {
+            transform: translateY(2px) translateZ(15px);
+            border-bottom-width: 2px;
+            border-color: #a78bfa;
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: rainbow-animation 4s ease infinite;
+        }
         
         .feedback-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
         .feedback-item { position: absolute; animation: heart-animation 1s ease-out forwards; font-weight: bold; }
@@ -119,7 +153,6 @@
         .upgrade-button:disabled:hover { transform: translateY(0) translateZ(20px); border-bottom-width: 8px; filter: brightness(1); }
 
         #combo-display { transition: all 0.1s ease-out; }
-
     </style>
 </head>
 <body>
