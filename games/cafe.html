@@ -297,8 +297,14 @@
             const BASE_GAME_DURATION = 60;
             const FEVER_DURATION = 10;
             const FEVER_THRESHOLD = 50;
-            const customers = ['🐰', '🐻', '🐱', '🐶', '🦊', '🐼', '🐨'];
-            const vipCustomer = '👑🐻';
+            
+            // --- CUSTOMERS ---
+            const customers = [
+                'images/bunny.png', 'images/bear.png', 'images/cat.png', 
+                'images/dog.png', 'images/fox.png', 'images/panda.png', 'images/koala.png'
+            ];
+            const vipCustomer = 'images/vip_bear.png';
+
 
             // --- MASTER MENU POOL ---
             const masterCakes = {
@@ -496,7 +502,6 @@
                 let fillerNeeded = gridSize - gridItems.length;
                 if (fillerNeeded < 0) fillerNeeded = 0;
 
-
                 const fillerPool = Object.entries(currentRoundItems).filter(
                     ([name, emoji]) => !currentOrder.items.includes(name)
                 );
@@ -563,7 +568,7 @@
                     currentOrder = { items: orderItems, isVip: customerType === vipCustomer, customerEmoji: customerType };
                     const orderEmojis = currentOrder.items.map(name => currentRoundItems[name]).join(' ');
 
-                    customerContainer.innerHTML = `<div class="relative"><div class="text-9xl">${customerType}</div><div class="speech-bubble absolute -top-20 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
+                    customerContainer.innerHTML = `<div class="relative"><img src="${customerType}" class="w-40 h-40 object-contain mx-auto"><div class="speech-bubble absolute -top-16 left-1/2 -translate-x-1/2 w-auto min-w-[10rem] px-4 py-2 rounded-lg"><span class="text-4xl">${orderEmojis}</span></div></div>`;
                     
                     customerContainer.classList.add('active');
                     shuffleAndRenderItems();
@@ -658,13 +663,14 @@
                 currentOrder.items = orderItems;
                 const orderEmojis = currentOrder.items.map(name => currentRoundItems[name]).join(' ');
                 
-                const speechBubbleEl = customerContainer.querySelector('.speech-bubble');
+                const speechBubbleEl = customerContainer.querySelector('.speech-bubble span');
                 if (speechBubbleEl) {
-                    speechBubbleEl.querySelector('span').textContent = orderEmojis;
-                    speechBubbleEl.style.animation = 'none';
+                    speechBubbleEl.textContent = orderEmojis;
+                    const bubble = speechBubbleEl.parentElement;
+                    bubble.style.animation = 'none';
                     requestAnimationFrame(() => {
-                       speechBubbleEl.style.animation = '';
-                       speechBubbleEl.style.animation = 'pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                       bubble.style.animation = '';
+                       bubble.style.animation = 'pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
                     });
                 }
                 shuffleAndRenderItems();
@@ -685,7 +691,6 @@
                 isFeverTime = false;
                 feverMeter = 0;
                 feverCountdownContainer.style.visibility = 'hidden';
-                feverBar.textContent = 'FEVER';
                 updateFeverBar();
                 gameViewBorder.classList.remove('fever');
                 newCustomer();
