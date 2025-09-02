@@ -521,7 +521,8 @@
                 <div id="pet-action-buttons" class="grid grid-cols-2 gap-2 mt-3">
                     <button id="feed-pet-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-400 to-emerald-500 border-green-600">ให้อาหาร</button>
                     <button id="play-with-pet-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-blue-400 to-indigo-500 border-blue-600">เล่นด้วย</button>
-                    <a href="exploration.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
+                    <button id="cure-pet-btn" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-green-500 to-emerald-600 border-green-700 col-span-2 hidden">ใช้ยาแก้ป่วย</button>
+					<a href="exploration.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-600">ออกสำรวจ</a>
                     <a href="garden.html" class="btn-base w-full px-4 py-2 text-sm font-bold text-white rounded-xl shadow-md flex items-center justify-center border-b-4 bg-gradient-to-br from-lime-500 to-green-600 border-lime-700">แปลงผัก</a>
                 </div>
                 
@@ -677,7 +678,7 @@
 
 
     <!-- เรียกใช้งานไฟล์ pet.js ก่อนสคริปต์หลัก -->
-    <script src="pet.js"></script>
+    <script src="pet.js" defer></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -825,6 +826,7 @@
                 { id: 'library', name: 'พื้นหลัง: ห้องสมุด', basePrice: 200, type: 'background', category: 'พื้นหลัง' },
 				{ id: 'นินเท็นโด้', name: 'นินเท็นโด้', basePrice: 200, type: 'consumable', category: 'ของเล่น' },
 				{ id: 'ปุ๋ยเร่งโต', name: 'ปุ๋ยเร่งโต', basePrice: 100, type: 'consumable', category: 'ไอเทมสวน' },
+				{ id: 'ยาแก้ป่วย', name: 'ยาแก้ป่วย', basePrice: 300, type: 'consumable', category: 'ยารักษา' },
             ];
             
             const consumableItems = {
@@ -852,6 +854,7 @@
                 'สตรอว์เบอร์รี': { name: 'สตรอว์เบอร์รี' },
 				'นินเท็นโด้': { name: 'นินเท็นโด้' },
 				'ปุ๋ยเร่งโต': { name: 'ปุ๋ยเร่งโต' },
+				'ยาแก้ป่วย': { name: 'ยาแก้ป่วย' },
             };
 
             const allPlayableGames = [

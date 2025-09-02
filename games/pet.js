@@ -112,6 +112,7 @@ function PetSystem(state, helpers) {
     const petStaminaBar = document.getElementById('pet-stamina-bar');
     const feedPetBtn = document.getElementById('feed-pet-btn');
     const playWithPetBtn = document.getElementById('play-with-pet-btn');
+    const curePetBtn = document.getElementById('cure-pet-btn');
     const petActionButtons = document.getElementById('pet-action-buttons');
     const petExplorationStatusInModal = document.getElementById('pet-exploration-status-in-modal');
     const petExplorationLocationInModal = document.getElementById('pet-exploration-location-in-modal');
@@ -159,7 +160,10 @@ function PetSystem(state, helpers) {
 
     // --- NEW: Sickness Check Function ---
     function checkAndApplySickness() {
-        if (!state.pet || !state.pet.exists || state.pet.sickness !== null) return;
+        // --- บรรทัดที่แก้ไข ---
+        // เปลี่ยนจาก state.pet.sickness !== null เป็น !state.pet.sickness
+        // เพื่อให้ทำงานได้ถูกต้องทั้งกับค่า null และ undefined (กรณีไม่มี property นี้อยู่)
+        if (!state.pet || !state.pet.exists || state.pet.sickness) return;
 
         let newSickness = null;
         if (state.pet.hunger <= 0 && state.pet.happiness <= 0) {
@@ -177,7 +181,6 @@ function PetSystem(state, helpers) {
                 'gastritis': 'โรคกระเพาะ',
                 'depression': 'โรคซึมเศร้า'
             };
-            
         }
     }
 
@@ -224,35 +227,28 @@ function PetSystem(state, helpers) {
     }
 
     function updatePetEmotion() {
-        checkAndApplySickness(); // เรียกใช้เพื่อให้ state.pet.sickness อัปเดตเสมอ
+        checkAndApplySickness(); 
 		if (!state.pet.exists) return;
 
         let newEmotion = 'normal';
         let isBubbleVisible = false;
         let bubbleText = '';
-
-        // --- โค้ดที่แก้ไข ---
-        // เปลี่ยนมาใช้การตรวจสอบแบบลำดับขั้น เพื่อให้แน่ใจว่าสถานะป่วยจะถูกแสดงก่อนเสมอ
         
-        // 1. ตรวจสอบสถานะป่วยที่รุนแรงที่สุด (ขาดสารอาหาร)
         if (state.pet.hunger <= 0 && state.pet.happiness <= 0) {
             newEmotion = 'malnutrition';
             isBubbleVisible = true;
             bubbleText = 'ไม่มีแรงแล้ว... เป็นความผิดของเราเอง';
         } 
-        // 2. ตรวจสอบโรคกระเพาะ (หิว = 0)
         else if (state.pet.hunger <= 0) {
             newEmotion = 'gastritis';
             isBubbleVisible = true;
             bubbleText = 'ปวดท้องจัง...';
         } 
-        // 3. ตรวจสอบโรคซึมเศร้า (ความสุข = 0)
         else if (state.pet.happiness <= 0) {
             newEmotion = 'depression';
             isBubbleVisible = true;
             bubbleText = 'ไม่อยากทำอะไรเลย...';
         } 
-        // 4. หากไม่ป่วย จึงตรวจสอบอารมณ์ทั่วไป (ค่าพลังอยู่ระหว่าง 1-50)
         else if ((state.pet.hunger > 0 && state.pet.hunger <= 50) || (state.pet.happiness > 0 && state.pet.happiness <= 50)) {
             isBubbleVisible = true;
             if (state.pet.hunger <= state.pet.happiness) {
@@ -263,7 +259,6 @@ function PetSystem(state, helpers) {
                 bubbleText = 'ไม่คิดถึงกันหรอ';
             }
         }
-        // --- สิ้นสุดโค้ดที่แก้ไข ---
 
         if (newEmotion !== currentPetEmotion) {
             currentPetEmotion = newEmotion;
@@ -316,6 +311,8 @@ function PetSystem(state, helpers) {
         const pet = state.pet;
         const maxExp = pet.level * 100;
         
+		console.log("ตรวจสอบสถานะสัตว์เลี้ยง:", pet);
+		
         const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
         const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
@@ -353,6 +350,21 @@ function PetSystem(state, helpers) {
             petExplorationLocationInModal.textContent = helpers.explorationLocations[state.pet.exploration.locationId].name;
         } else {
             petExplorationStatusInModal.classList.add('hidden');
+        }
+
+        // *** บล็อกโค้ดที่แก้ไข ***
+        if (pet.sickness) {
+            // ซ่อนปุ่มปกติ
+            feedPetBtn.classList.add('hidden');
+            playWithPetBtn.classList.add('hidden');
+            // แสดงปุ่มรักษา
+            curePetBtn.classList.remove('hidden');
+        } else {
+            // แสดงปุ่มปกติ
+            feedPetBtn.classList.remove('hidden');
+            playWithPetBtn.classList.remove('hidden');
+            // ซ่อนปุ่มรักษา
+            curePetBtn.classList.add('hidden');
         }
     }
 
@@ -557,8 +569,6 @@ function PetSystem(state, helpers) {
         useItemModal.classList.add('visible');
     }
     
-    // (ส่วนที่เหลือของโค้ดไม่มีการเปลี่ยนแปลง)
-    // ...
     function renderUpgradesUI() {
         upgradeList.innerHTML = '';
         const upgrades = [
@@ -827,9 +837,33 @@ function PetSystem(state, helpers) {
         closeUseItemModalBtn.addEventListener('click', () => useItemModal.classList.remove('visible'));
         achievementsBtn.addEventListener('click', () => { renderAchievements(); achievementsModal.classList.add('visible'); });
         closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('visible'));
+
+        curePetBtn.addEventListener('click', () => {
+            const medicineId = 'ยาแก้ป่วย';
+            if (state.inventory[medicineId] && state.inventory[medicineId] > 0) {
+                state.inventory[medicineId]--;
+                cureSickness();
+                renderInventory();
+            } else {
+                alert('ไม่มียาแก้ป่วย! กรุณาไปซื้อที่ร้านค้า');
+            }
+        });
     }
 
-    // --- Public API ---
+    function cureSickness() {
+        if (state.pet.sickness) {
+            state.pet.sickness = null;
+            const maxHunger = 100 + ((state.pet.level - 1) * 2);
+            const maxHappiness = 100 + ((state.pet.level - 1) * 2);
+            state.pet.hunger = Math.min(maxHunger, state.pet.hunger + 10);
+            state.pet.happiness = Math.min(maxHappiness, state.pet.happiness + 10);
+            updatePetEmotion();
+            renderPetStats();
+            saveState();
+            alert('น้องรู้สึกดีขึ้นแล้ว!');
+        }
+    }
+
     return {
         init: function() {
             if (!state.pet.exists) {
@@ -868,16 +902,6 @@ function PetSystem(state, helpers) {
             renderPetStats();
             saveState();
         },
-        cureSickness: function() {
-            if (state.pet.sickness) {
-                state.pet.sickness = null;
-                state.pet.hunger = Math.min(100, state.pet.hunger + 10);
-                state.pet.happiness = Math.min(100, state.pet.happiness + 10);
-                updatePetEmotion();
-                saveState();
-                alert('น้องรู้สึกดีขึ้นแล้ว!');
-            }
-        }
+        cureSickness
     };
 }
-
