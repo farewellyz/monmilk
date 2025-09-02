@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simon Says - เกมของม่อน</title>
+    <title>เกมกดตามม่อน - เกมของม่อน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,286 +11,299 @@
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background-color: #fdf2f8; /* bg-pink-50 */
-            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
-            background-size: 15px 15px;
-            color: #4a5568; /* text-gray-700 */
-        }
-        .hidden {
-            display: none;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
         }
         .app-container {
-            background-color: #fff0f5; /* Lavender Blush */
-            box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
-        }
-        .card {
-            @apply bg-white p-8 rounded-3xl shadow-xl border-4 border-pink-200; /* Adjusted for game-specific card */
-            text-align: center;
+            background-color: #1f2937; /* bg-gray-800 */
+            box-shadow: 0 0 60px rgba(74, 222, 128, 0.1);
+            border: 1px solid #374151;
         }
         .simon-game-board {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background-color: #111827;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,0,0,0.7);
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
             gap: 10px;
-            width: 300px; /* Fixed size of the board */
-            height: 300px;
-            margin: 20px auto;
-            border-radius: 10px;
-            overflow: hidden; /* Ensures rounded corners are applied */
+        }
+        .center-circle {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background-color: #1f2937;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 10px solid #111827;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
         .simon-btn {
-            width: 100%;
-            height: 100%;
-            border: 5px solid #333;
-            border-radius: 10px;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-            opacity: 0.7; /* Default dim state */
-            transform: scale(1);
+            transition: background-color 0.2s, filter 0.2s, transform 0.1s;
+            filter: brightness(0.5);
         }
         .simon-btn:active {
             transform: scale(0.98);
         }
-        .simon-btn.active {
-            opacity: 1; /* Bright state */
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px var(--btn-color-light); /* Glow effect */
+        .simon-btn.lit {
+            filter: brightness(1.2);
+            box-shadow: 0 0 30px var(--glow-color);
         }
-        #green { background-color: #4CAF50; --btn-color-light: #8bc34a; }
-        #red { background-color: #F44336; --btn-color-light: #ef5350; }
-        #yellow { background-color: #FFEB3B; --btn-color-light: #ffee58; }
-        #blue { background-color: #2196F3; --btn-color-light: #42a5f5; }
+        #green { background-color: #10B981; border-top-left-radius: 100%; --glow-color: #6ee7b7; }
+        #red { background-color: #EF4444; border-top-right-radius: 100%; --glow-color: #fca5a5; }
+        #blue { background-color: #3B82F6; border-bottom-left-radius: 100%; --glow-color: #93c5fd; }
+        #yellow { background-color: #F59E0B; border-bottom-right-radius: 100%; --glow-color: #fcd34d; }
 
-        .info-panel {
-            @apply text-lg font-semibold text-gray-700 mt-4;
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease;
         }
-        .start-btn {
-            @apply bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors;
-            margin-top: 20px;
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: #374151; color: white; padding: 2rem; border-radius: 1.5rem;
+            text-align: center; width: 90%; max-width: 380px;
+            transform: scale(0.9); transition: transform 0.3s ease;
+            border: 1px solid #4b5563;
         }
-        .start-btn:disabled {
-            @apply bg-gray-400 cursor-not-allowed;
-        }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
     </style>
 </head>
-<body>
-    <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen">
+    <div id="app-container" class="app-container max-w-md mx-auto p-4 rounded-3xl">
         <div id="simon-game-screen">
-            <header class="flex items-center mb-4">
-                <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
-                <h1 class="text-3xl sm:text-4xl font-bold text-pink-500 ml-4">เกมกดตามม่อน!</h1>
+            <header class="flex items-center justify-between mb-4">
+                <a href="index.html" class="text-3xl text-emerald-400 hover:text-emerald-300 transition">&larr;</a>
+                <h1 class="text-4xl font-bold text-emerald-400">เกมกดตามม่อน!</h1>
+                <div></div>
             </header>
-            <div class="card">
-                <div class="simon-game-board">
-                    <div id="green" class="simon-btn" data-color="green"></div>
-                    <div id="red" class="simon-btn" data-color="red"></div>
-                    <div id="yellow" class="simon-btn" data-color="yellow"></div>
-                    <div id="blue" class="simon-btn" data-color="blue"></div>
+
+            <div class="simon-game-board">
+                <div id="green" class="simon-btn" data-color="green"></div>
+                <div id="red" class="simon-btn" data-color="red"></div>
+                <div id="blue" class="simon-btn" data-color="blue"></div>
+                <div id="yellow" class="simon-btn" data-color="yellow"></div>
+                <div class="center-circle">
+                    <div>
+                        <p class="text-sm text-gray-400">LEVEL</p>
+                        <p id="level-display" class="font-bold text-4xl text-white">0</p>
+                    </div>
+                     <div class="mt-2">
+                        <p class="text-sm text-gray-400">SCORE</p>
+                        <p id="score-display" class="font-bold text-lg text-emerald-400">0</p>
+                    </div>
                 </div>
-                <div class="info-panel">
-                    Level: <span id="simon-level-display">0</span><br>
-                    <span id="simon-message-display">กด "เริ่มเกม" เพื่อเริ่ม!</span>
-                </div>
-                <button id="simon-start-btn" class="start-btn">เริ่มเกม</button>
+            </div>
+
+            <div class="text-center mt-6">
+                <p id="message-display" class="text-xl h-8 font-semibold text-gray-300">กด "เริ่มเกม" เพื่อเริ่ม!</p>
+                <button id="start-game-btn" class="mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg text-xl border-b-4 border-emerald-700 transition disabled:bg-gray-500 disabled:border-gray-600 disabled:cursor-not-allowed">เริ่มเกม</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title" class="text-3xl font-bold text-red-500 mb-2">เกมจบแล้ว!</h2>
+            <p class="text-gray-400">คุณไปถึง <span id="final-level-text" class="font-bold"></span></p>
+            <p class="text-white text-xl my-4">คะแนนรวม: <span id="final-score-text" class="font-bold text-2xl"></span></p>
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <p class="text-emerald-400 text-lg">ได้รับ <span id="final-reward-text" class="font-bold text-2xl">0</span> เหรียญม่อน</p>
+                <p id="bonus-game-text" class="text-green-400 font-bold hidden">(x2 จากเกมโบนัส!)</p>
+            </div>
+            <div class="flex gap-4 mt-6">
+                <a href="index.html" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition">กลับหน้าหลัก</a>
+                <button id="play-again-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition">เล่นอีกครั้ง</button>
             </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- STATE MANAGEMENT (Simplified for game file, relies on main state) ---
             let state = {};
+            // DOM Elements
+            const buttons = {
+                green: document.getElementById('green'),
+                red: document.getElementById('red'),
+                blue: document.getElementById('blue'),
+                yellow: document.getElementById('yellow')
+            };
+            const startGameBtn = document.getElementById('start-game-btn');
+            const levelDisplay = document.getElementById('level-display');
+            const scoreDisplay = document.getElementById('score-display');
+            const messageDisplay = document.getElementById('message-display');
+            // Modal Elements
+            const gameOverModal = document.getElementById('game-over-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const finalLevelText = document.getElementById('final-level-text');
+            const finalScoreText = document.getElementById('final-score-text');
+            const finalRewardText = document.getElementById('final-reward-text');
+            const bonusGameText = document.getElementById('bonus-game-text');
+            const playAgainBtn = document.getElementById('play-again-btn');
 
-            // --- DOM ELEMENTS ---
-            const simonColors = ['green', 'red', 'yellow', 'blue'];
-            const simonButtons = document.querySelectorAll('.simon-btn'); 
-            const simonStartBtn = document.getElementById('simon-start-btn');
-            const simonLevelDisplay = document.getElementById('simon-level-display');
-            const simonMessageDisplay = document.getElementById('simon-message-display');
-
-            let simonSequence = [];
-            let simonPlayerSequence = [];
-            let simonLevel = 0;
-            let simonCanClick = false; 
-            let simonTurnIndex = 0; 
-            // let playerTurnTimeout; // REMOVED: No longer needed for timeout
-            let lightDuration = 600; 
-            let pauseDuration = 400; 
-            // let playerResponseTime = 2000; // REMOVED: No longer needed for timeout
-
-            // NEW: Variable to store if this is a bonus game, determined from URL
+            // Game State
+            let sequence, playerSequence, level, score, canClick, turnTimeout;
             let isCurrentGameBonus = false;
+            
+            // Audio Hooks (หาไฟล์เสียง .mp3 มาใส่ในโฟลเดอร์)
+            // const sounds = {
+            //     green: new Audio('simon_green.mp3'),
+            //     red: new Audio('simon_red.mp3'),
+            //     blue: new Audio('simon_blue.mp3'),
+            //     yellow: new Audio('simon_yellow.mp3'),
+            //     error: new Audio('simon_error.mp3')
+            // };
 
-            // --- LOCAL STORAGE (Only for this game's state and global coins) ---
-            function saveState() {
-                localStorage.setItem('monGameDataV17', JSON.stringify(state));
-            }
-
-            // Fix: Load state robustly, including bonus game flags if present
+            function saveState() { localStorage.setItem('monGameDataV17', JSON.stringify(state)); }
             function loadState() {
-                try {
-                    const savedData = localStorage.getItem('monGameDataV17');
-                    if (savedData) {
-                        state = JSON.parse(savedData);
-                        // Initialize bonus game specific properties if they don't exist in saved data
-                        if (typeof state.dailyBonusGameId === 'undefined') state.dailyBonusGameId = null;
-                        if (typeof state.lastBonusGameDate === 'undefined') state.lastBonusGameDate = null;
-                    } else {
-                        // Default state if no data in localStorage
-                        state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
-                    }
-                } catch (e) {
-                    console.error("Error loading state from localStorage:", e);
-                    // Fallback to default state if parsing fails
-                    state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
-                }
-            }
-
-            // --- Game Functions ---
-            function initializeSimonGame() {
-                loadState(); // Load global state
-
-                // NEW: Check URL parameter for bonus status (reliable method)
-                const urlParams = new URLSearchParams(window.location.search);
-                isCurrentGameBonus = urlParams.get('bonus') === 'true';
-
-                if (state.playCoins > 0) {
-                    state.playCoins -= 1;
-                    saveState(); // Save updated playCoins
-                    startGame(); // Start Simon Says game
-                } else {
-                    alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
-                    window.location.href = 'index.html'; // Go back to main menu
-                }
+                const savedData = localStorage.getItem('monGameDataV17');
+                state = savedData ? JSON.parse(savedData) : { monCoins: 0, playCoins: 0 };
             }
 
             function startGame() {
-                resetGame();
+                loadState();
+                if (state.playCoins < 1) {
+                    alert('เหรียญเล่นม่อนไม่พอ!');
+                    return;
+                }
+                state.playCoins--;
+                saveState();
+
+                sequence = [];
+                level = 0;
+                score = 0;
+                startGameBtn.disabled = true;
+                scoreDisplay.textContent = 0;
+                
                 nextLevel();
             }
 
-            function resetGame() {
-                simonSequence = [];
-                simonPlayerSequence = [];
-                simonLevel = 0;
-                simonTurnIndex = 0;
-                simonCanClick = false;
-                simonLevelDisplay.textContent = simonLevel;
-                simonMessageDisplay.textContent = '';
-                simonStartBtn.disabled = true; // Disable start button during game
-                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
-                
-                lightDuration = 600; 
-                pauseDuration = 400;
-                // playerResponseTime = 2000; // REMOVED: No longer needed for timeout
-            }
-
             function nextLevel() {
-                simonLevel++;
-                simonLevelDisplay.textContent = simonLevel;
-                simonPlayerSequence = [];
-                simonTurnIndex = 0;
-                simonCanClick = false;
-                simonMessageDisplay.textContent = 'ดูและจำลำดับ...';
-                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
-
-                // --- DIFFICULTY LOGIC ---
-                // This logic is kept to make the light sequence faster at higher levels
-                if (simonLevel < 10) {
-                    lightDuration = Math.max(200, lightDuration - 50); 
-                    pauseDuration = Math.max(100, pauseDuration - 30); 
-                } else {
-                    lightDuration = 100; 
-                    pauseDuration = 50;  
-                }
-
-                const randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
-                simonSequence.push(randomColor);
-
-                playSequence(0); 
+                level++;
+                levelDisplay.textContent = level;
+                playerSequence = [];
+                canClick = false;
+                messageDisplay.textContent = 'จำลำดับนะ...';
+                
+                const colors = Object.keys(buttons);
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                sequence.push(randomColor);
+                
+                playSequence();
             }
 
-            function playSequence(index) {
-                if (index < simonSequence.length) {
-                    const colorToLight = simonSequence[index];
-                    const button = document.getElementById(colorToLight);
-                    
-                    button.classList.add('active');
+            async function playSequence() {
+                await new Promise(resolve => setTimeout(resolve, 500)); // Pause before sequence starts
+                for (const color of sequence) {
+                    await lightUp(color);
+                }
+                startPlayerTurn();
+            }
 
+            function lightUp(color) {
+                return new Promise(resolve => {
+                    const button = buttons[color];
+                    const duration = Math.max(100, 500 - (level * 20)); // Gets faster with levels
+                    button.classList.add('lit');
+                    // try { sounds[color].play(); } catch(e) {}
                     setTimeout(() => {
-                        button.classList.remove('active');
-                        setTimeout(() => {
-                            playSequence(index + 1);
-                        }, pauseDuration); 
-                    }, lightDuration); 
-                } else {
-                    simonCanClick = true;
-                    simonMessageDisplay.textContent = 'ตาคุณแล้ว!';
-                    // REMOVED: The timeout that would end the game if the player was too slow
-                    // playerTurnTimeout = setTimeout(() => {
-                    //     endGame('หมดเวลา! คุณตอบไม่ทัน');
-                    // }, playerResponseTime * simonSequence.length); 
-                }
+                        button.classList.remove('lit');
+                        setTimeout(resolve, 100); // Pause between lights
+                    }, duration);
+                });
             }
 
-            function handlePlayerClick(event) {
-                if (!simonCanClick) return;
+            function startPlayerTurn() {
+                canClick = true;
+                const timeToRespond = Math.max(1000, 3000 - (level * 100));
+                messageDisplay.textContent = 'ตาคุณแล้ว!';
+                turnTimeout = setTimeout(() => {
+                    endGame("หมดเวลา!", "คุณกดไม่ทันเวลา!");
+                }, timeToRespond);
+            }
 
-                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
-
-                const clickedColor = event.target.dataset.color;
+            function handlePlayerClick(color) {
+                if (!canClick) return;
                 
-                event.target.classList.add('active');
-                setTimeout(() => {
-                    event.target.classList.remove('active');
-                }, 150); 
+                clearTimeout(turnTimeout);
+                lightUp(color);
+                playerSequence.push(color);
+                const currentIndex = playerSequence.length - 1;
 
-                simonPlayerSequence.push(clickedColor);
-
-                if (simonPlayerSequence[simonTurnIndex] === simonSequence[simonTurnIndex]) {
-                    simonTurnIndex++;
-                    if (simonTurnIndex === simonSequence.length) {
-                        simonCanClick = false; 
-                        simonMessageDisplay.textContent = 'ถูกต้อง! เตรียมพร้อมสำหรับ Level ถัดไป...';
-                        setTimeout(nextLevel, 1000); 
-                    }
-                    // REMOVED: The `else` block that would set another timeout for the next click in the sequence
-                } else {
-                    endGame('ผิด! ลองใหม่ไหม?');
+                if (playerSequence[currentIndex] !== sequence[currentIndex]) {
+                    // try { sounds.error.play(); } catch(e) {}
+                    endGame("เกมจบ!", "คุณกดผิดลำดับ!");
+                    return;
                 }
-            }
-
-            function endGame(message) {
-                simonCanClick = false;
-                simonMessageDisplay.textContent = message;
-                simonStartBtn.disabled = false; 
-                // clearTimeout(playerTurnTimeout); // REMOVED: No longer needed for timeout
-
-                let finalReward = simonLevel; // 1 Mon Coin per level
                 
-                // --- NEW: Daily Bonus Game Check (Uses isCurrentGameBonus from URL) ---
-                let bonusGameMessagePart = '';
-                if (isCurrentGameBonus) { // Check the flag set at initialization
-                    finalReward *= 2; // Multiply reward by 2
-                    bonusGameMessagePart = "\n🎊 เกมโบนัสประจำวัน! รางวัล x2! 🎊"; 
+                // Add score based on how fast they press
+                // This logic can be more complex, here's a simple version
+                score += (10 + level); // Base score + level bonus
+                scoreDisplay.textContent = score;
+
+                if (playerSequence.length === sequence.length) {
+                    canClick = false;
+                    messageDisplay.textContent = 'ถูกต้อง!';
+                    setTimeout(nextLevel, 1000);
+                } else {
+                    startPlayerTurn(); // Restart timer for next button press
                 }
-                // --- END NEW ---
+            }
+            
+            function endGame(title, reason) {
+                canClick = false;
+                clearTimeout(turnTimeout);
+                startGameBtn.disabled = false;
+                
+                // NEW: Balanced reward formula
+                let finalReward = Math.floor(level / 2) + Math.floor(score / 100);
 
-                state.monCoins += finalReward;
-                saveState(); // Save updated monCoins
+                bonusGameText.classList.add('hidden');
+                if (isCurrentGameBonus) {
+                    finalReward *= 2;
+                    bonusGameText.classList.remove('hidden');
+                }
 
-                alert(`เกมจบ! คุณไปถึง Level ${simonLevel} และได้รับ ${finalReward} เหรียญม่อน!${bonusGameMessagePart}`); // Add bonus message to alert
-                window.location.href = 'index.html'; // Go back to main menu
+                if (finalReward > 0) {
+                    state.monCoins += finalReward;
+                    saveState();
+                }
+                
+                modalTitle.textContent = title;
+                finalLevelText.textContent = `ด่าน ${level}`;
+                finalScoreText.textContent = score;
+                finalRewardText.textContent = finalReward;
+                messageDisplay.textContent = reason;
+                gameOverModal.classList.add('visible');
             }
 
-            // --- Event Listeners ---
-            simonStartBtn.addEventListener('click', initializeSimonGame); 
+            // --- Initialization ---
+            loadState();
+            const urlParams = new URLSearchParams(window.location.search);
+            isCurrentGameBonus = urlParams.get('bonus') === 'true';
 
-            simonButtons.forEach(button => {
-                button.addEventListener('click', handlePlayerClick);
+            startGameBtn.addEventListener('click', startGame);
+            playAgainBtn.addEventListener('click', () => {
+                gameOverModal.classList.remove('visible');
+                startGame();
             });
-
-            // Initial setup for the Simon Says game screen (when loaded directly or navigated to)
-            loadState(); 
+            Object.keys(buttons).forEach(color => {
+                buttons[color].addEventListener('click', () => handlePlayerClick(color));
+            });
         });
     </script>
 </body>
