@@ -1,4 +1,4 @@
-// pet.js (ฉบับสมบูรณ์ แก้ไขบัพแล้ว)
+// pet.js (ฉบับสมบูรณ์ - อัปเดตระบบเลือก 2 สายที่ Lv. 15)
 
 function PetSystem(state, helpers) {
     const { saveState, updateCoinDisplays, renderInventory, consumableItems } = helpers;
@@ -40,6 +40,7 @@ function PetSystem(state, helpers) {
     
     const petEvolutions = {
         'base': { name: 'ร่างเบบี๋', title: '', name_class: 'text-white', bonus: null },
+        // --- ฉายาขั้นแรก (Lv. 10) ---
         'cheerful': { name: 'ร่าเริง', title: ' (ร่าเริง)', description: 'ความสุขลดช้าลง 10%', name_class: 'text-cyan-300', bonus: { type: 'happiness_decay', value: 0.9 } },
         'strong': { name: 'แข็งแกร่ง', title: ' (แข็งแกร่ง)', description: 'ความอิ่มลดช้าลง 10%', name_class: 'text-amber-300', bonus: { type: 'hunger_decay', value: 0.9 } },
         'smart': { name: 'ฉลาด', title: ' (ฉลาด)', description: 'ได้รับ EXP เพิ่มขึ้น 5%', name_class: 'text-violet-400', bonus: { type: 'exp_boost', value: 1.05 } },
@@ -48,11 +49,52 @@ function PetSystem(state, helpers) {
         'explorer': { name: 'นักสำรวจ', title: ' (นักสำรวจ)', description: 'ลดเวลาสำรวจลง 10%', name_class: 'text-teal-400', bonus: { type: 'explore_time', value: 0.9 } },
         'playful': { name: 'ขี้เล่น', title: ' (ขี้เล่น)', description: 'ได้รับความสุขจากการเล่น +20%', name_class: 'text-rose-400', bonus: { type: 'play_boost', value: 1.2 } },
         'lucky': { name: 'ดวงดี', title: ' (ดวงดี)', description: 'เพิ่มโชคในการสุ่มกาชาเล็กน้อย', name_class: 'text-yellow-300', bonus: { type: 'gacha_luck', value: 1.05 } },
-        'gardener': { name: 'ชาวสวน', title: ' (ชาวสวน)', description: 'ลดเวลาเติบโตของผัก 10%', name_class: 'text-green-400', bonus: { type: 'garden_speed', value: 0.9 } }
+        'gardener': { name: 'ชาวสวน', title: ' (ชาวสวน)', description: 'ลดเวลาเติบโตของผัก 10%', name_class: 'text-green-400', bonus: { type: 'garden_speed', value: 0.9 } },
+
+        // --- ฉายาขั้นสูง (Lv. 15) ---
+        // สาย Strong
+        'guardian': { name: 'ผู้พิทักษ์', title: ' (ผู้พิทักษ์)', description: 'ความอิ่มลดช้าลง 20% และ +20 Max Hunger', name_class: 'text-yellow-400', bonus: { type: 'hunger_decay', value: 0.8, max_hunger_add: 20 } },
+        'berserker': { name: 'นักรบคลั่ง', title: ' (นักรบคลั่ง)', description: 'เพิ่ม EXP/ของจากการสำรวจ +10% แต่ใช้ Stamina มากขึ้น 10%', name_class: 'text-red-500', bonus: { type: 'berserk_explorer', exp_item_boost: 1.1, stamina_cost: 1.1 } },
+        // สาย Smart
+        'sage': { name: 'นักปราชญ์', title: ' (นักปราชญ์)', description: 'ได้รับ EXP เพิ่มขึ้น 12%', name_class: 'text-fuchsia-400', bonus: { type: 'exp_boost', value: 1.12 } },
+        'alchemist': { name: 'นักเล่นแร่แปรธาตุ', title: ' (นักเล่นแร่แปรธาตุ)', description: 'มีโอกาส 10% ที่จะไม่เสียไอเทมเมื่อใช้งาน และลดราคาสินค้า 5%', name_class: 'text-indigo-400', bonus: { type: 'item_saver', save_chance: 0.1, cost_multiplier: 0.95 } },
+        // สาย Cheerful
+        'idol': { name: 'ไอดอล', title: ' (ไอดอล)', description: 'ความสุขลดช้าลง 20% และ +10% ความสุขจากการเล่น', name_class: 'text-pink-400', bonus: { type: 'happiness_decay', value: 0.8, play_boost_extra: 1.1 } },
+        'ambassador': { name: 'ทูตสันถวไมตรี', title: ' (ทูตสันถวไมตรี)', description: 'ลดราคาของในร้านค้าทั้งหมดลง 10%', name_class: 'text-rose-400', bonus: { type: 'shop_discount', value: 0.9 } },
+        // สาย Energetic
+        'dynamo': { name: 'จอมพลัง', title: ' (จอมพลัง)', description: 'Max Stamina +25 และฟื้นฟู Stamina เร็วขึ้น 15%', name_class: 'text-lime-300', bonus: { type: 'stamina_boost', value: 25, regen: 1.15 } },
+        'marathoner': { name: 'นักวิ่งมาราธอน', title: ' (นักวิ่งมาราธอน)', description: 'ลดการใช้ Stamina ในการสำรวจลง 20% และ Max Stamina +10', name_class: 'text-cyan-400', bonus: { type: 'stamina_efficiency', reduction: 0.8, value: 10 } },
+        // สาย Adventurer
+        'treasure_hunter': { name: 'นักล่าสมบัติ', title: ' (นักล่าสมบัติ)', description: 'เพิ่มโอกาสเจอของหายาก 10% และมีโอกาสได้เหรียญเพิ่ม', name_class: 'text-orange-500', bonus: { type: 'rare_find', value: 1.1, coin_find: true } },
+        'scout': { name: 'หน่วยสอดแนม', title: ' (หน่วยสอดแนม)', description: 'ลดเวลาและพลังงานที่ใช้ในการสำรวจลง 10%', name_class: 'text-emerald-400', bonus: { type: 'efficient_explorer', time_reduction: 0.9, stamina_reduction: 0.9 } },
+        // สาย Explorer
+        'pathfinder': { name: 'ผู้เบิกทาง', title: ' (ผู้เบิกทาง)', description: 'ลดเวลาสำรวจลง 20%', name_class: 'text-teal-300', bonus: { type: 'explore_time', value: 0.8 } },
+        'pioneer': { name: 'นักบุกเบิก', title: ' (นักบุกเบิก)', description: 'ลดเวลาสำรวจลง 10% และเพิ่มโอกาสเจอไอเทมพิเศษ', name_class: 'text-sky-400', bonus: { type: 'explore_time_special', value: 0.9, special_find: true } },
+        // สาย Playful
+        'entertainer': { name: 'นักเอนเตอร์เทน', title: ' (นักเอนเตอร์เทน)', description: 'ได้รับความสุขจากการเล่น +35% และมีโอกาสได้รับ EXP', name_class: 'text-rose-500', bonus: { type: 'play_boost', value: 1.35, exp_chance: 0.25 } },
+        'tinkerer': { name: 'นักประดิษฐ์', title: ' (นักประดิษฐ์)', description: 'มีโอกาส 15% ที่จะไม่เสียของเล่นเมื่อกดใช้งาน', name_class: 'text-slate-400', bonus: { type: 'toy_saver', save_chance: 0.15 } },
+        // สาย Lucky
+        'gambler': { name: 'นักเสี่ยงโชค', title: ' (นักเสี่ยงโชค)', description: 'เพิ่มโชคกาชา +10% และมีโอกาสได้รับตั๋วกาชาคืน', name_class: 'text-yellow-300', bonus: { type: 'gacha_luck', value: 1.1, ticket_rebate: 0.1 } },
+        'prodigy': { name: 'อัจฉริยะ', title: ' (อัจฉริยะ)', description: 'เพิ่มอัตราการได้รับทรัพยากรทุกชนิด +3%', name_class: 'text-purple-400', bonus: { type: 'global_boost', value: 1.03 } },
+        // สาย Gardener
+        'harvester': { name: 'นักเก็บเกี่ยว', title: ' (นักเก็บเกี่ยว)', description: 'ลดเวลาเติบโตของผัก 20% และมีโอกาสได้ผลผลิตเพิ่ม', name_class: 'text-green-500', bonus: { type: 'garden_speed', value: 0.8, bonus_yield: 0.1 } },
+        'botanist': { name: 'นักพฤกษศาสตร์', title: ' (นักพฤกษศาสตร์)', description: 'มีโอกาส 15% ที่จะได้ผักคุณภาพดี (EXP/ความอิ่ม +25%)', name_class: 'text-lime-500', bonus: { type: 'quality_vegetable', chance: 0.15, multiplier: 1.25 } }
     };
 
-    const titleChoiceLevels = {
-        10: ['cheerful', 'strong', 'smart', 'energetic', 'adventurer', 'explorer', 'playful', 'lucky', 'gardener']
+    const initialTitleChoices = [
+        'cheerful', 'strong', 'smart', 'energetic', 'adventurer', 'explorer', 'playful', 'lucky', 'gardener'
+    ];
+    
+    const evolutionPaths = {
+        'cheerful': ['idol', 'ambassador'],
+        'strong': ['guardian', 'berserker'],
+        'smart': ['sage', 'alchemist'],
+        'energetic': ['dynamo', 'marathoner'],
+        'adventurer': ['treasure_hunter', 'scout'],
+        'explorer': ['pathfinder', 'pioneer'],
+        'playful': ['entertainer', 'tinkerer'],
+        'lucky': ['gambler', 'prodigy'],
+        'gardener': ['harvester', 'botanist']
     };
 
     const staminaItems = { 'item_m150': { stamina: 20 }, 'item_latte': { stamina: 30 }, 'item_americano': { stamina: 50 } };
@@ -178,52 +220,87 @@ function PetSystem(state, helpers) {
     let eggTaps = 0;
     const TAPS_TO_HATCH = 20;
 
-    // =================================================================
-    // START: ส่วนที่แก้ไขหลัก - ฟังก์ชันรวมบัพ
-    // =================================================================
     function getActiveBuffs() {
         if (!state.pet || !state.pet.exists) return {};
 
-        // 1. กำหนดค่าเริ่มต้นสำหรับบัพทั้งหมด
         const buffs = {
-            hunger_decay: 1.0,      // ตัวคูณลดความหิว (น้อยกว่า 1 คือหิวช้าลง)
-            happiness_decay: 1.0,   // ตัวคูณลดความสุข
-            stamina_regen: 1.0,     // ตัวคูณฟื้นฟูพลังงาน
-            exp_boost: 1.0,         // ตัวคูณ EXP ที่ได้รับ
-            play_happiness_boost: 1.0, // ตัวคูณความสุขจากการเล่น
-            food_cost_multiplier: 1.0, // ตัวคูณราคาอาหาร
-            food_hunger_boost: 1.0,   // ตัวคูณความอิ่มจากอาหาร
-            max_stamina_add: 0,     // พลังงานสูงสุดที่เพิ่มขึ้น
-            stamina_cost_multiplier: 1.0, // ตัวคูณพลังงานที่ใช้ (น้อยกว่า 1 คือใช้พลังงานน้อยลง)
+            hunger_decay: 1.0,
+            happiness_decay: 1.0,
+            stamina_regen: 1.0,
+            exp_boost: 1.0,
+            play_happiness_boost: 1.0,
+            food_cost_multiplier: 1.0,
+            food_hunger_boost: 1.0,
+            max_stamina_add: 0,
+            max_hunger_add: 0,
+            stamina_cost_multiplier: 1.0,
+            item_save_chance: 0,
+            toy_save_chance: 0,
+            global_boost: 1.0,
+            // Exploration specific
+            explore_exp_item_boost: 1.0,
+            explore_time_multiplier: 1.0,
+            explore_rare_find_boost: 1.0,
         };
 
         const pet = state.pet;
         const evoInfo = petEvolutions[pet.evolution_form || 'base'];
         const activeBg = pet.activeBackground;
 
-        // 2. คำนวณบัพจาก "ฉายา" (Evolution)
+        // --- 1. Title Buffs ---
         if (evoInfo && evoInfo.bonus) {
-            switch (evoInfo.bonus.type) {
+            const bonus = evoInfo.bonus;
+            switch (bonus.type) {
                 case 'hunger_decay':
-                    buffs.hunger_decay *= evoInfo.bonus.value;
+                    buffs.hunger_decay *= bonus.value;
+                    if(bonus.max_hunger_add) buffs.max_hunger_add += bonus.max_hunger_add;
                     break;
                 case 'happiness_decay':
-                    buffs.happiness_decay *= evoInfo.bonus.value;
+                    buffs.happiness_decay *= bonus.value;
+                    if(bonus.play_boost_extra) buffs.play_happiness_boost *= bonus.play_boost_extra;
                     break;
-                case 'exp_boost':
-                    buffs.exp_boost *= evoInfo.bonus.value;
-                    break;
+                case 'exp_boost': buffs.exp_boost *= bonus.value; break;
                 case 'stamina_boost':
-                    buffs.max_stamina_add += evoInfo.bonus.value;
-                    buffs.stamina_regen *= evoInfo.bonus.regen;
+                    buffs.max_stamina_add += bonus.value;
+                    buffs.stamina_regen *= bonus.regen;
+                    break;
+                case 'stamina_efficiency':
+                    buffs.stamina_cost_multiplier *= bonus.reduction;
+                    buffs.max_stamina_add += bonus.value;
                     break;
                 case 'play_boost':
-                    buffs.play_happiness_boost *= evoInfo.bonus.value;
+                     buffs.play_happiness_boost *= bonus.value;
+                    // Note: exp_chance for Entertainer is handled separately in handlePlayAction
+                    break;
+                case 'item_saver':
+                    buffs.item_save_chance = Math.max(buffs.item_save_chance, bonus.save_chance);
+                    buffs.food_cost_multiplier *= bonus.cost_multiplier;
+                    break;
+                case 'toy_saver': buffs.toy_save_chance = Math.max(buffs.toy_save_chance, bonus.save_chance); break;
+                case 'shop_discount': buffs.food_cost_multiplier *= bonus.value; break;
+                case 'global_boost': buffs.global_boost *= bonus.value; break;
+                // Exploration bonuses are grouped but can be used by other systems too
+                case 'explore_time': buffs.explore_time_multiplier *= bonus.value; break;
+                case 'rare_find': buffs.explore_rare_find_boost *= bonus.value; break;
+                case 'berserk_explorer':
+                    buffs.explore_exp_item_boost *= bonus.exp_item_boost;
+                    buffs.stamina_cost_multiplier *= bonus.stamina_cost;
+                    break;
+                case 'efficient_explorer':
+                    buffs.explore_time_multiplier *= bonus.time_reduction;
+                    buffs.stamina_cost_multiplier *= bonus.stamina_reduction;
                     break;
             }
         }
+        
+        // Apply Prodigy's global boost to core stats
+        if(buffs.global_boost > 1.0){
+             buffs.exp_boost *= buffs.global_boost;
+             // Can be applied to coin gains etc. elsewhere
+        }
 
-        // 3. คำนวณบัพจาก "พื้นหลัง" (Background)
+
+        // --- 2. Background Buffs ---
         if (activeBg === 'kitchen') buffs.hunger_decay *= 0.9;
         if (activeBg === 'library') buffs.exp_boost *= 1.1;
         if (activeBg === 'bedroom') buffs.happiness_decay *= 0.9;
@@ -235,7 +312,8 @@ function PetSystem(state, helpers) {
         if (activeBg === 'toy_gallery') buffs.play_happiness_boost *= 1.25;
         if (activeBg === 'beach' || activeBg === 'playground') buffs.stamina_cost_multiplier *= 0.9;
         if (activeBg === 'beach_resort') buffs.stamina_cost_multiplier *= 0.85;
-
+        if (activeBg === 'ancient_forest') buffs.explore_exp_item_boost *= 1.15;
+        
         if (activeBg === 'coffee_lounge') {
             buffs.exp_boost *= 1.1;
             buffs.hunger_decay *= 0.9;
@@ -243,9 +321,6 @@ function PetSystem(state, helpers) {
         if (activeBg === 'digital_nexus') {
             buffs.exp_boost *= 1.15;
             buffs.stamina_cost_multiplier *= 0.7;
-        }
-        if (activeBg === 'music_room') {
-            // บัพนี้ควรส่งผลต่อ EXP จากการเล่นเท่านั้น จะจัดการแยกใน handlePlayAction
         }
 
         if (activeBg === 'sky_palace_legendary') {
@@ -260,9 +335,6 @@ function PetSystem(state, helpers) {
         
         return buffs;
     }
-    // =================================================================
-    // END: ส่วนที่แก้ไขหลัก
-    // =================================================================
 
     function checkAndApplySickness() {
         if (!state.pet || !state.pet.exists || state.pet.sickness) return;
@@ -279,7 +351,6 @@ function PetSystem(state, helpers) {
         }
     }
 
-    // --- Private Functions ---
     function formatCountdown(ms) {
         if (ms < 0) ms = 0;
         let s = Math.floor(ms / 1000);
@@ -296,19 +367,14 @@ function PetSystem(state, helpers) {
 
         if (elapsedMinutes > 0) {
             const buffs = getActiveBuffs();
-
             const hungerLoss = Math.floor(elapsedMinutes / 7.5 * buffs.hunger_decay);
             const happinessLoss = Math.floor(elapsedMinutes / 10 * buffs.happiness_decay);
-            
             const bedLevel = state.pet.upgradeLevels.bed;
             let finalRegenInterval = Math.max(1, 10 - (bedLevel * 0.5));
             if(state.pet.activeBackground === 'cozy_bedroom') finalRegenInterval *= 0.75;
-            
             const staminaGain = Math.floor((elapsedMinutes / finalRegenInterval) * buffs.stamina_regen);
-
             state.pet.hunger = Math.max(0, state.pet.hunger - hungerLoss);
             state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
-
             if (!state.pet.exploration || state.pet.exploration.endTime < now) {
                 const buffsForMax = getActiveBuffs();
                 const levelBonus = (state.pet.level - 1) * 2;
@@ -393,7 +459,7 @@ function PetSystem(state, helpers) {
         const maxExp = pet.level * 100;
         const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
-        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
+        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0) + buffs.max_hunger_add;
         const bedLevel = pet.upgradeLevels.bed;
         const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
         let maxStamina = 100 + levelBonus + buffs.max_stamina_add;
@@ -451,10 +517,29 @@ function PetSystem(state, helpers) {
         updatePetEmotion();
         updateAchievementNotification();
     }
+    
+    function isLevel10Title(formId) {
+        return initialTitleChoices.includes(formId);
+    }
+
+    function checkAndTriggerEvolution() {
+        const pet = state.pet;
+        if (pet.level >= 10 && pet.evolution_form === 'base') {
+            showTitleSelectionModal(10);
+        } 
+        else if (pet.level >= 15 && isLevel10Title(pet.evolution_form) && !pet.hasEvolvedTier2) {
+            showTitleSelectionModal(15);
+        }
+    }
 
     function showTitleSelectionModal(level) {
-        const choices = titleChoiceLevels[level];
-        if (!choices) return;
+        const currentForm = state.pet.evolution_form;
+        const choices = (level === 10) 
+            ? initialTitleChoices 
+            : evolutionPaths[currentForm] || [];
+
+        if (!choices || choices.length === 0) return;
+
         titleOptionsList.innerHTML = '';
         choices.forEach(choiceId => {
             const evoInfo = petEvolutions[choiceId];
@@ -468,6 +553,11 @@ function PetSystem(state, helpers) {
                 const confirmationMessage = `คุณแน่ใจหรือไม่ว่าจะเลือกฉายา "${evoInfo.title.trim()}"?\n\n(ไม่สามารถเปลี่ยนแปลงได้ในภายหลัง)`;
                 if (confirm(confirmationMessage)) {
                     state.pet.evolution_form = choiceId;
+
+                    if (level === 15) {
+                        state.pet.hasEvolvedTier2 = true;
+                    }
+
                     titleSelectionModal.classList.remove('visible');
                     alert(`ยินดีด้วย! ${state.pet.name} ได้รับฉายาใหม่คือ "${evoInfo.title.trim()}"!`);
                     renderPetStats();
@@ -477,13 +567,6 @@ function PetSystem(state, helpers) {
             titleOptionsList.appendChild(button);
         });
         titleSelectionModal.classList.add('visible');
-    }
-
-    function checkAndTriggerEvolution() {
-        const pet = state.pet;
-        if (pet.level >= 10 && pet.evolution_form === 'base') {
-            showTitleSelectionModal(10);
-        }
     }
     
     function addPetExp(amount) {
@@ -522,6 +605,7 @@ function PetSystem(state, helpers) {
                 exists: true, name: name, level: 1, exp: 0, hunger: 50, happiness: 60, stamina: 100,
                 sickness: null,
                 evolution_form: 'base',
+                hasEvolvedTier2: false, // Flag for Tier 2 evolution
                 exploration: null, lastPattedDate: null, lastStatusUpdate: Date.now(),
                 ownedBackgrounds: ['default'], activeBackground: 'default', attunement: null,
                 upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
@@ -579,7 +663,15 @@ function PetSystem(state, helpers) {
             
             if (hasItem) {
                 foodEl.innerHTML = `<span>ใช้ ${foodName} (+${finalHungerGain} ❤️)</span><span class="font-bold text-gray-600">มี ${state.inventory[foodName]} ชิ้น</span>`;
-                foodEl.onclick = () => { state.inventory[foodName]--; feedAction(); };
+                foodEl.onclick = () => { 
+                    const buffs = getActiveBuffs(); // Re-check buffs at time of use
+                    if (buffs.item_save_chance > 0 && Math.random() < buffs.item_save_chance) {
+                         alert('โชคดี! ไม่เสียอาหารชิ้นนี้');
+                    } else {
+                        state.inventory[foodName]--;
+                    }
+                    feedAction(); 
+                };
             } else if (food.cost > 0) {
                 const finalCost = Math.round(food.cost * costMultiplier);
                 foodEl.innerHTML = `<span>ซื้อ ${foodName} (+${finalHungerGain} ❤️)</span><span class="font-bold text-amber-600">${finalCost} เหรียญ</span>`;
@@ -609,10 +701,8 @@ function PetSystem(state, helpers) {
                 let happinessGain = toy.happiness;
                 const toyShelfLevel = state.pet.upgradeLevels.toy_shelf;
                 if (toyShelfLevel >= 2) happinessGain = Math.round(happinessGain * 1.05);
-
                 const buffs = getActiveBuffs();
                 const finalHappinessGain = Math.round(happinessGain * buffs.play_happiness_boost);
-                
                 const toyEl = document.createElement('button');
                 toyEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200';
                 toyEl.innerHTML = `<span>ใช้ ${toyName} (+${finalHappinessGain} 😊)</span><span class="font-bold text-gray-600">มี ${state.inventory[toyName]} ชิ้น</span>`;
@@ -624,38 +714,42 @@ function PetSystem(state, helpers) {
     }
 
     function handlePlayAction(action, happinessGain) {
-        if (action === 'pat' && happinessGain === undefined) {
-            happinessGain = 30; // Patting doesn't get multiplied by buffs
-        }
-        
+        const buffs = getActiveBuffs();
         let expGain = 0, playCoinGain = 0;
+
         if (action === 'pat') {
-            const today = new Date().toDateString();
-            if (state.pet.lastPattedDate !== today) {
-                state.pet.lastPattedDate = today;
+            if (state.pet.lastPattedDate !== new Date().toDateString()) {
+                state.pet.lastPattedDate = new Date().toDateString();
+                happinessGain = 30;
                 expGain = 10;
                 playCoinGain = 1 + Math.floor(state.pet.level / 5);
                 alert(`คุณลูบหัว ${state.pet.name} อย่างเอ็นดู!\nได้รับ ${playCoinGain} เหรียญเล่นม่อน และ ${expGain} EXP!`);
-            } else {
-                return; // Already patted today
-            }
+            } else { return; }
         } else if (petToys[action] && state.inventory[action] > 0) {
-            state.inventory[action]--;
+            if (buffs.toy_save_chance > 0 && Math.random() < buffs.toy_save_chance) {
+                alert('โชคดี! ไม่เสียของเล่นชิ้นนี้');
+            } else {
+                state.inventory[action]--;
+            }
             expGain = petToys[action].exp;
+            // Entertainer EXP Chance
+            const evoInfo = petEvolutions[state.pet.evolution_form || 'base'];
+            if(evoInfo.bonus && evoInfo.bonus.type === 'play_boost' && evoInfo.bonus.exp_chance && Math.random() < evoInfo.bonus.exp_chance){
+                expGain += 5; // Bonus EXP
+                alert('ดูเหมือนน้องจะสนุกเป็นพิเศษ! ได้รับ EXP เพิ่ม!');
+            }
             alert(`คุณใช้ ${action} เล่นกับ ${state.pet.name}!`);
             const achievementKeyMap = { 'ของเล่นยาง': 'play_rubber_toy', 'ลูกบอล': 'play_ball', 'กีต้า': 'play_guitar', 'คอมพิวเตอร์': 'play_computer' };
             if (achievementKeyMap[action]) trackAchievement(achievementKeyMap[action]);
-        }
+        } else { return; }
         
         changeHappiness(happinessGain || 0);
-
         if (state.pet.upgradeLevels.bed >= 4) expGain += 5;
-        if (state.pet.activeBackground === 'music_room') {
-             expGain = Math.round(expGain * 1.15);
-        }
-
+        if (state.pet.activeBackground === 'music_room') expGain = Math.round(expGain * 1.15);
         if (expGain > 0) addPetExp(expGain);
-        if (playCoinGain > 0) state.playCoins += playCoinGain;
+        if (playCoinGain > 0) {
+            state.playCoins += Math.round(playCoinGain * buffs.global_boost); // Prodigy buff
+        }
         
         floatingPetImage.classList.add('pet-happy-animation');
         floatingPetImage.addEventListener('animationend', () => floatingPetImage.classList.remove('pet-happy-animation'), { once: true });
@@ -665,6 +759,9 @@ function PetSystem(state, helpers) {
         updateCoinDisplays();
         playModal.classList.remove('visible');
     }
+
+    // ... The rest of the functions from showUseItemModal() to the end remain the same as the previously provided full code ...
+    // ... Copy from the previous "full code" answer from here down ...
 
     function showUseItemModal() {
         itemUseList.innerHTML = '';
@@ -684,7 +781,12 @@ function PetSystem(state, helpers) {
                     let maxStamina = 100 + levelBonus + buffs.max_stamina_add;
                     if (state.pet.stamina >= maxStamina) { alert('พลังงานเต็มแล้วจ้า!'); return; }
                     
-                    state.inventory[itemId]--;
+                    if (buffs.item_save_chance > 0 && Math.random() < buffs.item_save_chance) {
+                        alert('โชคดี! ไม่เสียไอเทมชิ้นนี้');
+                    } else {
+                        state.inventory[itemId]--;
+                    }
+
                     changeStamina(itemEffect.stamina);
                     const achievementKeyMap = { 'item_m150': 'use_m150', 'item_latte': 'use_latte', 'item_americano': 'use_americano' };
                     if (achievementKeyMap[itemId]) trackAchievement(achievementKeyMap[itemId]);
@@ -996,9 +1098,10 @@ function PetSystem(state, helpers) {
 
     function changeHunger(amount) {
         if (!state.pet || !state.pet.exists) return;
+        const buffs = getActiveBuffs();
         const levelBonus = (state.pet.level - 1) * 2;
         const bowlLevel = state.pet.upgradeLevels.bowl;
-        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
+        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0) + buffs.max_hunger_add;
         state.pet.hunger = Math.min(maxHunger, Math.max(0, state.pet.hunger + amount));
         renderPetStats();
         saveState();
@@ -1033,6 +1136,7 @@ function PetSystem(state, helpers) {
             } else {
                 if (!state.pet.hasOwnProperty('evolution_form')) state.pet.evolution_form = 'base';
                 if (!state.pet.hasOwnProperty('sickness')) state.pet.sickness = null;
+                if (!state.pet.hasOwnProperty('hasEvolvedTier2')) state.pet.hasEvolvedTier2 = false;
                 updatePetStatusOverTime();
                 renderFloatingPet();
                 updateAttunementStatus();
@@ -1045,7 +1149,7 @@ function PetSystem(state, helpers) {
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
         getEvoInfo: () => petEvolutions[state.pet.evolution_form || 'base'],
-        getActiveBuffs: () => getActiveBuffs(), // เปิดให้ภายนอกเรียกใช้ได้ เช่น exploration.js
+        getActiveBuffs: () => getActiveBuffs(),
         changeHunger,
         changeHappiness,
         changeStamina,
