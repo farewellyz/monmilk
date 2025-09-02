@@ -158,11 +158,7 @@ function PetSystem(state, helpers) {
     let eggTaps = 0;
     const TAPS_TO_HATCH = 20;
 
-    // --- NEW: Sickness Check Function ---
     function checkAndApplySickness() {
-        // --- บรรทัดที่แก้ไข ---
-        // เปลี่ยนจาก state.pet.sickness !== null เป็น !state.pet.sickness
-        // เพื่อให้ทำงานได้ถูกต้องทั้งกับค่า null และ undefined (กรณีไม่มี property นี้อยู่)
         if (!state.pet || !state.pet.exists || state.pet.sickness) return;
 
         let newSickness = null;
@@ -311,8 +307,6 @@ function PetSystem(state, helpers) {
         const pet = state.pet;
         const maxExp = pet.level * 100;
         
-		console.log("ตรวจสอบสถานะสัตว์เลี้ยง:", pet);
-		
         const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
         const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
@@ -352,18 +346,13 @@ function PetSystem(state, helpers) {
             petExplorationStatusInModal.classList.add('hidden');
         }
 
-        // *** บล็อกโค้ดที่แก้ไข ***
         if (pet.sickness) {
-            // ซ่อนปุ่มปกติ
             feedPetBtn.classList.add('hidden');
             playWithPetBtn.classList.add('hidden');
-            // แสดงปุ่มรักษา
             curePetBtn.classList.remove('hidden');
         } else {
-            // แสดงปุ่มปกติ
             feedPetBtn.classList.remove('hidden');
             playWithPetBtn.classList.remove('hidden');
-            // ซ่อนปุ่มรักษา
             curePetBtn.classList.add('hidden');
         }
     }
@@ -864,6 +853,38 @@ function PetSystem(state, helpers) {
         }
     }
 
+    // --- NEW STRUCTURE: Core stat functions are defined here ---
+    function changeHunger(amount) {
+        if (!state.pet || !state.pet.exists) return;
+        const levelBonus = (state.pet.level - 1) * 2;
+        const bowlLevel = state.pet.upgradeLevels.bowl;
+        const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
+        state.pet.hunger = Math.min(maxHunger, Math.max(0, state.pet.hunger + amount));
+        renderPetStats();
+        saveState();
+    }
+
+    function changeHappiness(amount) {
+        if (!state.pet || !state.pet.exists) return;
+        const levelBonus = (state.pet.level - 1) * 2;
+        const bedLevel = state.pet.upgradeLevels.bed;
+        const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
+        state.pet.happiness = Math.min(maxHappiness, Math.max(0, state.pet.happiness + amount));
+        renderPetStats();
+        saveState();
+    }
+
+    function changeStamina(amount) {
+        if (!state.pet || !state.pet.exists) return;
+        const levelBonus = (state.pet.level - 1) * 2;
+        const maxStamina = 100 + levelBonus;
+        state.pet.stamina = Math.min(maxStamina, Math.max(0, state.pet.stamina + amount));
+        renderPetStats();
+        saveState();
+    }
+
+
+    // --- Public API ---
     return {
         init: function() {
             if (!state.pet.exists) {
@@ -879,29 +900,10 @@ function PetSystem(state, helpers) {
         addPetExp,
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
-        changeHunger: function(amount) {
-            const levelBonus = (state.pet.level - 1) * 2;
-            const bowlLevel = state.pet.upgradeLevels.bowl;
-            const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
-            state.pet.hunger = Math.min(maxHunger, Math.max(0, state.pet.hunger + amount));
-            renderPetStats();
-            saveState();
-        },
-        changeHappiness: function(amount) {
-            const levelBonus = (state.pet.level - 1) * 2;
-            const bedLevel = state.pet.upgradeLevels.bed;
-            const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
-            state.pet.happiness = Math.min(maxHappiness, Math.max(0, state.pet.happiness + amount));
-            renderPetStats();
-            saveState();
-        },
-        changeStamina: function(amount) {
-            const levelBonus = (state.pet.level - 1) * 2;
-            const maxStamina = 100 + levelBonus;
-            state.pet.stamina = Math.min(maxStamina, Math.max(0, state.pet.stamina + amount));
-            renderPetStats();
-            saveState();
-        },
+        // Expose the functions to the outside world
+        changeHunger,
+        changeHappiness,
+        changeStamina,
         cureSickness
     };
 }
