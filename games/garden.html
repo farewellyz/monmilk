@@ -270,18 +270,20 @@
         </div>
     </div>
 
+    <script src="pet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let state = {};
+            let petSystem = null; // << เพิ่มตัวแปร petSystem
             let gardenInterval = null;
             const WATERING_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-            const MAX_PLOTS = 12; // Maximum plots set to 12
+            const MAX_PLOTS = 12;
 
             const seedData = {
-                'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', icon: '🌱', readyIcon: '🍅', exp: 15 },
-                'เมล็ดแครอท': { growTime: 4 * 60 * 60 * 1000, result: 'แครอท', icon: '🌱', readyIcon: '🥕', exp: 25 },
-                'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', icon: '🌱', readyIcon: '🥦', exp: 40 },
-                'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', icon: '🍓', readyIcon: '🍓', exp: 100 },
+                'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', readyIcon: '🍅', exp: 2 },
+                'เมล็ดแครอท': { growTime: 4 * 60 * 60 * 1000, result: 'แครอท', readyIcon: '🥕', exp: 3 },
+                'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', readyIcon: '🥦', exp: 4 },
+                'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', readyIcon: '🍓', exp: 5 },
             };
             
             const fertilizerData = {
@@ -301,11 +303,9 @@
                 if (savedData) {
                     state = JSON.parse(savedData);
                     if (!state.garden) {
-                        // Start with 6 plots
                         state.garden = { plots: Array(6).fill(null) }; 
                     }
                 } else {
-                    // Redirect if no game data (should happen from index.html)
                     window.location.href = 'index.html'; 
                 }
             }
@@ -353,6 +353,7 @@
                     if (plot) {
                         const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
                         const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
+                        const plantIcon = plot.isFertilized ? '✨' : '🌱';
 
                         if (remainingTime > 0) {
                             if (needsWater) {
@@ -368,7 +369,7 @@
                                 plotEl.classList.add('planted');
                                 plotEl.innerHTML = `
                                     <div class="plot-content">
-                                        <div class="plot-icon">${seedData[plot.seedName].icon}</div>
+                                        <div class="plot-icon">${plantIcon}</div>
                                     </div>
                                     <div class="plot-timer" id="timer-${index}">${formatCountdown(remainingTime)}</div>
                                 `;
@@ -403,30 +404,27 @@
             function updateTimers() {
                 let needsRender = false;
                 state.garden.plots.forEach((plot, index) => {
-                    if (plot) {
+                    if (plot && !plot.isPaused) {
                         const timerEl = document.getElementById(`timer-${index}`);
-                        if (timerEl) { // Only update timer if it exists (i.e., not needing water or ready)
-                            const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
+                        if (timerEl) {
                             const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
-                            
-                            if (remainingTime <= 0) {
-                                needsRender = true; // Plant is ready
-                            } else if (needsWater) {
-                                needsRender = true; // Plot now needs water
-                            } else {
-                                timerEl.textContent = formatCountdown(remainingTime);
-                            }
+                            if (remainingTime <= 0) needsRender = true;
+                            else timerEl.textContent = formatCountdown(remainingTime);
+                        }
+                        if (Date.now() - plot.lastWatered > WATERING_INTERVAL) {
+                            plot.isPaused = true;
+                            plot.pauseTime = Date.now();
+                            needsRender = true;
                         }
                     }
                 });
-                if (needsRender) renderPlots(); // Re-render if any state change requires it
+                if (needsRender) renderPlots();
             }
             
             function renderGardenActions() {
                 const container = document.getElementById('garden-actions');
                 container.innerHTML = '';
                 if (state.garden.plots.length < MAX_PLOTS) {
-                    // Cost formula adjusted for 6 starting plots. First upgrade is plot 7.
                     const currentCost = 50 * Math.pow(2, state.garden.plots.length - 6); 
                     const button = document.createElement('button');
                     button.className = 'btn-base btn-secondary w-full';
@@ -456,13 +454,7 @@
                 const ownedItems = Object.keys(state.inventory).filter(item => (seedData[item] || fertilizerData[item]) && state.inventory[item] > 0);
 
                 if (ownedItems.length > 0) {
-                    ownedItems.sort((a, b) => { // Sort items for consistent display
-                        const typeA = seedData[a] ? 0 : 1; // Seeds first
-                        const typeB = seedData[b] ? 0 : 1;
-                        if (typeA !== typeB) return typeA - typeB;
-                        return a.localeCompare(b);
-                    });
-
+                    ownedItems.sort((a, b) => (seedData[a] ? 0 : 1) - (seedData[b] ? 0 : 1) || a.localeCompare(b));
                     ownedItems.forEach(itemName => {
                         const itemEl = document.createElement('div');
                         itemEl.className = 'flex justify-between items-center bg-lime-50 p-3 rounded-lg border border-lime-200 shadow-sm';
@@ -480,13 +472,10 @@
             function showPlantSeedModal(plotIndex) {
                 seedOptionsList.innerHTML = '';
                 const ownedSeeds = Object.keys(state.inventory).filter(item => seedData[item] && state.inventory[item] > 0);
-
                 if (ownedSeeds.length === 0) {
                     alert('คุณไม่มีเมล็ดพันธุ์สำหรับปลูกเลย!');
-                    hidePlantSeedModal();
                     return;
                 }
-
                 ownedSeeds.forEach(seedName => {
                     const seed = seedData[seedName];
                     const optionEl = document.createElement('button');
@@ -507,20 +496,7 @@
                 if (!plot) return;
                 
                 let canDoAction = false;
-
-                // Option to Water (if needed) - high priority
-                const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
-                if (needsWater) {
-                    canDoAction = true;
-                    const optionEl = document.createElement('button');
-                    optionEl.className = 'item-list-option btn-primary';
-                    optionEl.innerHTML = `<span>รดน้ำแปลงนี้ 💧</span>`;
-                    optionEl.onclick = () => { waterPlot(plotIndex); plotActionsModal.classList.remove('visible'); };
-                    plotActionsList.appendChild(optionEl);
-                }
-
-                // Option to use Fertilizer (if available and not already fertilized)
-                if (!plot.isFertilized && state.inventory['ปุ๋ยเร่งโต'] > 0 && !needsWater) { // Can't use fertilizer on dry soil
+                if (!plot.isFertilized && state.inventory['ปุ๋ยเร่งโต'] > 0) {
                     canDoAction = true;
                     const fertilizerName = 'ปุ๋ยเร่งโต';
                     const optionEl = document.createElement('button');
@@ -534,23 +510,17 @@
                 }
 
                 if (!canDoAction) {
-                    plotActionsList.innerHTML = '<p class="text-center text-gray-500">ไม่มีไอเทมสำหรับใช้งาน หรือแปลงผักไม่ต้องการการดูแลตอนนี้</p>';
+                    plotActionsList.innerHTML = '<p class="text-center text-gray-500">ไม่มีไอเทมสำหรับใช้งาน</p>';
                 }
                 plotActionsModal.classList.add('visible');
             }
             
             function useFertilizer(plotIndex, fertilizerName) {
                 const plot = state.garden.plots[plotIndex];
-                if (!plot || plot.isFertilized || !state.inventory[fertilizerName] || state.inventory[fertilizerName] <= 0) {
-                    // This should be prevented by UI, but good for safety
-                    alert('ไม่สามารถใช้ปุ๋ยได้');
-                    return;
-                }
-                
+                if (!plot || plot.isFertilized || !(state.inventory[fertilizerName] > 0)) return;
                 state.inventory[fertilizerName]--;
-                plot.plantTime -= fertilizerData[fertilizerName].timeReduction;
+                plot.plantTime += fertilizerData[fertilizerName].timeReduction; // Correct logic: add to plantTime to reduce remaining time
                 plot.isFertilized = true;
-                
                 alert('ใช้ปุ๋ยสำเร็จ! พืชจะโตไวขึ้น 1 ชั่วโมง!');
                 saveState();
                 renderAll();
@@ -561,17 +531,22 @@
                 if (state.inventory[seedName] > 0) {
                     state.inventory[seedName]--;
                     
+                    const buffs = petSystem.getActiveBuffs();
                     let growTime = seedData[seedName].growTime;
-                    if (state.pet && state.pet.activeBackground === 'vegetable_garden') {
-                        growTime *= 0.9; // Buff: -10% grow time
+                    
+                    // Apply buffs for gardener/harvester
+                    if (buffs.garden_speed_multiplier) {
+                        growTime *= buffs.garden_speed_multiplier;
                     }
-
+                    
                     state.garden.plots[plotIndex] = {
                         seedName: seedName,
                         plantTime: Date.now(),
                         lastWatered: Date.now(),
                         effectiveGrowTime: growTime,
-                        isFertilized: false
+                        isFertilized: false,
+                        isPaused: false,
+                        pauseTime: 0
                     };
                     saveState();
                     renderAll();
@@ -583,39 +558,76 @@
             
             function waterPlot(plotIndex) {
                 const plot = state.garden.plots[plotIndex];
-                if (plot) {
+                if (plot && plot.isPaused) {
+                    const pauseDuration = Date.now() - plot.pauseTime;
+                    plot.plantTime += pauseDuration; // Extend plantTime by how long it was paused
                     plot.lastWatered = Date.now();
+                    plot.isPaused = false;
+                    plot.pauseTime = 0;
                     saveState();
-                    renderPlots(); // Re-render to update visual state (e.g., remove dry look)
-                    alert('รดน้ำแปลงผักแล้ว!');
+                    renderPlots();
+                    alert('รดน้ำแปลงผักแล้ว พืชกลับมาเติบโตต่อ!');
                 }
             }
 
             function harvest(plotIndex) {
                 const plot = state.garden.plots[plotIndex];
                 if (plot) {
+                    const buffs = petSystem.getActiveBuffs();
                     const seed = seedData[plot.seedName];
-                    state.inventory[seed.result] = (state.inventory[seed.result] || 0) + 1;
+                    let yieldAmount = 1;
+
+                    // Harvester Buff
+                    if (buffs.bonus_yield_chance && Math.random() < buffs.bonus_yield_chance) {
+                        yieldAmount++;
+                        alert('โชคดี! ได้ผลผลิตเพิ่ม 1 ชิ้นจากสกิลนักเก็บเกี่ยว!');
+                    }
+
+                    // Add item(s) to inventory
+                    const resultItemName = seed.result;
+                    state.inventory[resultItemName] = (state.inventory[resultItemName] || 0) + yieldAmount;
                     
-                    if (state.pet) {
-                       state.pet.exp = (state.pet.exp || 0) + seed.exp;
+                    // EXP from harvesting
+                    const baseHarvestExp = seed.exp;
+                    petSystem.addPetExp(baseHarvestExp); 
+                    
+                    // Botanist Buff (Quality Vegetable)
+                    let qualityMessage = '';
+                    if (buffs.quality_vegetable_chance && Math.random() < buffs.quality_vegetable_chance) {
+                        const qualityItemName = `ผักคุณภาพดี (${resultItemName})`;
+                        state.inventory[qualityItemName] = (state.inventory[qualityItemName] || 0) + 1;
+                        qualityMessage = `\nพิเศษ! คุณได้รับ "${qualityItemName}" จากสกิลนักพฤกษศาสตร์!`;
                     }
                     
                     state.garden.plots[plotIndex] = null;
                     
-                    alert(`เก็บเกี่ยว ${seed.result} ได้สำเร็จ! ได้รับ ${seed.exp} EXP!`);
+                    alert(`เก็บเกี่ยว ${resultItemName} x${yieldAmount} ได้สำเร็จ! ได้รับ ${baseHarvestExp} EXP!${qualityMessage}`);
                     saveState();
                     renderAll();
                 }
             }
 
             function hidePlantSeedModal() { plantSeedModal.classList.remove('visible'); }
-            closePlantSeedModalBtn.addEventListener('click', hidePlantSeedModal);
-            closePlotActionsModalBtn.addEventListener('click', () => plotActionsModal.classList.remove('visible'));
-            
-            loadState();
-            renderAll();
+
+            // --- Initial Setup ---
+            function init() {
+                loadState();
+
+                // Connect to the PetSystem
+                petSystem = PetSystem(state, {
+                    saveState: () => {}, // Garden page doesn't need all helpers
+                    updateCoinDisplays: () => {},
+                    renderInventory: () => {},
+                    consumableItems: {}
+                });
+
+                closePlantSeedModalBtn.addEventListener('click', hidePlantSeedModal);
+                closePlotActionsModalBtn.addEventListener('click', () => plotActionsModal.classList.remove('visible'));
+                renderAll();
+            }
+
+            init();
         });
     </script>
-</body>
+    </body>
 </html>
