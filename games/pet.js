@@ -37,6 +37,29 @@ function PetSystem(state, helpers) {
         'toy_gallery': { name: 'ห้องเก็บของเล่น', description: 'ความสุขจากการเล่น +25%', image: 'toy_gallery.jpg' },
         'sky_palace_legendary': { name: 'Sky Palace (Legendary)', description: 'โบนัสทุกอย่าง +10%', image: 'sky_palace_legendary.gif' },
     };
+    
+    // --- เพิ่มเข้ามาใหม่: ฐานข้อมูลฉายา ---
+    const petEvolutions = {
+        'base': { name: 'ร่างเบบี๋', title: '', name_class: 'text-white', bonus: null },
+        // สายธรรมชาติ
+        'cheerful': { name: 'ร่าเริง', title: ' (ร่าเริง)', description: 'ความสุขลดช้าลง 10%', name_class: 'text-cyan-300', bonus: { type: 'happiness_decay', value: 0.9 } },
+        'strong': { name: 'แข็งแกร่ง', title: ' (แข็งแกร่ง)', description: 'ความอิ่มลดช้าลง 10%', name_class: 'text-amber-300', bonus: { type: 'hunger_decay', value: 0.9 } },
+        'smart': { name: 'ฉลาด', title: ' (ฉลาด)', description: 'ได้รับ EXP เพิ่มขึ้น 5%', name_class: 'text-violet-400', bonus: { type: 'exp_boost', value: 1.05 } },
+        'energetic': { name: 'กระฉับกระเฉง', title: ' (กระฉับกระเฉง)', description: 'พลังงานสูงสุด +10, ฟื้นฟูเร็วขึ้น 5%', name_class: 'text-lime-400', bonus: { type: 'stamina_boost', value: 10, regen: 1.05 } },
+        // สายนักสำรวจ
+        'adventurer': { name: 'นักผจญภัย', title: ' (นักผจญภัย)', description: 'เพิ่มโอกาสเจอของหายาก 5%', name_class: 'text-orange-400', bonus: { type: 'rare_find', value: 5 } },
+        'explorer': { name: 'นักสำรวจ', title: ' (นักสำรวจ)', description: 'ลดเวลาสำรวจลง 10%', name_class: 'text-teal-400', bonus: { type: 'explore_time', value: 0.9 } },
+        // สายบันเทิง
+        'playful': { name: 'ขี้เล่น', title: ' (ขี้เล่น)', description: 'ได้รับความสุขจากการเล่น +20%', name_class: 'text-rose-400', bonus: { type: 'play_boost', value: 1.2 } },
+        'lucky': { name: 'ดวงดี', title: ' (ดวงดี)', description: 'เพิ่มโชคในการสุ่มกาชาเล็กน้อย', name_class: 'text-yellow-300', bonus: { type: 'gacha_luck', value: 1.05 } },
+        // สายเกษตรกร
+        'gardener': { name: 'ชาวสวน', title: ' (ชาวสวน)', description: 'ลดเวลาเติบโตของผัก 10%', name_class: 'text-green-400', bonus: { type: 'garden_speed', value: 0.9 } }
+    };
+
+    const titleChoiceLevels = {
+        10: ['cheerful', 'strong', 'smart', 'energetic', 'adventurer', 'explorer', 'playful', 'lucky', 'gardener']
+    };
+
     const staminaItems = { 'item_m150': { stamina: 20 }, 'item_latte': { stamina: 30 }, 'item_americano': { stamina: 50 } };
     const petToys = { 
         'ของเล่นยาง': { happiness: 20, exp: 5 }, 
@@ -155,12 +178,13 @@ function PetSystem(state, helpers) {
     const achievementsModal = document.getElementById('achievements-modal');
     const achievementsContent = document.getElementById('achievements-content');
     const closeAchievementsModalBtn = document.getElementById('close-achievements-modal-btn');
+    const titleSelectionModal = document.getElementById('title-selection-modal');
+    const titleOptionsList = document.getElementById('title-options-list');
     let eggTaps = 0;
     const TAPS_TO_HATCH = 20;
 
     function checkAndApplySickness() {
         if (!state.pet || !state.pet.exists || state.pet.sickness) return;
-
         let newSickness = null;
         if (state.pet.hunger <= 0 && state.pet.happiness <= 0) {
             newSickness = 'malnutrition';
@@ -169,14 +193,8 @@ function PetSystem(state, helpers) {
         } else if (state.pet.happiness <= 0) {
             newSickness = 'depression';
         }
-
         if (newSickness) {
             state.pet.sickness = newSickness;
-            const sicknessMap = {
-                'malnutrition': 'โรคขาดสารอาหารรุนแรงและโทษตัวเอง',
-                'gastritis': 'โรคกระเพาะ',
-                'depression': 'โรคซึมเศร้า'
-            };
         }
     }
 
@@ -197,6 +215,12 @@ function PetSystem(state, helpers) {
 
         if (elapsedMinutes > 0) {
             let hungerMultiplier = 1.0, happinessMultiplier = 1.0, staminaRegenMultiplier = 1.0;
+            const evoInfo = petEvolutions[state.pet.evolution_form || 'base'];
+            if (evoInfo && evoInfo.bonus) {
+                if (evoInfo.bonus.type === 'hunger_decay') hungerMultiplier *= evoInfo.bonus.value;
+                if (evoInfo.bonus.type === 'happiness_decay') happinessMultiplier *= evoInfo.bonus.value;
+                if (evoInfo.bonus.type === 'stamina_boost') staminaRegenMultiplier *= evoInfo.bonus.regen;
+            }
             const activeBg = state.pet.activeBackground;
             if (activeBg === 'kitchen' || activeBg === 'coffee_lounge') hungerMultiplier *= 0.9;
             if (activeBg === 'bedroom') happinessMultiplier *= 0.9;
@@ -212,11 +236,13 @@ function PetSystem(state, helpers) {
             state.pet.happiness = Math.max(0, state.pet.happiness - happinessLoss);
 
             if (!state.pet.exploration || state.pet.exploration.endTime < now) {
-                const maxStamina = 100 + ((state.pet.level - 1) * 2);
+                let maxStamina = 100 + ((state.pet.level - 1) * 2);
+                 if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'stamina_boost') {
+                    maxStamina += evoInfo.bonus.value;
+                }
                 state.pet.stamina = Math.min(maxStamina, state.pet.stamina + staminaGain);
             }
             state.pet.lastStatusUpdate = now;
-
             checkAndApplySickness();
             saveState();
         }
@@ -225,55 +251,39 @@ function PetSystem(state, helpers) {
     function updatePetEmotion() {
         checkAndApplySickness(); 
 		if (!state.pet.exists) return;
-
         let newEmotion = 'normal';
         let isBubbleVisible = false;
         let bubbleText = '';
-        
-        if (state.pet.hunger <= 0 && state.pet.happiness <= 0) {
-            newEmotion = 'malnutrition';
+        if (state.pet.sickness) {
+            newEmotion = state.pet.sickness;
             isBubbleVisible = true;
-            bubbleText = 'ไม่มีแรงแล้ว... เป็นความผิดของเราเอง';
-        } 
-        else if (state.pet.hunger <= 0) {
-            newEmotion = 'gastritis';
-            isBubbleVisible = true;
-            bubbleText = 'ปวดท้องจัง...';
-        } 
-        else if (state.pet.happiness <= 0) {
-            newEmotion = 'depression';
-            isBubbleVisible = true;
-            bubbleText = 'ไม่อยากทำอะไรเลย...';
-        } 
-        else if ((state.pet.hunger > 0 && state.pet.hunger <= 50) || (state.pet.happiness > 0 && state.pet.happiness <= 50)) {
+            if(state.pet.sickness === 'malnutrition') bubbleText = 'ไม่มีแรงแล้ว... เป็นความผิดของเราเอง';
+            else if(state.pet.sickness === 'gastritis') bubbleText = 'ปวดท้องจัง...';
+            else if(state.pet.sickness === 'depression') bubbleText = 'ไม่อยากทำอะไรเลย...';
+        } else if ((state.pet.hunger > 0 && state.pet.hunger <= 50) || (state.pet.happiness > 0 && state.pet.happiness <= 50)) {
             isBubbleVisible = true;
             if (state.pet.hunger <= state.pet.happiness) {
-                newEmotion = 'sad';
-                bubbleText = 'หิวแน้ววว';
+                newEmotion = 'sad'; bubbleText = 'หิวแน้ววว';
             } else {
-                newEmotion = 'angry';
-                bubbleText = 'ไม่คิดถึงกันหรอ';
+                newEmotion = 'angry'; bubbleText = 'ไม่คิดถึงกันหรอ';
             }
         }
 
         if (newEmotion !== currentPetEmotion) {
             currentPetEmotion = newEmotion;
-
             if (idleAnimationInterval) {
                 clearInterval(idleAnimationInterval);
                 idleAnimationInterval = null;
             }
-
             petSpeechBubble.textContent = bubbleText;
             petSpeechBubble.classList.toggle('hidden', !isBubbleVisible);
-
+            const emotionsForCurrentForm = petEmotions;
             if (currentPetEmotion === 'normal') {
                 const setRandomIdle = () => {
-                    const idleAnimations = petEmotions.normal;
+                    const idleAnimations = emotionsForCurrentForm.normal;
                     if (!idleAnimations || idleAnimations.length === 0) return;
                     const randomIndex = Math.floor(Math.random() * idleAnimations.length);
                     const imageUrl = idleAnimations[randomIndex];
-                    
                     if (!floatingPetImage.src.endsWith(imageUrl)) {
                         floatingPetImage.src = imageUrl;
                         petModalImageEl.src = imageUrl;
@@ -282,7 +292,7 @@ function PetSystem(state, helpers) {
                 setRandomIdle();
                 idleAnimationInterval = setInterval(setRandomIdle, Math.random() * 5000 + 5000);
             } else {
-                const imageUrl = petEmotions[currentPetEmotion];
+                const imageUrl = emotionsForCurrentForm[newEmotion];
                 if (imageUrl && !floatingPetImage.src.endsWith(imageUrl)) {
                     floatingPetImage.src = imageUrl;
                     petModalImageEl.src = imageUrl;
@@ -305,29 +315,31 @@ function PetSystem(state, helpers) {
         updatePetEmotion();
         updateAchievementNotification();
         const pet = state.pet;
+        const currentEvoForm = pet.evolution_form || 'base';
+        const evoInfo = petEvolutions[currentEvoForm];
         const maxExp = pet.level * 100;
-        
         const levelBonus = (pet.level - 1) * 2;
         const bowlLevel = pet.upgradeLevels.bowl;
         const maxHunger = 100 + levelBonus + (bowlLevel >= 2 ? 5 : 0);
         const bedLevel = pet.upgradeLevels.bed;
         const maxHappiness = 100 + levelBonus + (bedLevel >= 2 ? 5 : 0);
-        const maxStamina = 100 + levelBonus;
-
-        petNameEl.textContent = pet.name;
+        let maxStamina = 100 + levelBonus;
+        if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'stamina_boost') {
+            maxStamina += evoInfo.bonus.value;
+        }
+        petNameEl.textContent = pet.name + evoInfo.title;
+        petNameEl.className = 'text-xl font-bold';
+        petNameEl.classList.add(evoInfo.name_class);
+        petNameEl.style.textShadow = '1px 1px 4px rgba(0,0,0,0.7)';
         petLevelEl.textContent = `Lv. ${pet.level}`;
         petExpText.textContent = `${pet.exp} / ${maxExp}`;
         petExpBar.style.width = `${(pet.exp / maxExp) * 100}%`;
-        
         petHungerText.textContent = `${pet.hunger} / ${maxHunger}`;
         petHungerBar.style.width = `${(pet.hunger / maxHunger) * 100}%`;
-        
         petHappinessText.textContent = `${pet.happiness} / ${maxHappiness}`;
         petHappinessBar.style.width = `${(pet.happiness / maxHappiness) * 100}%`;
-        
         petStaminaText.textContent = `${pet.stamina} / ${maxStamina}`;
         petStaminaBar.style.width = `${(pet.stamina / maxStamina) * 100}%`;
-        
         const activeBgId = state.pet.activeBackground;
         const bgInfo = petBackgroundDefinitions[activeBgId];
         if (bgInfo && bgInfo.description !== 'ไม่มีโบนัสพิเศษ') {
@@ -338,14 +350,12 @@ function PetSystem(state, helpers) {
             petDisplayArea.style.backgroundImage = `url('${petBackgroundDefinitions.default.image}')`;
             petBackgroundBuffDisplay.classList.add('hidden');
         }
-
         if (state.pet.exploration) {
             petExplorationStatusInModal.classList.remove('hidden');
             petExplorationLocationInModal.textContent = helpers.explorationLocations[state.pet.exploration.locationId].name;
         } else {
             petExplorationStatusInModal.classList.add('hidden');
         }
-
         if (pet.sickness) {
             feedPetBtn.classList.add('hidden');
             playWithPetBtn.classList.add('hidden');
@@ -357,15 +367,52 @@ function PetSystem(state, helpers) {
         }
     }
 
+    function showTitleSelectionModal(level) {
+        const choices = titleChoiceLevels[level];
+        if (!choices) return;
+        titleOptionsList.innerHTML = '';
+        choices.forEach(choiceId => {
+            const evoInfo = petEvolutions[choiceId];
+            const button = document.createElement('button');
+            button.className = 'btn-base w-full text-left p-3 bg-gray-50 rounded-lg border-l-4 border-gray-200 hover:border-pink-400 transition-all';
+            button.innerHTML = `
+                <div class="font-bold text-lg text-pink-500">${evoInfo.title.trim()}</div>
+                <div class="text-sm text-gray-500">${evoInfo.description}</div>
+            `;
+            button.onclick = () => {
+                const confirmationMessage = `คุณแน่ใจหรือไม่ว่าจะเลือกฉายา "${evoInfo.title.trim()}"?\n\n(ไม่สามารถเปลี่ยนแปลงได้ในภายหลัง)`;
+                if (confirm(confirmationMessage)) {
+                    state.pet.evolution_form = choiceId;
+                    titleSelectionModal.classList.remove('visible');
+                    alert(`ยินดีด้วย! ${state.pet.name} ได้รับฉายาใหม่คือ "${evoInfo.title.trim()}"!`);
+                    renderPetStats();
+                    saveState();
+                }
+            };
+            titleOptionsList.appendChild(button);
+        });
+        titleSelectionModal.classList.add('visible');
+    }
+
+    function checkAndTriggerEvolution() {
+        const pet = state.pet;
+        if (pet.level >= 10 && pet.evolution_form === 'base') {
+            showTitleSelectionModal(10);
+        }
+    }
+    
     function addPetExp(amount) {
         const pet = state.pet;
         let finalAmount = amount;
+        const evoInfo = petEvolutions[pet.evolution_form || 'base'];
+        if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'exp_boost') {
+            finalAmount *= evoInfo.bonus.value;
+        }
         const activeBg = state.pet.activeBackground;
         if (['library', 'coffee_lounge', 'digital_nexus'].includes(activeBg)) {
             finalAmount *= (activeBg === 'digital_nexus' ? 1.15 : 1.1);
         }
         finalAmount = Math.round(finalAmount);
-        
         let maxExp = pet.level * 100;
         pet.exp += finalAmount;
         while (pet.exp >= maxExp) {
@@ -373,6 +420,7 @@ function PetSystem(state, helpers) {
             pet.exp -= maxExp;
             maxExp = pet.level * 100; 
             alert(`ยินดีด้วย! ${pet.name} เลเวลอัปเป็น Lv. ${pet.level} แล้ว!`);
+            checkAndTriggerEvolution();
         }
         saveState();
         renderPetStats();
@@ -395,6 +443,7 @@ function PetSystem(state, helpers) {
             state.pet = {
                 exists: true, name: name, level: 1, exp: 0, hunger: 50, happiness: 60, stamina: 100,
                 sickness: null,
+                evolution_form: 'base',
                 exploration: null, lastPattedDate: null, lastStatusUpdate: Date.now(),
                 ownedBackgrounds: ['default'], activeBackground: 'default', attunement: null,
                 upgradeLevels: { bed: 0, bowl: 0, toy_shelf: 0 }
@@ -426,20 +475,16 @@ function PetSystem(state, helpers) {
                 let happinessGain = 0;
                 if (state.pet.activeBackground === 'cute_cafe') happinessGain += 10;
                 if (state.pet.activeBackground === 'cake_shop' && foodName === 'เค้ก') happinessGain += 15;
-                
                 changeHappiness(happinessGain);
                 changeHunger(finalHungerGain);
-
                 let expGain = food.exp;
                 if (state.pet.activeBackground === 'mythical_garden' && foodName === 'ขนมปัง') expGain = Math.round(expGain * 1.1);
                 addPetExp(expGain);
                 const achievementKeyMap = { 'ขนมปัง': 'feed_bread', 'เค้ก': 'feed_cake', 'ไอศกรีม': 'feed_icecream', 'มะเขือเทศ': 'feed_tomato', 'แครอท': 'feed_carrot', 'บรอกโคลี': 'feed_broccoli', 'สตรอว์เบอร์รี': 'feed_strawberry' };
                 if (achievementKeyMap[foodName]) trackAchievement(achievementKeyMap[foodName]);
-                
                 floatingPetImage.src = petEmotions.happy;
                 petModalImageEl.src = petEmotions.happy;
                 setTimeout(updatePetEmotion, 2000);
-
                 feedModal.classList.remove('visible');
                 alert(`คุณป้อน ${foodName} ให้ ${state.pet.name}!`);
                 saveState();
@@ -495,7 +540,6 @@ function PetSystem(state, helpers) {
         if (action === 'pat' && happinessGain === undefined) {
             happinessGain = 30;
         }
-
         let expGain = 0, playCoinGain = 0;
         if (action === 'pat') {
             const today = new Date().toDateString();
@@ -512,9 +556,12 @@ function PetSystem(state, helpers) {
             const achievementKeyMap = { 'ของเล่นยาง': 'play_rubber_toy', 'ลูกบอล': 'play_ball', 'กีต้า': 'play_guitar', 'คอมพิวเตอร์': 'play_computer' };
             if (achievementKeyMap[action]) trackAchievement(achievementKeyMap[action]);
         }
-        
-        changeHappiness(happinessGain || 0);
-
+        let finalHappinessGain = happinessGain || 0;
+        const evoInfo = petEvolutions[state.pet.evolution_form || 'base'];
+        if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'play_boost') {
+            finalHappinessGain *= evoInfo.bonus.value;
+        }
+        changeHappiness(Math.round(finalHappinessGain));
         if (state.pet.upgradeLevels.bed >= 4) expGain += 5;
         if (state.pet.activeBackground === 'music_room') expGain = Math.round(expGain * 1.15);
         if (expGain > 0) addPetExp(expGain);
@@ -528,6 +575,7 @@ function PetSystem(state, helpers) {
         playModal.classList.remove('visible');
     }
 
+    // This is the beginning of the original file's content that was cut off in the prompt
     function showUseItemModal() {
         itemUseList.innerHTML = '';
         let hasItem = false;
@@ -541,7 +589,11 @@ function PetSystem(state, helpers) {
                 itemEl.className = 'btn-base w-full flex justify-between items-center p-3 bg-teal-50 rounded-lg border-l-4 border-teal-200';
                 itemEl.innerHTML = `<span>ใช้ ${itemDetails.name} (+${itemEffect.stamina} ⚡️)</span><span class="font-bold text-gray-600">มี ${state.inventory[itemId]} ชิ้น</span>`;
                 itemEl.onclick = () => {
-                    const maxStamina = 100 + ((state.pet.level - 1) * 2);
+                    let maxStamina = 100 + ((state.pet.level - 1) * 2);
+                    const evoInfo = petEvolutions[state.pet.evolution_form || 'base'];
+                     if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'stamina_boost') {
+                        maxStamina += evoInfo.bonus.value;
+                    }
                     if (state.pet.stamina >= maxStamina) { alert('พลังงานเต็มแล้วจ้า!'); return; }
                     state.inventory[itemId]--;
                     changeStamina(itemEffect.stamina);
@@ -853,7 +905,6 @@ function PetSystem(state, helpers) {
         }
     }
 
-    // --- NEW STRUCTURE: Core stat functions are defined here ---
     function changeHunger(amount) {
         if (!state.pet || !state.pet.exists) return;
         const levelBonus = (state.pet.level - 1) * 2;
@@ -877,7 +928,11 @@ function PetSystem(state, helpers) {
     function changeStamina(amount) {
         if (!state.pet || !state.pet.exists) return;
         const levelBonus = (state.pet.level - 1) * 2;
-        const maxStamina = 100 + levelBonus;
+        let maxStamina = 100 + levelBonus;
+        const evoInfo = petEvolutions[state.pet.evolution_form || 'base'];
+        if (evoInfo && evoInfo.bonus && evoInfo.bonus.type === 'stamina_boost') {
+            maxStamina += evoInfo.bonus.value;
+        }
         state.pet.stamina = Math.min(maxStamina, Math.max(0, state.pet.stamina + amount));
         renderPetStats();
         saveState();
@@ -890,9 +945,12 @@ function PetSystem(state, helpers) {
             if (!state.pet.exists) {
                 hatchModal.classList.add('visible');
             } else {
+                if (!state.pet.hasOwnProperty('evolution_form')) state.pet.evolution_form = 'base';
+                if (!state.pet.hasOwnProperty('sickness')) state.pet.sickness = null;
                 updatePetStatusOverTime();
                 renderFloatingPet();
                 updateAttunementStatus();
+                renderPetStats();
             }
             updateAchievementNotification();
             setupEventListeners();
@@ -900,7 +958,7 @@ function PetSystem(state, helpers) {
         addPetExp,
         trackAchievement,
         getBackgroundInfo: (bgId) => petBackgroundDefinitions[bgId],
-        // Expose the functions to the outside world
+        getEvoInfo: () => petEvolutions[state.pet.evolution_form || 'base'],
         changeHunger,
         changeHappiness,
         changeStamina,
