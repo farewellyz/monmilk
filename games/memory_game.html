@@ -11,180 +11,219 @@
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background-color: #fdf2f8; /* bg-pink-50 */
-            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
-            background-size: 15px 15px;
-            color: #4a5568; /* text-gray-700 */
-        }
-        .hidden {
-            display: none;
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #374151;
+            overflow: hidden;
         }
         .app-container {
-            background-color: #fff0f5; /* Lavender Blush */
-            box-shadow: 0 0 40px rgba(219, 39, 119, 0.15);
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
-        .card {
-            @apply bg-white p-5 rounded-3xl shadow-lg transition-all duration-300;
-        }
-
-        /* === Memory Game Styles === */
         .memory-grid {
-            /* Default for 4x4 (16 cards) */
-            width: 408px;
-            height: 408px;
-            
             display: grid;
-            grid-template-columns: repeat(4, 100px);
-            grid-template-rows: repeat(4, 100px);
-            gap: 0;
+            gap: 8px;
             margin: 0 auto;
+            padding: 8px;
+            background-color: #374151;
+            border-radius: 1rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-
-        /* New: CSS for 2x4 grid (8 cards) for easier levels */
-        .memory-grid.small-grid {
-            width: 204px; /* 2 * 100px (cards) + 2 * 2px (border) = 204px */
-            height: 408px; /* 4 * 100px (cards) + 4 * 2px (border) = 408px */
-            grid-template-columns: repeat(2, 100px); /* 2 คอลัมน์ */
-            grid-template-rows: repeat(4, 100px);    /* 4 แถว */
-        }
-
+        .grid-2x3 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); width: 220px; }
+        .grid-2x4 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); width: 220px; }
+        .grid-3x4 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); width: 330px; }
+        .grid-4x4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); width: 440px; }
         .memory-card {
-            border: 2px solid black;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #4b5563;
+            border-radius: 0.5rem;
             cursor: pointer;
             aspect-ratio: 1 / 1;
             transform-style: preserve-3d;
-            transition: transform 0.5s;
+            transition: transform 0.6s, box-shadow 0.3s;
+            transform: rotateY(0deg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .memory-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
         }
         .memory-card.flipped {
             transform: rotateY(180deg);
+            pointer-events: none;
         }
         .memory-card .front, .memory-card .back {
             position: absolute;
             width: 100%;
             height: 100%;
-            border-radius: 6px;
+            border-radius: 0.5rem;
             backface-visibility: hidden;
+            overflow: hidden;
         }
         .memory-card .front {
-            background-color: #d1d5db;
+            background-image: linear-gradient(145deg, #60a5fa, #3b82f6);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            color: #6b7280;
+            color: white;
             font-weight: bold;
-            box-shadow: inset 0 0 0 4px rgba(255,255,255,0.5), inset 0 0 0 6px rgba(0,0,0,0.5);
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.5);
         }
         .memory-card .back {
             transform: rotateY(180deg);
             background-color: #ffffff;
+            border: 2px solid #3b82f6;
         }
         .memory-card .back img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 6px;
         }
         .memory-card.matched {
-            transform: scale(0.95);
-            opacity: 0.4;
-            cursor: default;
+            transform: scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.4s, opacity 0.4s;
+        }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 1.5rem;
+            text-align: center; width: 90%; max-width: 380px;
+            transform: scale(0.9) translateY(20px); transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .modal-overlay.visible .modal-content { transform: scale(1) translateY(0); }
+        .modal-title {
+            font-size: 2rem; font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen">
 
-    <div id="app-container" class="app-container max-w-md mx-auto min-h-screen p-4">
+    <div id="app-container" class="app-container max-w-lg mx-auto p-4 rounded-3xl">
         <div id="memory-game-screen">
-            <header class="flex items-center mb-2">
-                <a href="index.html" class="text-3xl text-pink-500 hover:text-pink-600 transition">&larr;</a>
-                <h1 class="text-2xl font-bold text-pink-500 ml-3">จับคู่ภาพ!</h1>
+            <header class="flex items-center justify-between mb-4">
+                <a href="index.html" class="text-3xl text-sky-500 hover:text-sky-600 transition">&larr;</a>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-sky-500 to-indigo-500 text-transparent bg-clip-text">จับคู่ภาพ!</h1>
+                <div></div>
             </header>
-            <div class="card text-center mb-2 p-3">
-                <p>Level: <span id="memory-level" class="font-bold text-2xl text-purple-500">1</span></p>
-                <p id="memory-peek-timer" class="mt-1 text-lg h-6"></p>
+            
+            <div class="grid grid-cols-3 gap-2 text-center mb-4 p-3 bg-white rounded-2xl shadow-inner">
+                <div>
+                    <p class="text-sm text-gray-500">LEVEL</p>
+                    <p id="memory-level" class="font-bold text-2xl text-purple-500">1</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">โอกาสพลาด</p>
+                    <p id="memory-chances" class="font-bold text-2xl text-red-500">❤️ ❤️ ❤️ ❤️ ❤️</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">รางวัลสะสม</p>
+                    <p id="memory-reward" class="font-bold text-2xl text-amber-500">0</p>
+                </div>
             </div>
-            <div id="memory-grid-container" class="bg-white rounded-3xl shadow-lg p-2">
-                <div id="memory-grid" class="memory-grid">
-                    </div>
+            
+            <p id="memory-peek-timer" class="text-center mt-1 text-lg h-8 font-semibold text-gray-600"></p>
+
+            <div id="memory-grid-container" class="flex justify-center items-center">
+                <div id="memory-grid"></div>
             </div>
+        </div>
+    </div>
+    
+    <div id="level-clear-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title mb-2">ผ่านด่าน!</h2>
+            <p class="text-5xl mb-4">🎉</p>
+            <p class="text-gray-600 text-lg mb-1">คุณได้รับ <span id="level-reward-text" class="font-bold text-amber-500"></span> เหรียญม่อน!</p>
+            <p id="bonus-game-text-win" class="text-green-500 font-bold mb-4 hidden">(x2 จากเกมโบนัส!)</p>
+            <button id="next-level-btn" class="w-full mt-4 px-4 py-3 text-lg font-bold text-white rounded-xl shadow-md bg-gradient-to-br from-sky-500 to-blue-600">ด่านต่อไป</button>
+        </div>
+    </div>
+    
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title mb-2">เกมจบแล้ว!</h2>
+            <p class="text-5xl mb-4">😭</p>
+            <p class="text-gray-600 text-lg mb-4">คุณได้รับเงินรางวัลทั้งหมด <span id="total-reward-text" class="font-bold text-amber-500"></span> เหรียญม่อน!</p>
+             <p id="bonus-game-text-lose" class="text-green-500 font-bold mb-4 hidden">เกมนี้เป็นเกมโบนัส รางวัลทั้งหมดถูกคูณ 2 แล้ว!</p>
+            <a href="index.html" class="block w-full mt-4 px-4 py-3 text-lg font-bold text-white rounded-xl shadow-md bg-gradient-to-br from-pink-500 to-rose-500">กลับสู่หน้าหลัก</a>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- STATE MANAGEMENT (Simplified for game file, relies on main state) ---
             let state = {};
-
-            // --- DOM ELEMENTS ---
+            // DOM Elements...
             const memoryLevelDisplay = document.getElementById('memory-level');
+            const memoryChancesDisplay = document.getElementById('memory-chances');
+            const memoryRewardDisplay = document.getElementById('memory-reward');
             const memoryPeekTimerDisplay = document.getElementById('memory-peek-timer');
             const memoryGrid = document.getElementById('memory-grid');
+            const levelClearModal = document.getElementById('level-clear-modal');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+            const levelRewardText = document.getElementById('level-reward-text');
+            const totalRewardText = document.getElementById('total-reward-text');
+            const bonusWinText = document.getElementById('bonus-game-text-win');
+            const bonusLoseText = document.getElementById('bonus-game-text-lose');
 
-            // NEW: Variable to store if this is a bonus game, determined from URL
             let isCurrentGameBonus = false;
 
-            // --- LOCAL STORAGE (Only for this game's state and global coins) ---
+            // --- ฟังก์ชันจัดการเซฟฉบับสมบูรณ์ ---
             function saveState() {
                 localStorage.setItem('monGameDataV17', JSON.stringify(state));
             }
 
             function loadState() {
-                try {
-                    const savedData = localStorage.getItem('monGameDataV17');
-                    if (savedData) {
+                const savedData = localStorage.getItem('monGameDataV17');
+                if (savedData) {
+                    try {
                         state = JSON.parse(savedData);
-                        // Ensure bonus game state properties exist, even if not in old saved data
-                        if (typeof state.dailyBonusGameId === 'undefined') state.dailyBonusGameId = null;
-                        if (typeof state.lastBonusGameDate === 'undefined') state.lastBonusGameDate = null;
-                    } else {
-                        // Default initial state if no data saved at all
-                        state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
+                        // Migration checks...
+                        if (!state.pet) state.pet = { exists: false };
+                    } catch (e) {
+                        alert('เกิดข้อผิดพลาดในการโหลดข้อมูลเซฟ!');
+                        window.location.href = 'index.html';
                     }
-                } catch (e) {
-                    console.error("Error loading state from localStorage:", e);
-                    // Fallback to default state if parsing fails
-                    state = { monCoins: 0, playCoins: 0, dailyBonusGameId: null, lastBonusGameDate: null }; 
+                } else {
+                    alert('ไม่พบข้อมูลผู้เล่น! กำลังกลับไปหน้าหลัก...');
+                    window.location.href = 'index.html';
                 }
             }
-
-            // --- MEMORY GAME LOGIC ---
-            const easyMemoryImages = [
-                '1.jpg', 
-                '2.jpg',
-                '3.jpg',
-                '4.jpg',
-            ];
-
-            const hardMemoryImages = [
-                '1.jpg',
-                '2.jpg',
-                '3.jpg',
-                '4.jpg',
-                '5.jpg',
-                '6.jpg',
-                '7.jpg',
-                '8.jpg',
-            ];
-
+            
+            const allImages = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg'];
             let memoryGameState = {};
 
             function initializeMemoryGame() {
-                loadState(); // Load global state
-
-                // NEW: Check URL parameter for bonus status (reliable method)
+                loadState();
                 const urlParams = new URLSearchParams(window.location.search);
                 isCurrentGameBonus = urlParams.get('bonus') === 'true';
 
-                if (state.playCoins > 0) {
-                    state.playCoins -= 1;
-                    saveState(); // Save updated playCoins
-                    
+                // --- แก้ไข: เปลี่ยนไปใช้ "เหรียญเล่นม่อน" (playCoins) ---
+                const gameCost = 1;
+                if (state.playCoins >= gameCost) {
+                    state.playCoins -= gameCost; // << หักเหรียญเล่นม่อน
+                    saveState();
+
                     memoryGameState = {
                         level: 1,
                         totalReward: 0,
+                        chances: 5,
                         cards: [],
                         flippedCards: [],
                         matchedPairs: 0,
@@ -192,22 +231,26 @@
                     };
                     startMemoryLevel();
                 } else {
-                    alert('เหรียญไม่พอ! คุณต้องมี "เหรียญเล่นม่อน" เพื่อเริ่มเกมนะ');
-                    window.location.href = 'index.html'; // Go back to main menu
+                    alert('เหรียญเล่นม่อนไม่พอ! ต้องใช้ 1 เหรียญเล่นม่อนในการเล่น');
+                    window.location.href = 'index.html';
                 }
+            }
+
+            // ... (ฟังก์ชันอื่นๆ ทั้งหมดเหมือนเดิม ไม่มีการเปลี่ยนแปลง) ...
+
+            function updateStatusDisplay() {
+                memoryLevelDisplay.textContent = memoryGameState.level;
+                memoryRewardDisplay.textContent = memoryGameState.totalReward;
+                memoryChancesDisplay.textContent = '❤️ '.repeat(memoryGameState.chances).trim();
             }
 
             function startMemoryLevel() {
                 memoryGameState.flippedCards = [];
                 memoryGameState.matchedPairs = 0;
-                memoryLevelDisplay.textContent = memoryGameState.level;
-                
-                const peekTimes = [5, 5, 10, 8, 6]; 
-                const peekTime = memoryGameState.level > peekTimes.length ? 3 : peekTimes[memoryGameState.level - 1];
-
-                createMemoryBoard(); 
-                
-                let countdown = peekTime;
+                updateStatusDisplay();
+                const levelConfig = getLevelConfig(memoryGameState.level);
+                createMemoryBoard(levelConfig);
+                let countdown = levelConfig.peekTime;
                 memoryPeekTimerDisplay.textContent = `จำภาพใน ${countdown} วินาที...`;
                 const peekInterval = setInterval(() => {
                     countdown--;
@@ -221,36 +264,25 @@
                 }, 1000);
             }
 
-            function createMemoryBoard() {
-                let currentImages;
-                let totalPairs;
+            function getLevelConfig(level) {
+                if (level === 1) return { pairs: 3, gridClass: 'grid-2x3', peekTime: 3 };
+                if (level <= 3) return { pairs: 4, gridClass: 'grid-2x4', peekTime: 4 };
+                if (level <= 5) return { pairs: 6, gridClass: 'grid-3x4', peekTime: 5 };
+                return { pairs: 8, gridClass: 'grid-4x4', peekTime: 6 };
+            }
 
-                if (memoryGameState.level <= 2) { 
-                    currentImages = [...easyMemoryImages];
-                    totalPairs = easyMemoryImages.length;
-                    memoryGrid.classList.add('small-grid'); 
-                } else { 
-                    currentImages = [...hardMemoryImages];
-                    totalPairs = hardMemoryImages.length;
-                    memoryGrid.classList.remove('small-grid'); 
-                }
-
-                const cardImages = [...currentImages, ...currentImages];
-                cardImages.sort(() => 0.5 - Math.random());    
-
+            function createMemoryBoard(config) {
+                const neededImages = allImages.slice(0, config.pairs);
+                const cardImages = [...neededImages, ...neededImages].sort(() => 0.5 - Math.random());
+                memoryGrid.className = `memory-grid ${config.gridClass}`;
                 memoryGrid.innerHTML = '';
                 memoryGameState.cards = [];
-                memoryGameState.totalPairs = totalPairs; 
-
+                memoryGameState.totalPairs = config.pairs;
                 cardImages.forEach(imageSrc => {
                     const card = document.createElement('div');
-                    card.className = 'memory-card flipped'; 
+                    card.className = 'memory-card flipped';
                     card.dataset.image = imageSrc;
-
-                    card.innerHTML = `
-                        <div class="front">?</div>
-                        <div class="back"><img src="${imageSrc}" alt="card"></div>
-                    `;
+                    card.innerHTML = `<div class="front">?</div><div class="back"><img src="${imageSrc}" alt="card"></div>`;
                     card.addEventListener('click', () => handleCardClick(card));
                     memoryGrid.appendChild(card);
                     memoryGameState.cards.push(card);
@@ -258,13 +290,9 @@
             }
 
             function handleCardClick(clickedCard) {
-                if (!memoryGameState.canFlip || clickedCard.classList.contains('flipped') || clickedCard.classList.contains('matched')) {
-                    return;
-                }
-
+                if (!memoryGameState.canFlip || clickedCard.classList.contains('flipped')) return;
                 clickedCard.classList.add('flipped');
                 memoryGameState.flippedCards.push(clickedCard);
-
                 if (memoryGameState.flippedCards.length === 2) {
                     memoryGameState.canFlip = false;
                     checkForMatch();
@@ -278,50 +306,59 @@
                     cardTwo.classList.add('matched');
                     memoryGameState.matchedPairs++;
                     memoryGameState.flippedCards = [];
-                    setTimeout(() => { memoryGameState.canFlip = true; }, 300); 
-                    
-                    if (memoryGameState.matchedPairs === memoryGameState.totalPairs) { 
-                        let reward = Math.pow(2, memoryGameState.level - 1);
-                        
-                        // --- NEW: Daily Bonus Game Check (Uses isCurrentGameBonus from URL) ---
-                        let bonusGameMessagePart = ''; 
-                        if (isCurrentGameBonus) { // Check the flag set at initialization
-                            reward *= 2; // Multiply reward by 2
-                            bonusGameMessagePart = " (x2 เกมโบนัส!)"; 
+                    setTimeout(() => {
+                        memoryGameState.canFlip = true;
+                        if (memoryGameState.matchedPairs === memoryGameState.totalPairs) {
+                            handleLevelWin();
                         }
-                        // --- END NEW ---
-
-                        state.monCoins += reward;
-                        memoryGameState.totalReward += reward; // Ensure totalReward also reflects bonus
-                        saveState(); 
-
-                        alert(`ผ่าน Level ${memoryGameState.level}! ได้รับ ${reward} เหรียญม่อน!${bonusGameMessagePart}`); // Add bonus message to alert
-                        
-                        memoryGameState.level++;
-                        startMemoryLevel();
-                    }
+                    }, 500);
                 } else {
+                    memoryGameState.chances--;
+                    updateStatusDisplay();
                     setTimeout(() => {
                         cardOne.classList.remove('flipped');
                         cardTwo.classList.remove('flipped');
                         memoryGameState.flippedCards = [];
-                        memoryGameState.canFlip = true;
-                    }, 1000); 
-                    setTimeout(() => {
-                        // --- NEW: Daily Bonus Game Check (Uses isCurrentGameBonus from URL for message only) ---
-                        let bonusGameMessagePart = '';
-                        if (isCurrentGameBonus) { 
-                            bonusGameMessagePart = "\n🎊 เกมโบนัสประจำวัน! รางวัล x2! 🎊"; 
+                        if (memoryGameState.chances <= 0) {
+                            handleGameOver();
+                        } else {
+                            memoryGameState.canFlip = true;
                         }
-                        // --- END NEW ---
-                        alert(`จับคู่ผิด! เกมจบแล้ว คุณได้รับเงินรางวัลทั้งหมด ${memoryGameState.totalReward} เหรียญม่อน!${bonusGameMessagePart}`); // Add bonus message to alert
-                        window.location.href = 'index.html'; // Go back to main menu
-                    }, 1200); 
+                    }, 1000);
                 }
             }
 
-            // --- INITIALIZATION ---
-            initializeMemoryGame(); // Initialize the Memory game when this page loads
+            function handleLevelWin() {
+                let baseReward = (memoryGameState.level * 2) + memoryGameState.totalPairs;
+                let reward = Math.floor(baseReward / 2);
+                bonusWinText.classList.add('hidden');
+                if (isCurrentGameBonus) {
+                    reward *= 2;
+                    bonusWinText.classList.remove('hidden');
+                }
+                state.monCoins += reward;
+                memoryGameState.totalReward += reward;
+                saveState();
+                levelRewardText.textContent = reward;
+                levelClearModal.classList.add('visible');
+            }
+
+            function handleGameOver() {
+                totalRewardText.textContent = memoryGameState.totalReward;
+                bonusLoseText.classList.add('hidden');
+                if (isCurrentGameBonus) {
+                    bonusLoseText.classList.remove('hidden');
+                }
+                gameOverModal.classList.add('visible');
+            }
+
+            nextLevelBtn.addEventListener('click', () => {
+                memoryGameState.level++;
+                levelClearModal.classList.remove('visible');
+                startMemoryLevel();
+            });
+
+            initializeMemoryGame();
         });
     </script>
 </body>
