@@ -450,7 +450,8 @@ function PetSystem(state, helpers) {
     }
 
     function renderPetStats() {
-        if (!state.pet.exists) return;
+        if (!petNameEl) { return; }
+		if (!state.pet.exists) return;
         
         const buffs = getActiveBuffs();
         const pet = state.pet;

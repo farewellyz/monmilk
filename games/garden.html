@@ -11,8 +11,8 @@
     <style>
         body { 
             font-family: 'Kanit', sans-serif; 
-            background-color: #a7d9b5; /* Base green for garden feel */
-            background-image: url('garden_background.gif'); /* Your garden background image */
+            background-color: #a7d9b5;
+            background-image: url('garden_background.gif');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -23,20 +23,19 @@
             padding: 1rem;
             position: relative;
         }
-        /* Add a subtle overlay to make text more readable */
         body::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(167, 217, 181, 0.4); /* Greenish overlay */
+            background-color: rgba(167, 217, 181, 0.4);
             z-index: -1;
         }
         .app-container {
-            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white for content */
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 2rem;
-            border: 10px solid #8B4513; /* Darker wood border */
+            border: 10px solid #8B4513;
             box-shadow: 0 15px 40px rgba(0,0,0,0.3), inset 0 0 25px rgba(0,0,0,0.15);
-            max-width: 500px; /* Slightly wider for better plot display */
+            max-width: 500px;
             width: 100%;
             padding: 1.5rem;
             display: flex;
@@ -46,17 +45,17 @@
         .header-image {
             width: 100%;
             height: 120px;
-            background-image: url('garden_header.png'); /* A nice header image for the garden */
+            background-image: url('garden_header.png');
             background-size: cover;
             background-position: center;
             border-radius: 1rem;
             margin-bottom: 1rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 3px solid #6D4C41; /* Soil like border */
+            border: 3px solid #6D4C41;
         }
         .card-base {
-            border: 3px solid #a1887f; /* Lighter wood border */
-            background-color: #fffef0; /* Creamy parchment color */
+            border: 3px solid #a1887f;
+            background-color: #fffef0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border-radius: 1.5rem;
             padding: 1.5rem;
@@ -71,7 +70,7 @@
             transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 3px 8px rgba(0,0,0,0.2);
             border-bottom: 4px solid;
-            background-image: linear-gradient(to bottom, #f9f9e0, #e0e0c0); /* Gentle gradient for a natural look */
+            background-image: linear-gradient(to bottom, #f9f9e0, #e0e0c0);
             color: #4A4A4A;
         }
         .btn-base:hover { 
@@ -84,30 +83,30 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .btn-primary {
-            background-image: linear-gradient(to bottom, #8BC34A, #689F38); /* Green gradient */
+            background-image: linear-gradient(to bottom, #8BC34A, #689F38);
             border-color: #558B2F;
             color: white;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         .btn-secondary {
-            background-image: linear-gradient(to bottom, #FFD54F, #FFB300); /* Amber gradient */
+            background-image: linear-gradient(to bottom, #FFD54F, #FFB300);
             border-color: #FF8F00;
             color: #6D4C41;
             text-shadow: 1px 1px 1px rgba(255,255,255,0.3);
         }
         .btn-cancel {
-            background-image: linear-gradient(to bottom, #BDBDBD, #757575); /* Gray gradient */
+            background-image: linear-gradient(to bottom, #BDBDBD, #757575);
             border-color: #616161;
             color: white;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
         .plot {
-            background-color: #6D4C41; /* Dark soil */
-            background-image: url('soil_texture.png'); /* A soil texture image */
+            background-color: #6D4C41;
+            background-image: url('soil_texture.png');
             background-size: cover;
-            border: 4px solid #8B4513; /* Wood-like border for plot edge */
-            border-radius: 1.25rem; /* More rounded */
+            border: 4px solid #8B4513;
+            border-radius: 1.25rem;
             aspect-ratio: 1 / 1;
             display: flex;
             flex-direction: column;
@@ -117,22 +116,21 @@
             cursor: pointer;
             transition: all 0.3s ease-in-out;
             position: relative;
-            overflow: hidden; /* Ensure content stays within borders */
+            overflow: hidden;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.1);
         }
         .plot:hover {
-            transform: translateY(-3px) scale(1.03); /* Lift and scale slightly */
+            transform: translateY(-3px) scale(1.03);
             box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.2);
         }
         .plot.planted {
-             /* A subtle pattern or darker soil for planted */
              background-image: url('planted_soil_texture.png'); 
              background-size: cover;
         }
         .plot.needs-water {
-            background-color: #A0522D; /* Lighter, drier soil */
-            background-image: url('dry_soil_texture.png'); /* Dry soil texture */
-            color: #8B4513; /* Brownish text for dry state */
+            background-color: #A0522D;
+            background-image: url('dry_soil_texture.png');
+            color: #8B4513;
         }
         .plot .plot-content {
             display: flex;
@@ -141,21 +139,29 @@
             justify-content: center;
             height: 100%;
             width: 100%;
+            padding: 4px; /* Add some padding */
         }
         .plot .plot-icon {
-            font-size: 3.5rem; /* Larger icons */
+            /* --- UI FIX: Responsive Icon Size --- */
+            font-size: clamp(2rem, 12vw, 3.5rem); 
             line-height: 1;
             margin-bottom: 0.25rem;
-            animation: growIn 0.5s ease-out; /* Simple grow in animation */
+            animation: growIn 0.5s ease-out;
+        }
+        .plot .plot-text {
+            /* --- UI FIX: Responsive Text Size --- */
+            font-size: clamp(0.75rem, 4vw, 1rem);
+            font-weight: 600;
+            text-align: center;
         }
         .plot.needs-water .plot-icon {
-            font-size: 4rem; /* Even larger water drop */
-            color: #4CAF50; /* Greenish blue for water */
+            font-size: clamp(2.5rem, 15vw, 4rem);
+            color: #4CAF50;
             animation: pulseWater 1.5s infinite ease-in-out;
         }
         .plot.ready .plot-icon {
             animation: bounceHarvest 0.8s infinite ease-in-out;
-            color: #FFEB3B; /* Golden glow for ready */
+            color: #FFEB3B;
             text-shadow: 0 0 10px rgba(255,235,59,0.7);
         }
         @keyframes growIn {
@@ -174,17 +180,17 @@
 
         .plot-timer {
             position: absolute;
-            bottom: 8px; /* Adjusted position */
+            bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.7); /* Darker background for readability */
+            background-color: rgba(0,0,0,0.7);
             color: white;
             padding: 3px 12px;
             border-radius: 99px;
-            font-size: 0.85rem; /* Slightly larger font */
+            font-size: 0.85rem;
             font-weight: bold;
             border: 2px solid rgba(255,255,255,0.8);
-            white-space: nowrap; /* Prevent timer from wrapping */
+            white-space: nowrap;
         }
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -194,22 +200,22 @@
         }
         .modal-overlay.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            background: #fff8e1; /* Lighter parchment for modal */
+            background: #fff8e1;
             padding: 2rem; border-radius: 1.5rem;
             text-align: center; width: 90%; max-width: 420px;
             transform: scale(0.9); transition: transform 0.3s ease;
-            border: 5px solid #A1887F; /* Thicker wood border */
+            border: 5px solid #A1887F;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-content h2 {
-            color: #6D4C41; /* Brownish header */
+            color: #6D4C41;
             margin-bottom: 1.5rem;
         }
         .item-list-option {
-            background-color: #F5F5DC; /* Beige for item options */
+            background-color: #F5F5DC;
             border: 2px solid #D7CCC8;
-            border-left: 6px solid #8BC34A; /* Green accent */
+            border-left: 6px solid #8BC34A;
             padding: 0.75rem 1rem;
             border-radius: 0.5rem;
             display: flex;
@@ -274,26 +280,27 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let state = {};
-            let petSystem = null; // << เพิ่มตัวแปร petSystem
+            let petSystem = null; 
             let gardenInterval = null;
-            const WATERING_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+            const WATERING_INTERVAL = 24 * 60 * 60 * 1000;
             const MAX_PLOTS = 12;
 
             const seedData = {
-                'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', readyIcon: '🍅', exp: 2 },
-                'เมล็ดแครอท': { growTime: 4 * 60 * 60 * 1000, result: 'แครอท', readyIcon: '🥕', exp: 3 },
-                'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', readyIcon: '🥦', exp: 4 },
-                'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', readyIcon: '🍓', exp: 5 },
+                'เมล็ดมะเขือเทศ': { growTime: 60 * 60 * 1000, result: 'มะเขือเทศ', plantIcon: '🌿', readyIcon: '🍅', exp: 2 },
+                'เมล็ดแครอท': { growTime: 4 * 60 * 60 * 1000, result: 'แครอท', plantIcon: '🥕🌱', readyIcon: '🥕', exp: 3 },
+                'เมล็ดบรอกโคลี': { growTime: 8 * 60 * 60 * 1000, result: 'บรอกโคลี', plantIcon: '🥦🌱', readyIcon: '🥦', exp: 4 },
+                'เมล็ดสตรอว์เบอร์รี': { growTime: 24 * 60 * 60 * 1000, result: 'สตรอว์เบอร์รี', plantIcon: '🍓🌱', readyIcon: '🍓', exp: 5 },
             };
             
             const fertilizerData = {
-                'ปุ๋ยเร่งโต': { timeReduction: 60 * 60 * 1000 } // 1 hour
+                'ปุ๋ยเร่งโต': { timeReduction: 60 * 60 * 1000 } 
             };
-
+            
+            // --- BUG FIX & UI FIX ---
+            // โค้ดส่วนที่เหลือจะถูกนำมาใส่ที่นี่
             const plantSeedModal = document.getElementById('plant-seed-modal');
             const seedOptionsList = document.getElementById('seed-options-list');
             const closePlantSeedModalBtn = document.getElementById('close-plant-seed-modal-btn');
-            
             const plotActionsModal = document.getElementById('plot-actions-modal');
             const plotActionsList = document.getElementById('plot-actions-list');
             const closePlotActionsModalBtn = document.getElementById('close-plot-actions-modal-btn');
@@ -320,7 +327,6 @@
                 let m = Math.floor(s / 60);
                 let h = Math.floor(m / 60);
                 s %= 60; m %= 60;
-                
                 if (h > 0) return `${h} ชม. ${m} นาที`;
                 if (m > 0) return `${m} นาที`;
                 return `${s} วินาที`;
@@ -353,7 +359,9 @@
                     if (plot) {
                         const needsWater = Date.now() - plot.lastWatered > WATERING_INTERVAL;
                         const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
-                        const plantIcon = plot.isFertilized ? '✨' : '🌱';
+                        
+                        const basePlantIcon = seedData[plot.seedName].plantIcon;
+                        const currentPlantIcon = plot.isFertilized ? '✨' + basePlantIcon : basePlantIcon;
 
                         if (remainingTime > 0) {
                             if (needsWater) {
@@ -361,7 +369,7 @@
                                 plotEl.innerHTML = `
                                     <div class="plot-content">
                                         <div class="plot-icon">💧</div>
-                                        <span class="text-sm font-semibold text-amber-900">ดินแห้ง! รดน้ำเลย</span>
+                                        <span class="plot-text">ดินแห้ง! รดน้ำเลย</span>
                                     </div>
                                 `;
                                 plotEl.onclick = () => waterPlot(index);
@@ -369,7 +377,7 @@
                                 plotEl.classList.add('planted');
                                 plotEl.innerHTML = `
                                     <div class="plot-content">
-                                        <div class="plot-icon">${plantIcon}</div>
+                                        <div class="plot-icon">${currentPlantIcon}</div>
                                     </div>
                                     <div class="plot-timer" id="timer-${index}">${formatCountdown(remainingTime)}</div>
                                 `;
@@ -380,7 +388,7 @@
                             plotEl.innerHTML = `
                                 <div class="plot-content">
                                     <div class="plot-icon">${seedData[plot.seedName].readyIcon}</div>
-                                    <span class="text-sm font-semibold text-green-900 mt-1">เก็บเกี่ยวได้แล้ว!</span>
+                                    <span class="plot-text">เก็บเกี่ยวได้แล้ว!</span>
                                 </div>
                             `;
                             plotEl.onclick = () => harvest(index);
@@ -389,7 +397,7 @@
                         plotEl.innerHTML = `
                             <div class="plot-content text-gray-500 opacity-60">
                                 <span class="plot-icon">+</span>
-                                <span class="text-sm font-semibold">ปลูก</span>
+                                <span class="plot-text">ปลูก</span>
                             </div>
                         `;
                         plotEl.onclick = () => showPlantSeedModal(index);
@@ -403,13 +411,10 @@
 
             function updateTimers() {
                 let needsRender = false;
-                state.garden.plots.forEach((plot, index) => {
+                state.garden.plots.forEach((plot) => {
                     if (plot && !plot.isPaused) {
-                        const timerEl = document.getElementById(`timer-${index}`);
-                        if (timerEl) {
-                            const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
-                            if (remainingTime <= 0) needsRender = true;
-                            else timerEl.textContent = formatCountdown(remainingTime);
+                        if (Date.now() - plot.plantTime >= plot.effectiveGrowTime) {
+                            needsRender = true;
                         }
                         if (Date.now() - plot.lastWatered > WATERING_INTERVAL) {
                             plot.isPaused = true;
@@ -419,6 +424,17 @@
                     }
                 });
                 if (needsRender) renderPlots();
+                else { // Update timers text content if no re-render is needed
+                    state.garden.plots.forEach((plot, index) => {
+                         if (plot && !plot.isPaused) {
+                            const timerEl = document.getElementById(`timer-${index}`);
+                            if(timerEl) {
+                                const remainingTime = plot.plantTime + plot.effectiveGrowTime - Date.now();
+                                timerEl.textContent = formatCountdown(remainingTime);
+                            }
+                         }
+                    });
+                }
             }
             
             function renderGardenActions() {
@@ -519,7 +535,7 @@
                 const plot = state.garden.plots[plotIndex];
                 if (!plot || plot.isFertilized || !(state.inventory[fertilizerName] > 0)) return;
                 state.inventory[fertilizerName]--;
-                plot.plantTime += fertilizerData[fertilizerName].timeReduction; // Correct logic: add to plantTime to reduce remaining time
+                plot.plantTime += fertilizerData[fertilizerName].timeReduction;
                 plot.isFertilized = true;
                 alert('ใช้ปุ๋ยสำเร็จ! พืชจะโตไวขึ้น 1 ชั่วโมง!');
                 saveState();
@@ -534,9 +550,9 @@
                     const buffs = petSystem.getActiveBuffs();
                     let growTime = seedData[seedName].growTime;
                     
-                    // Apply buffs for gardener/harvester
-                    if (buffs.garden_speed_multiplier) {
-                        growTime *= buffs.garden_speed_multiplier;
+                    // Apply garden speed buffs if they exist in the pet system
+                    if (buffs.garden_speed) {
+                        growTime *= buffs.garden_speed;
                     }
                     
                     state.garden.plots[plotIndex] = {
@@ -560,7 +576,7 @@
                 const plot = state.garden.plots[plotIndex];
                 if (plot && plot.isPaused) {
                     const pauseDuration = Date.now() - plot.pauseTime;
-                    plot.plantTime += pauseDuration; // Extend plantTime by how long it was paused
+                    plot.plantTime += pauseDuration;
                     plot.lastWatered = Date.now();
                     plot.isPaused = false;
                     plot.pauseTime = 0;
@@ -572,31 +588,27 @@
 
             function harvest(plotIndex) {
                 const plot = state.garden.plots[plotIndex];
-                if (plot) {
+                if (plot && (Date.now() - plot.plantTime >= plot.effectiveGrowTime)) {
                     const buffs = petSystem.getActiveBuffs();
                     const seed = seedData[plot.seedName];
                     let yieldAmount = 1;
 
-                    // Harvester Buff
                     if (buffs.bonus_yield_chance && Math.random() < buffs.bonus_yield_chance) {
                         yieldAmount++;
                         alert('โชคดี! ได้ผลผลิตเพิ่ม 1 ชิ้นจากสกิลนักเก็บเกี่ยว!');
                     }
 
-                    // Add item(s) to inventory
                     const resultItemName = seed.result;
                     state.inventory[resultItemName] = (state.inventory[resultItemName] || 0) + yieldAmount;
                     
-                    // EXP from harvesting
                     const baseHarvestExp = seed.exp;
                     petSystem.addPetExp(baseHarvestExp); 
                     
-                    // Botanist Buff (Quality Vegetable)
                     let qualityMessage = '';
                     if (buffs.quality_vegetable_chance && Math.random() < buffs.quality_vegetable_chance) {
                         const qualityItemName = `ผักคุณภาพดี (${resultItemName})`;
                         state.inventory[qualityItemName] = (state.inventory[qualityItemName] || 0) + 1;
-                        qualityMessage = `\nพิเศษ! คุณได้รับ "${qualityItemName}" จากสกิลนักพฤกษศาสตร์!`;
+                        qualityMessage = `\nพิเศษ! คุณได้รับ "${qualityItemName}"!`;
                     }
                     
                     state.garden.plots[plotIndex] = null;
@@ -609,13 +621,13 @@
 
             function hidePlantSeedModal() { plantSeedModal.classList.remove('visible'); }
 
-            // --- Initial Setup ---
             function init() {
                 loadState();
 
-                // Connect to the PetSystem
+                // --- BUG FIX: Use the full PetSystem to enable addPetExp ---
                 petSystem = PetSystem(state, {
-                    saveState: () => {}, // Garden page doesn't need all helpers
+                    saveState: saveState,
+                    // Provide dummy functions for unused helpers to prevent errors
                     updateCoinDisplays: () => {},
                     renderInventory: () => {},
                     consumableItems: {}
@@ -624,6 +636,7 @@
                 closePlantSeedModalBtn.addEventListener('click', hidePlantSeedModal);
                 closePlotActionsModalBtn.addEventListener('click', () => plotActionsModal.classList.remove('visible'));
                 renderAll();
+                
             }
 
             init();
