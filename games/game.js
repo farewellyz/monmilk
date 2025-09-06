@@ -619,7 +619,7 @@ function handleControlMove(e) {
 
 
 function handleControlEnd(e) {
-    if (gameState !== 'playing') return;
+    // if (gameState !== 'playing') return; // REMOVED THIS LINE TO FIX THE BUG
 
     let touchEnded = false;
     if (e.changedTouches) {
@@ -1780,8 +1780,30 @@ function updateWeapons() {
         controlMode = mode;
         localStorage.setItem('survivorGameControlMode', mode);
         
-        controlDragBtn.classList.toggle('selected', mode === 'drag');
-        controlJoystickBtn.classList.toggle('selected', mode === 'joystick');
+        // Reset both buttons
+        controlDragBtn.classList.remove('selected');
+        controlJoystickBtn.classList.remove('selected');
+        // Clear old checkmarks
+        controlDragBtn.querySelector('.checkmark-icon')?.remove();
+        controlJoystickBtn.querySelector('.checkmark-icon')?.remove();
+
+        // Find the selected button
+        let selectedBtn;
+        if (mode === 'drag') {
+            selectedBtn = controlDragBtn;
+        } else {
+            selectedBtn = controlJoystickBtn;
+        }
+
+        // Apply selected state
+        selectedBtn.classList.add('selected');
+
+        // Add checkmark icon
+        const checkmarkSVG = `
+            <svg class="checkmark-icon h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>`;
+        selectedBtn.insertAdjacentHTML('afterbegin', checkmarkSVG);
     }
 
 
@@ -1907,4 +1929,5 @@ function updateWeapons() {
 
     // Start the whole process
     init();
+
 
