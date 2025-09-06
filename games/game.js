@@ -10,13 +10,16 @@ const levelText = document.getElementById('level');
 const timerText = document.getElementById('timer');
 const mainMenuScreen = document.getElementById('mainMenuScreen');
 const guideScreen = document.getElementById('guideScreen');
+const settingsScreen = document.getElementById('settingsScreen');
 const pauseScreen = document.getElementById('pauseScreen');
 const startScreen = document.getElementById('startScreen');
 const levelUpScreen = document.getElementById('levelUpScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const menuStartButton = document.getElementById('menuStartButton');
 const menuGuideButton = document.getElementById('menuGuideButton');
+const menuSettingsButton = document.getElementById('menuSettingsButton');
 const guideBackButton = document.getElementById('guideBackButton');
+const settingsBackButton = document.getElementById('settingsBackButton');
 const pauseButton = document.getElementById('pauseButton');
 const resumeButton = document.getElementById('resumeButton');
 const pauseGuideButton = document.getElementById('pauseGuideButton');
@@ -25,6 +28,11 @@ const restartButton = document.getElementById('restartButton');
 const pauseWeaponIconsContainer = document.getElementById('pauseWeaponIcons');
 const pausePassiveIconsContainer = document.getElementById('pausePassiveIcons');
 const coinsEarnedText = document.getElementById('coinsEarned');
+const controlDragBtn = document.getElementById('controlDrag');
+const controlJoystickBtn = document.getElementById('controlJoystick');
+const joystickContainer = document.getElementById('joystick-container');
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
 
 // Guide UI
 const evoGuideContainer = document.getElementById('evoGuideContainer');
@@ -49,6 +57,7 @@ let nextBossTime = 300; // 5 minutes
 const RENDER_SCALE = 0.75; // Zoom out factor
 let guideReturnState = 'menu';
 let isBonusGame = false;
+let controlMode = 'drag'; // 'drag' or 'joystick'
 
 // --- Player ---
 const player = {
@@ -122,8 +131,19 @@ let xpGems = [];
 let pickups = [];
 let monsterProjectiles = [];
 const keys = {};
+
+// --- Control State ---
 let isPointerDown = false;
 let pointerPos = { x: 0, y: 0 };
+let joystick = {
+    active: false,
+    baseX: 0,
+    baseY: 0,
+    stickX: 0,
+    stickY: 0,
+    dx: 0,
+    dy: 0,
+};
 
 // --- UI Functions ---
 function updateInventoryUI() {
@@ -454,12 +474,13 @@ function displayUpgradeOptions(options) {
     }
     options.forEach(upgrade => {
         const card = document.createElement('div');
-        const cardClasses = 'card bg-gray-800 border-2 border-yellow-400 p-6 rounded-lg text-center flex flex-col items-center';
-        card.className = upgrade.isEvolution ? `${cardClasses} evolution-card` : cardClasses;
+        const evolutionClass = upgrade.isEvolution ? 'evolution-card' : '';
+        const cardClasses = `card bg-gray-800 border-2 border-yellow-400 p-4 sm:p-6 rounded-lg text-center flex flex-col items-center ${evolutionClass}`;
+        card.className = cardClasses;
         card.innerHTML = `
-            <div class="text-5xl mb-4">${upgrade.icon}</div>
-            <h3 class="text-xl sm:text-2xl font-bold text-yellow-300 mb-2">${upgrade.name}</h3>
-            <p class="text-gray-300 text-sm sm:text-base">${upgrade.description}</p>
+            <div class="text-4xl sm:text-5xl mb-2 sm:mb-4">${upgrade.icon}</div>
+            <h3 class="text-lg sm:text-xl font-bold text-yellow-300 mb-2">${upgrade.name}</h3>
+            <p class="text-gray-300 text-xs sm:text-sm">${upgrade.description}</p>
         `;
         card.onclick = () => selectUpgrade(upgrade);
         container.appendChild(card);
@@ -480,29 +501,72 @@ window.addEventListener('resize', () => { canvas.width = window.innerWidth; canv
 window.addEventListener('keydown', (e) => keys[e.code] = true);
 window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-function handlePointerDown(e) { if (gameState !== 'playing') return; isPointerDown = true; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
-function handlePointerMove(e) { if (!isPointerDown) return; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
-function handlePointerUp(e) { isPointerDown = false; }
+function handleDragStart(e) { if (gameState !== 'playing' || controlMode !== 'drag') return; isPointerDown = true; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
+function handleDragMove(e) { if (!isPointerDown || controlMode !== 'drag') return; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
+function handleDragEnd(e) { isPointerDown = false; }
 
-canvas.addEventListener('touchstart', handlePointerDown, { passive: true });
-canvas.addEventListener('touchmove', handlePointerMove, { passive: true });
-canvas.addEventListener('touchend', handlePointerUp);
-canvas.addEventListener('mousedown', handlePointerDown);
-canvas.addEventListener('mousemove', handlePointerMove);
-canvas.addEventListener('mouseup', handlePointerUp);
-canvas.addEventListener('mouseleave', handlePointerUp);
+function handleJoystickStart(e) {
+    if (gameState !== 'playing' || controlMode !== 'joystick') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    joystick.baseX = touch.clientX;
+    joystick.baseY = touch.clientY;
+    joystick.stickX = touch.clientX;
+    joystick.stickY = touch.clientY;
+    joystick.active = true;
+    joystickBase.style.left = `${joystick.baseX - 75}px`;
+    joystickBase.style.top = `${joystick.baseY - 75}px`;
+    joystickBase.classList.remove('hidden');
+}
+
+function handleJoystickMove(e) {
+    if (!joystick.active || controlMode !== 'joystick') return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    joystick.stickX = touch.clientX;
+    joystick.stickY = touch.clientY;
+    
+    let dx = joystick.stickX - joystick.baseX;
+    let dy = joystick.stickY - joystick.baseY;
+    const dist = Math.hypot(dx, dy);
+    const maxDist = 60; // Max radius for the knob
+    
+    if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+    }
+    
+    joystickKnob.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    joystick.dx = dx / maxDist;
+    joystick.dy = dy / maxDist;
+}
+
+function handleJoystickEnd(e) {
+    if (!joystick.active || controlMode !== 'joystick') return;
+    joystick.active = false;
+    joystick.dx = 0;
+    joystick.dy = 0;
+    joystickKnob.style.transform = `translate3d(0px, 0px, 0)`;
+    joystickBase.classList.add('hidden');
+}
 
 // --- Game Logic ---
 function updatePlayer() {
     let dx = 0, dy = 0;
-    if (isPointerDown) {
+    
+    // Keyboard controls always active
+    if (keys['KeyW'] || keys['ArrowUp']) dy = -1;
+    if (keys['KeyS'] || keys['ArrowDown']) dy = 1;
+    if (keys['KeyA'] || keys['ArrowLeft']) dx = -1;
+    if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
+    
+    // Touch controls based on mode
+    if (controlMode === 'drag' && isPointerDown) {
         dx = pointerPos.x - player.x;
         dy = pointerPos.y - player.y;
-    } else {
-        if (keys['KeyW'] || keys['ArrowUp']) dy = -1;
-        if (keys['KeyS'] || keys['ArrowDown']) dy = 1;
-        if (keys['KeyA'] || keys['ArrowLeft']) dx = -1;
-        if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
+    } else if (controlMode === 'joystick' && joystick.active) {
+        dx = joystick.dx;
+        dy = joystick.dy;
     }
 
     const dist = Math.hypot(dx, dy);
@@ -1531,6 +1595,13 @@ function updateWeapons() {
             // Deduct coin and save
             state.playCoins -= gameCost;
             localStorage.setItem('monGameDataV17', JSON.stringify(state));
+            
+            if (controlMode === 'joystick') {
+                joystickContainer.classList.remove('hidden');
+                joystickBase.classList.add('hidden'); // Initially hide the base until touched
+            } else {
+                joystickContainer.classList.add('hidden');
+            }
 
             // Proceed with starting the game
             resetGame();
@@ -1595,18 +1666,58 @@ function updateWeapons() {
         gameOverScreen.classList.add('flex');
     }
 
+    // --- Settings Logic ---
+    function applyControlSetting(mode) {
+        controlMode = mode;
+        localStorage.setItem('survivorGameControlMode', mode);
+        
+        controlDragBtn.classList.toggle('selected', mode === 'drag');
+        controlJoystickBtn.classList.toggle('selected', mode === 'joystick');
+
+        // Remove old listeners to prevent duplicates
+        canvas.removeEventListener('touchstart', handleDragStart);
+        canvas.removeEventListener('touchmove', handleDragMove);
+        canvas.removeEventListener('touchend', handleDragEnd);
+        canvas.removeEventListener('mousedown', handleDragStart);
+        canvas.removeEventListener('mousemove', handleDragMove);
+        canvas.removeEventListener('mouseup', handleDragEnd);
+        canvas.removeEventListener('mouseleave', handleDragEnd);
+        joystickContainer.removeEventListener('touchstart', handleJoystickStart);
+        joystickContainer.removeEventListener('touchmove', handleJoystickMove);
+        joystickContainer.removeEventListener('touchend', handleJoystickEnd);
+
+        // Add new listeners based on selected mode
+        if (mode === 'drag') {
+            canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+            canvas.addEventListener('touchmove', handleDragMove, { passive: false });
+            canvas.addEventListener('touchend', handleDragEnd);
+            canvas.addEventListener('mousedown', handleDragStart);
+            canvas.addEventListener('mousemove', handleDragMove);
+            canvas.addEventListener('mouseup', handleDragEnd);
+            canvas.addEventListener('mouseleave', handleDragEnd);
+        } else { // joystick
+             joystickContainer.addEventListener('touchstart', handleJoystickStart, { passive: false });
+             joystickContainer.addEventListener('touchmove', handleJoystickMove, { passive: false });
+             joystickContainer.addEventListener('touchend', handleJoystickEnd);
+        }
+    }
+
+
     // --- Initializer ---
     function init() {
         const urlParams = new URLSearchParams(window.location.search);
         isBonusGame = urlParams.get('bonus') === 'true';
 
-        // Event Listeners
+        // Load saved control mode
+        const savedMode = localStorage.getItem('survivorGameControlMode');
+        applyControlSetting(savedMode || 'drag');
+
+        // Event Listeners for UI
         menuStartButton.addEventListener('click', () => {
             mainMenuScreen.classList.add('hidden');
             startScreen.classList.remove('hidden');
             startScreen.classList.add('flex');
             
-            // NEW: Update start button text with coin info
             const savedData = localStorage.getItem('monGameDataV17');
             if (savedData) {
                 let state = JSON.parse(savedData);
@@ -1625,6 +1736,21 @@ function updateWeapons() {
             populateWeaponGuide();
             populatePassiveGuide();
         });
+
+        menuSettingsButton.addEventListener('click', () => {
+            mainMenuScreen.classList.add('hidden');
+            settingsScreen.classList.remove('hidden');
+            settingsScreen.classList.add('flex');
+        });
+
+        settingsBackButton.addEventListener('click', () => {
+             settingsScreen.classList.add('hidden');
+             settingsScreen.classList.remove('flex');
+             mainMenuScreen.classList.remove('hidden');
+        });
+
+        controlDragBtn.addEventListener('click', () => applyControlSetting('drag'));
+        controlJoystickBtn.addEventListener('click', () => applyControlSetting('joystick'));
 
         pauseButton.addEventListener('click', () => {
             if(gameState === 'playing') {
