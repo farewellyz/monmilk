@@ -619,7 +619,8 @@ function handleControlMove(e) {
 
 
 function handleControlEnd(e) {
-    // if (gameState !== 'playing') return; // REMOVED THIS LINE TO FIX THE BUG
+    // This function can now run even if the game state is not 'playing'
+    // to correctly reset the joystick when a level-up screen appears.
 
     let touchEnded = false;
     if (e.changedTouches) {
@@ -1058,12 +1059,38 @@ function updateWeapons() {
     }
 
     function updatePickups() {
+        let magnetCollected = false;
         for (let index = pickups.length - 1; index >= 0; index--) {
             const pickup = pickups[index];
-            const dx = player.x - pickup.x; const dy = player.y - pickup.y; const dist = Math.sqrt(dx*dx + dy*dy);
+            const dx = player.x - pickup.x;
+            const dy = player.y - pickup.y;
+            const dist = Math.hypot(dx, dy);
+
             if (dist < player.radius + pickup.radius) {
-                if (pickup.type === 'health') { player.hp = Math.min(player.maxHp, player.hp + 20); }
-                pickups.splice(index, 1);
+                if (pickup.type === 'health') {
+                    player.hp = Math.min(player.maxHp, player.hp + 20);
+                } else if (pickup.type === 'magnet') {
+                    magnetCollected = true;
+                }
+                pickups.splice(index, 1); // Remove collected item
+            }
+        }
+
+        if (magnetCollected) {
+            // Apply magnet effect after the loop to avoid mutation issues
+            xpGems.forEach(gem => {
+                player.xp += (gem.value * player.stats.xpGainModifier);
+                checkLevelUp();
+            });
+            xpGems.length = 0; // Clear array
+
+            // Collect remaining health pickups
+            for (let i = pickups.length - 1; i >= 0; i--) {
+                const pickup = pickups[i];
+                 if (pickup.type === 'health') {
+                    player.hp = Math.min(player.maxHp, player.hp + 20);
+                }
+                pickups.splice(i, 1);
             }
         }
     }
@@ -1185,18 +1212,31 @@ function updateWeapons() {
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             if (enemy.hp <= 0) {
+                // Handle guaranteed drops first
                 if (enemy.isHealthDropper) {
                     pickups.push({type: 'health', x: enemy.x, y: enemy.y, radius: 10 * RENDER_SCALE});
-                } else if (enemy.isBoss) { 
+                }
+                if (enemy.isBoss) {
+                    pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
                     for(let j = 0; j < 20; j++) { const angle = (j / 20) * Math.PI * 2; xpGems.push({x: enemy.x + Math.cos(angle)*30*RENDER_SCALE, y: enemy.y + Math.sin(angle)*30*RENDER_SCALE, radius: 8*RENDER_SCALE, value: 50, color: getXPGemColor(50)}); }
-                } else {
+                }
+
+                // Handle random/default drops for non-special enemies
+                if (!enemy.isHealthDropper && !enemy.isBoss) {
                     const soulEater = weapons.find(w => w.id === 'soul_eater');
                     if(soulEater && Math.hypot(player.x - enemy.x, player.y - enemy.y) < soulEater.range && soulEater.lifestealOnKillChance && Math.random() < soulEater.lifestealOnKillChance) {
                         player.hp = Math.min(player.maxHp, player.hp + 1);
                     }
-                    xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+
+                    if (Math.random() < 0.02) { // 2% chance for magnet
+                         pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
+                    } else { // 98% chance for XP gem
+                        xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                    }
                 }
-                enemies.splice(i, 1); enemiesKilledCount++;
+
+                enemies.splice(i, 1);
+                enemiesKilledCount++;
             }
         }
     }
@@ -1531,7 +1571,24 @@ function updateWeapons() {
         });
 
         xpGems.forEach(g => { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(Math.PI / 4); ctx.fillStyle = g.color; ctx.fillRect(-g.radius, -g.radius, g.radius*2, g.radius*2); ctx.restore(); });
-        pickups.forEach(p => { if (p.type === 'health') { ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 3*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x - 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x, p.y + 9*RENDER_SCALE, p.x, p.y + 12*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y + 9*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x + 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x, p.y - 7*RENDER_SCALE, p.x, p.y - 3*RENDER_SCALE); ctx.fill(); }});
+        pickups.forEach(p => { 
+            if (p.type === 'health') { 
+                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 3*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x - 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x, p.y + 9*RENDER_SCALE, p.x, p.y + 12*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y + 9*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x + 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x, p.y - 7*RENDER_SCALE, p.x, p.y - 3*RENDER_SCALE); ctx.fill(); 
+            } else if (p.type === 'magnet') {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.fillStyle = '#facc15'; // yellow-400
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `bold ${p.radius * 1.5}px sans-serif`;
+                ctx.fillText('🧲', 0, p.radius * 0.1);
+                ctx.restore();
+            }
+        });
         enemies.forEach(e => drawEnemy(e));
         drawMonsterProjectiles();
 
@@ -1754,8 +1811,8 @@ function updateWeapons() {
         const savedData = localStorage.getItem('monGameDataV17');
         if(savedData) {
             let state = JSON.parse(savedData);
-            // Reward calculation: 1 coin per 100 enemies + 1 coin per minute survived
-            let coinsWon = Math.floor(enemiesKilledCount / 100) + Math.floor(gameTime / 60);
+            // Reward calculation: 1 coin per 150 enemies + 1 coin per minute survived
+            let coinsWon = Math.floor(enemiesKilledCount / 150) + Math.floor(gameTime / 60);
             
             // Double rewards if it's the bonus game
             if (isBonusGame) {
@@ -1929,5 +1986,4 @@ function updateWeapons() {
 
     // Start the whole process
     init();
-
 
