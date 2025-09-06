@@ -507,10 +507,22 @@ window.addEventListener('keyup', (e) => keys[e.code] = false);
 
 function handleControlStart(e) {
     if (gameState !== 'playing') return;
+    
+    // Add listeners immediately
+    if (e.touches) {
+        window.addEventListener('touchmove', handleControlMove, { passive: false });
+        window.addEventListener('touchend', handleControlEnd, { passive: false });
+        window.addEventListener('touchcancel', handleControlEnd, { passive: false });
+    } else {
+        window.addEventListener('mousemove', handleControlMove);
+        window.addEventListener('mouseup', handleControlEnd);
+        window.addEventListener('mouseleave', handleControlEnd);
+    }
 
     const touch = e.touches ? e.touches[0] : null;
 
     if (controlMode === 'joystick' && touch) {
+        // We only start a "potential" joystick. It becomes active only on move.
         if (!joystick.active && !joystick.potential) {
             e.preventDefault();
             joystick.potential = true;
@@ -524,36 +536,21 @@ function handleControlStart(e) {
         pointerPos.x = pos.clientX;
         pointerPos.y = pos.clientY;
     }
-    
-    // Add move/end listeners only once on start
-    if (!joystick.active) {
-        if (touch) {
-            window.addEventListener('touchmove', handleControlMove, { passive: false });
-            window.addEventListener('touchend', handleControlEnd, { passive: false });
-            window.addEventListener('touchcancel', handleControlEnd, { passive: false });
-        } else {
-            window.addEventListener('mousemove', handleControlMove);
-            window.addEventListener('mouseup', handleControlEnd);
-            window.addEventListener('mouseleave', handleControlEnd);
-        }
-    }
 }
-
 
 function handleControlMove(e) {
     if (gameState !== 'playing') return;
 
-    const touch = e.touches ? Array.from(e.touches).find(t => t.identifier === joystick.touchId) : null;
-    const pos = touch || e;
-
-    if (controlMode === 'joystick' && (joystick.potential || joystick.active)) {
-        if (!touch) return; // Ignore mouse move for joystick
+    if (controlMode === 'joystick') {
+        const touch = e.touches ? Array.from(e.touches).find(t => t.identifier === joystick.touchId) : null;
+        if (!touch) return; // This move event is not for our joystick touch
         e.preventDefault();
 
+        // Activate joystick if it was only potential
         if (joystick.potential) {
-            const dx = pos.clientX - joystick.startX;
-            const dy = pos.clientY - joystick.startY;
-            if (Math.hypot(dx, dy) > 10) {
+            const dx = touch.clientX - joystick.startX;
+            const dy = touch.clientY - joystick.startY;
+            if (Math.hypot(dx, dy) > 10) { // Activation threshold
                 joystick.potential = false;
                 joystick.active = true;
                 joystick.baseX = joystick.startX;
@@ -567,8 +564,8 @@ function handleControlMove(e) {
         }
         
         if (joystick.active) {
-            joystick.stickX = pos.clientX;
-            joystick.stickY = pos.clientY;
+            joystick.stickX = touch.clientX;
+            joystick.stickY = touch.clientY;
             
             let dx = joystick.stickX - joystick.baseX;
             let dy = joystick.stickY - joystick.baseY;
@@ -585,24 +582,35 @@ function handleControlMove(e) {
             joystick.dy = dy / maxDist;
         }
     } else if (controlMode === 'drag' && isPointerDown) {
-        pointerPos.x = pos.clientX;
-        pointerPos.y = pos.clientY;
+        const pos = e.touches ? e.touches[0] : e;
+        if (pos) {
+            pointerPos.x = pos.clientX;
+            pointerPos.y = pos.clientY;
+        }
     }
 }
 
 
 function handleControlEnd(e) {
+    // This allows the control to end even if the game state changed (e.g. level up)
     let touchEnded = false;
-    if (e.changedTouches) {
-        if (Array.from(e.changedTouches).some(t => t.identifier === joystick.touchId)) {
+
+    if (e.changedTouches) { // Touch event
+        // Check if the ended touch was the one used for the joystick
+        if (controlMode === 'joystick' && Array.from(e.changedTouches).some(t => t.identifier === joystick.touchId)) {
             touchEnded = true;
         }
-    } else {
-        touchEnded = true; // For mouse
+        // For drag mode, any touch ending stops the drag
+        else if (controlMode === 'drag' && isPointerDown) {
+            touchEnded = true;
+        }
+    } else { // Mouse event
+        touchEnded = true;
     }
 
     if (touchEnded) {
-        if (joystick.active || joystick.potential) {
+        // Reset Joystick state if it was active
+        if (controlMode === 'joystick' && (joystick.active || joystick.potential)) {
             joystick.active = false;
             joystick.potential = false;
             joystick.dx = 0;
@@ -612,8 +620,12 @@ function handleControlEnd(e) {
             joystickBase.classList.add('hidden');
         }
 
-        isPointerDown = false;
+        // Reset Drag state if it was active
+        if (controlMode === 'drag') {
+            isPointerDown = false;
+        }
 
+        // Always remove listeners to prevent them from stacking up
         window.removeEventListener('touchmove', handleControlMove);
         window.removeEventListener('touchend', handleControlEnd);
         window.removeEventListener('touchcancel', handleControlEnd);
