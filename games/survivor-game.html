@@ -12,13 +12,13 @@
     <canvas id="gameCanvas"></canvas>
 
     <!-- UI Elements -->
-    <div id="uiContainer" class="ui-container pointer-events-none">
+    <div id="uiContainer" class="ui-container">
         <!-- Top UI -->
-        <div class="absolute top-0 left-0 w-full p-2 sm:p-4">
+        <div class="absolute top-0 left-0 w-full p-2 sm:p-4 pointer-events-none">
              <div class="relative w-full h-12">
                 <!-- Top-Left Group -->
                 <div class="absolute top-0 left-0 flex items-start gap-3">
-                    <div id="pauseButton" class="pause-button bg-gray-700 hover:bg-gray-600 p-2 rounded-full shadow-lg">
+                    <div id="pauseButton" class="pause-button bg-gray-700 hover:bg-gray-600 p-2 rounded-full shadow-lg pointer-events-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -40,9 +40,16 @@
         </div>
 
         <!-- Bottom UI -->
-        <div class="absolute bottom-0 left-0 w-full">
+        <div class="absolute bottom-0 left-0 w-full pointer-events-none">
             <div class="w-full bg-gray-900 bg-opacity-50 h-1.5 sm:h-2">
                 <div id="xpBar" class="bg-blue-500 h-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Joystick UI -->
+        <div id="joystick-container" class="hidden pointer-events-auto">
+            <div id="joystick-base">
+                <div id="joystick-knob"></div>
             </div>
         </div>
     </div>
@@ -50,81 +57,96 @@
     <div id="damageNumbersContainer"></div>
 
     <!-- Main Menu Modal -->
-    <div id="mainMenuScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-40">
+    <div id="mainMenuScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-40 p-4">
         <h1 class="text-5xl sm:text-7xl font-bold mb-12 text-yellow-300 text-center">Survivor Arena</h1>
-        <div class="flex flex-col gap-6">
-            <button id="menuStartButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-12 rounded-lg text-2xl shadow-lg">เริ่มเกม</button>
-            <button id="menuGuideButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-12 rounded-lg text-2xl shadow-lg">คู่มือ</button>
+        <div class="flex flex-col gap-6 w-full max-w-xs">
+            <button id="menuStartButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl shadow-lg">เริ่มเกม</button>
+            <button id="menuGuideButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl shadow-lg">คู่มือ</button>
+            <button id="menuSettingsButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl shadow-lg">ตั้งค่า</button>
         </div>
     </div>
 
      <!-- Guide Modal -->
-    <div id="guideScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-95 flex-col justify-center items-center z-40 hidden p-4">
-        <div class="w-full max-w-4xl bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col h-[90vh]">
+    <div id="guideScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-40 hidden p-2 sm:p-4">
+        <div class="w-full max-w-4xl bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col h-[95vh] sm:h-[90vh]">
             <div class="p-4 border-b border-gray-700">
                 <h2 class="text-3xl sm:text-4xl font-bold text-center text-yellow-300">คู่มือเกม</h2>
             </div>
             <!-- Tabs -->
             <div class="flex border-b border-gray-700 bg-gray-900">
-                <button id="guideTabEvo" class="guide-tab active-tab flex-1 py-3 px-2 text-lg font-semibold">วิวัฒนาการ</button>
-                <button id="guideTabWeapons" class="guide-tab flex-1 py-3 px-2 text-lg font-semibold">อาวุธ</button>
-                <button id="guideTabPassives" class="guide-tab flex-1 py-3 px-2 text-lg font-semibold">พาสซีฟ</button>
+                <button id="guideTabEvo" class="guide-tab active-tab flex-1 py-3 px-2 text-base sm:text-lg font-semibold">วิวัฒนาการ</button>
+                <button id="guideTabWeapons" class="guide-tab flex-1 py-3 px-2 text-base sm:text-lg font-semibold">อาวุธ</button>
+                <button id="guideTabPassives" class="guide-tab flex-1 py-3 px-2 text-base sm:text-lg font-semibold">พาสซีฟ</button>
             </div>
             <!-- Content -->
-            <div class="flex-grow p-4 overflow-y-auto">
-                <div id="evoGuideContainer" class="guide-content grid-cols-1 md:grid-cols-2 gap-4 w-full text-xl"></div>
-                <div id="weaponGuideContainer" class="guide-content hidden grid-cols-1 md:grid-cols-2 gap-4 w-full"></div>
-                <div id="passiveGuideContainer" class="guide-content hidden grid-cols-1 md:grid-cols-2 gap-4 w-full"></div>
+            <div class="flex-grow p-2 sm:p-4 overflow-y-auto">
+                <div id="evoGuideContainer" class="guide-content grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full text-lg sm:text-xl"></div>
+                <div id="weaponGuideContainer" class="guide-content hidden grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
+                <div id="passiveGuideContainer" class="guide-content hidden grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
             </div>
              <div class="p-4 border-t border-gray-700 bg-gray-900 text-center">
-                <button id="guideBackButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-lg">กลับ</button>
+                <button id="guideBackButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl shadow-lg">กลับ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-40 hidden p-4">
+        <div class="w-full max-w-md bg-gray-800 p-6 sm:p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center text-yellow-300 mb-8">ตั้งค่า</h2>
+            <div class="space-y-4">
+                <p class="text-lg text-gray-300 text-center">เลือกรูปแบบการควบคุม:</p>
+                <button id="controlDrag" class="control-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl shadow-lg">ระบบลากเดิน</button>
+                <button id="controlJoystick" class="control-button w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl shadow-lg">จอยสติ๊ก</button>
+            </div>
+            <div class="mt-8 text-center">
+                 <button id="settingsBackButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl shadow-lg">กลับ</button>
             </div>
         </div>
     </div>
 
 
     <!-- Pause Modal -->
-    <div id="pauseScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex-col justify-center items-center z-30 hidden">
-        <h2 class="text-5xl font-bold mb-6 text-yellow-300">หยุดชั่วคราว</h2>
+    <div id="pauseScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-30 hidden p-4">
+        <h2 class="text-4xl sm:text-5xl font-bold mb-6 text-yellow-300">หยุดชั่วคราว</h2>
         
-        <!-- Inventory Display in Pause -->
         <div class="bg-gray-800 bg-opacity-80 p-4 rounded-lg mb-6 shadow-lg">
-             <h3 class="text-xl font-bold text-center mb-3 text-gray-300">ไอเทมปัจจุบัน</h3>
+             <h3 class="text-lg sm:text-xl font-bold text-center mb-3 text-gray-300">ไอเทมปัจจุบัน</h3>
              <div id="pauseInventoryDisplay" class="flex flex-col items-center gap-3">
-                 <div id="pauseWeaponIcons" class="flex gap-2"></div>
-                 <div id="pausePassiveIcons" class="flex gap-2"></div>
+                 <div id="pauseWeaponIcons" class="flex flex-wrap justify-center gap-2"></div>
+                 <div id="pausePassiveIcons" class="flex flex-wrap justify-center gap-2"></div>
             </div>
         </div>
 
-        <div class="flex flex-col gap-6">
-            <button id="resumeButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-12 rounded-lg text-2xl shadow-lg">เล่นต่อ</button>
-            <button id="pauseGuideButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-12 rounded-lg text-2xl shadow-lg">คู่มือ</button>
+        <div class="flex flex-col gap-6 w-full max-w-xs">
+            <button id="resumeButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl shadow-lg">เล่นต่อ</button>
+            <button id="pauseGuideButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl shadow-lg">คู่มือ</button>
         </div>
     </div>
 
     <!-- Start Screen Modal -->
-    <div id="startScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-30 hidden">
-        <h1 class="text-4xl sm:text-6xl font-bold mb-4 sm:mb-8 text-yellow-300">เลือกผู้รอดชีวิต</h1>
-        <div id="characterSelection" class="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 mb-8">
+    <div id="startScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-30 hidden p-4 overflow-y-auto">
+        <h1 class="text-4xl sm:text-6xl font-bold mb-4 sm:mb-8 text-yellow-300 text-center shrink-0">เลือกผู้รอดชีวิต</h1>
+        <div id="characterSelection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full max-w-4xl mb-8">
             <!-- Character cards will be inserted here -->
         </div>
-        <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-xl sm:text-2xl shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed" disabled>เริ่มเกม</button>
+        <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-xl sm:text-2xl shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed shrink-0" disabled>เริ่มเกม</button>
     </div>
 
     <!-- Level Up Modal -->
-    <div id="levelUpScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex-col justify-center items-center z-30 hidden">
-        <h2 class="text-4xl sm:text-5xl font-bold mb-4 sm:mb-8 text-yellow-300">เลเวลอัป!</h2>
-        <div id="upgradeOptions" class="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+    <div id="levelUpScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col z-30 hidden p-4 overflow-y-auto">
+        <h2 class="text-4xl sm:text-5xl font-bold text-yellow-300 text-center shrink-0 my-4 sm:my-6">เลเวลอัป!</h2>
+        <div id="upgradeOptions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full max-w-6xl pb-8">
             <!-- Upgrade cards will be inserted here -->
         </div>
     </div>
 
     <!-- Game Over Modal -->
-    <div id="gameOverScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex-col justify-center items-center z-30 hidden">
-        <h2 class="text-5xl sm:text-6xl font-bold mb-4 text-red-500">เกมจบแล้ว</h2>
+    <div id="gameOverScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-30 hidden p-4 text-center">
+        <h2 class="text-4xl sm:text-6xl font-bold mb-4 text-red-500">เกมจบแล้ว</h2>
         <p class="text-lg sm:text-2xl mb-2">คุณเอาชีวิตรอดได้: <span id="survivalTime" class="font-bold"></span></p>
         <p class="text-base sm:text-xl mb-4">ศัตรูที่กำจัดได้: <span id="enemiesKilled" class="font-bold"></span></p>
-        <p class="text-lg sm:text-2xl mb-8 text-yellow-400">ได้รับ: <span id="coinsEarned" class="font-bold">0</span> เหรียญเล่นม่อน</p>
+        <p class="text-lg sm:text-2xl mb-8 text-yellow-400">ได้รับ: <span id="coinsEarned" class="font-bold">0</span> เหรียญม่อน</p>
         <a href="./index.html" id="restartButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-xl sm:text-2xl shadow-lg no-underline">กลับเมนูหลัก</a>
     </div>
 
