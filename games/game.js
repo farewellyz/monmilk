@@ -89,15 +89,15 @@ const player = {
 // --- Master Lists ---
 const WEAPONS_MASTER_LIST = {
     laser: { name: "ปืนเลเซอร์", icon: "☄️", type: 'laser_beam', damage: 15, count: 1, range: 200 * RENDER_SCALE, duration: 150, cooldown: 2500, lastAttackTime: 0, projectiles: [], maxLevel: 5, description: "ยิงเลเซอร์ใส่ศัตรูที่ใกล้ที่สุด" },
-    lightning: { name: "พลังสายฟ้า", icon: "⚡️", type: 'orbital', damage: 12, count: 1, speed: 0.035, range: 80 * RENDER_SCALE, angle: 0, projectiles: [], maxLevel: 5, description: "สร้างลูกบอลไฟฟ้าโคจรรอบตัว" },
-    axe: { name: "ขวาน", icon: "🪓", type: 'arc', damage: 25, count: 1, speed: 7 * RENDER_SCALE, range: 1.0, cooldown: 2000, lastAttackTime: 0, projectiles: [], maxLevel: 5, description: "ขว้างขวานเป็นแนวโค้งขึ้นไป" },
+    lightning: { name: "พลังสายฟ้า", icon: "⚡️", type: 'orbital', damage: 12, count: 1, speed: 0.035, range: 80 * RENDER_SCALE, angle: 0, projectiles: [], maxLevel: 5, description: "สร้างลูกบอลไฟฟ้าโคจรรอบตัว", size: 10 * RENDER_SCALE },
+    axe: { name: "ขวาน", icon: "🪓", type: 'arc', damage: 25, count: 1, speed: 7 * RENDER_SCALE, range: 1.0, cooldown: 2000, lastAttackTime: 0, projectiles: [], maxLevel: 5, description: "ขว้างขวานเป็นแนวโค้งขึ้นไป", size: 15 * RENDER_SCALE },
     garlic: { name: "ออร่ากระเทียม", icon: "🧄", type: 'aura', damage: 3, count: 1, range: 100 * RENDER_SCALE, cooldown: 500, lastAttackTime: 0, lastHit: new Map(), projectiles: [], maxLevel: 5, description: "สร้างออร่าทำความเสียหายรอบตัว" },
     missile: { name: "กระสุนเวทนำวิถี", icon: "✨", type: 'homing', damage: 20, count: 1, speed: 6 * RENDER_SCALE, cooldown: 1800, lastAttackTime: 0, projectiles: [], maxLevel: 5, pierce: 1, description: "ยิงกระสุนเวทติดตามศัตรู" },
-    sword: { name: "ดาบบินได้", icon: "⚔️", type: 'sword_orbital', damage: 18, count: 1, range: 90 * RENDER_SCALE, speed: 0.04, angle: 0, cooldown: 10000, lastAttackTime: 0, projectiles: [], homingProjectiles: [], pierce: 1, maxLevel: 5, description: "ดาบโคจรรอบตัวและพุ่งโจมตี" },
+    sword: { name: "ดาบบินได้", icon: "⚔️", type: 'sword_orbital', damage: 18, count: 1, range: 90 * RENDER_SCALE, speed: 0.04, angle: 0, cooldown: 10000, lastAttackTime: 0, projectiles: [], homingProjectiles: [], pierce: 1, maxLevel: 5, description: "ดาบโคจรรอบตัวและพุ่งโจมตี", size: 15 * RENDER_SCALE },
     santa_water: { name: "น้ำมนต์", icon: "💧", type: 'area_denial', damage: 5, count: 1, duration: 4000, cooldown: 2200, lastAttackTime: 0, projectiles: [], maxLevel: 5, radius: 50 * RENDER_SCALE, description: "สร้างพื้นที่ศักดิ์สิทธิ์ทำความเสียหาย" },
     pentagram: { name: "ดาวห้าแฉก", icon: "✡️", type: 'screen_clear', damage: 9999, cooldown: 60000, lastAttackTime: 0, projectiles: [], maxLevel: 5, chance: 0.3, description: "มีโอกาสลบศัตรูทั้งหมดบนหน้าจอ" },
-    gun_one: { name: "Eight The Sparrow", icon: "🔵", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'horizontal', description: "ยิงกระสุนแนวนอน (ซ้าย-ขวา)" },
-    gun_two: { name: "Phiera Der Tuphello", icon: "🔴", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'vertical', description: "ยิงกระสุนแนวตั้ง (บน-ล่าง)" },
+    gun_one: { name: "Eight The Sparrow", icon: "🔵", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'horizontal', description: "ยิงกระสุนแนวนอน (ซ้าย-ขวา)", size: 7 * RENDER_SCALE },
+    gun_two: { name: "Phiera Der Tuphello", icon: "🟣", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'vertical', description: "ยิงกระสุนแนวตั้ง (บน-ล่าง)", size: 7 * RENDER_SCALE },
     laurel: { name: "ช่อมะกอก", icon: "🌿", type: 'defensive_shield', cooldown: 5000, charges: 1, active: false, maxLevel: 5, description: "ป้องกันการโจมตีได้เป็นครั้งคราว" },
     clock_lancet: { name: "มีดสั้นแห่งเวลา", icon: "❄️", type: 'freeze_beam', damage: 0, cooldown: 6000, lastAttackTime: 0, duration: 1000, projectiles: [], maxLevel: 5, count: 1, width: 4 * RENDER_SCALE, description: "ยิงลำแสงแช่แข็งศัตรูชั่วขณะ" }
 };
@@ -112,15 +112,15 @@ const PASSIVES_MASTER_LIST = {
     tiragisu: { name: "ทีรามิสุ", icon: "🍰", description: "ให้การฟื้นคืนชีพเมื่อตาย", maxLevel: 2, apply: (p, level) => { p.stats.revives = level; } }
 };
 const EVOLUTIONS = {
-    supercharge_beam: { name: "ลำแสงซูเปอร์ชาร์จ", icon: "💥", baseWeaponId: 'laser', passiveId: 'spinach', evolvedWeapon: { name: "ลำแสงซูเปอร์ชาร์จ", type: 'laser_beam', damage: 50, count: 3, range: 300 * RENDER_SCALE, duration: 250, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
-    thunder_loop: { name: "วงแหวนอัสนี", icon: "🌀", baseWeaponId: 'lightning', passiveId: 'wings', evolvedWeapon: { name: "วงแหวนอัสนี", type: 'evo_orbital_ring', damage: 25, range: 150 * RENDER_SCALE, cooldown: 250, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true } },
-    death_spiral: { name: "เกลียวมรณะ", icon: "💀", baseWeaponId: 'axe', passiveId: 'candelabrador', evolvedWeapon: { name: "เกลียวมรณะ", type: 'evo_spiral', damage: 60, count: 8, speed: 6 * RENDER_SCALE, cooldown: 2500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
+    supercharge_beam: { name: "ลำแสงซูเปอร์ชาร์จ", icon: "💥", baseWeaponId: 'laser', passiveId: 'spinach', evolvedWeapon: { name: "ลำแสงซูเปอร์ชาร์จ", type: 'evo_rotating_lasers', damage: 40, count: 8, range: 2000, duration: 2000, cooldown: 5000, lastAttackTime: 0, attackStartTime: null, projectiles: [], lastHit: new Map(), isEvolved: true } },
+    thunder_loop: { name: "วงแหวนอัสนี", icon: "🌀", baseWeaponId: 'lightning', passiveId: 'wings', evolvedWeapon: { name: "วงแหวนอัสนี", type: 'evo_orbital_ring', damage: 25, range: 180 * RENDER_SCALE, cooldown: 250, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true } },
+    death_spiral: { name: "เกลียวมรณะ", icon: "💀", baseWeaponId: 'axe', passiveId: 'candelabrador', evolvedWeapon: { name: "เกลียวมรณะ", type: 'evo_spiral', damage: 60, count: 8, speed: 6 * RENDER_SCALE, cooldown: 2500, lastAttackTime: 0, projectiles: [], isEvolved: true, size: 36 * RENDER_SCALE } },
     soul_eater: { name: "เครื่องดูดวิญญาณ", icon: "👻", baseWeaponId: 'garlic', passiveId: 'armor', evolvedWeapon: { name: "เครื่องดูดวิญญาณ", type: 'aura', damage: 15, range: 150 * RENDER_SCALE, cooldown: 300, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true, lifestealOnKillChance: 0.25 } },
     thousand_edge: { name: "พันศาสตรา", icon: "🗡️", baseWeaponId: 'missile', passiveId: 'tome', evolvedWeapon: { name: "พันศาสตรา", type: 'homing', damage: 50, count: 5, speed: 8 * RENDER_SCALE, cooldown: 5000, lastAttackTime: 0, projectiles: [], isEvolved: true, pierce: 10 } },
-    demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 50, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true } },
+    demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 50, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
     la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 10, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     gorgeous_moon: { name: "Gorgeous Moon", icon: "🌕", baseWeaponId: 'pentagram', passiveId: 'crown', evolvedWeapon: { name: "Gorgeous Moon", type: 'evo_xp_clear', damage: 9999, cooldown: 45000, lastAttackTime: 0, projectiles: [], isEvolved: true } },
-    phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 30, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0 } },
+    phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 30, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0, size: 12 * RENDER_SCALE } },
     infinite_corridor: { name: "Infinite Corridor", icon: "⏳", baseWeaponId: 'clock_lancet', passiveId: 'tome', evolvedWeapon: { name: "Infinite Corridor", type: 'freeze_beam', damage: 0, cooldown: 5000, lastAttackTime: 0, duration: 2500, projectiles: [], isEvolved: true, count: 12, width: 10 * RENDER_SCALE } },
     crimson_shroud: { name: "Crimson Shroud", icon: "❤️‍🩹", baseWeaponId: 'laurel', passiveId: 'armor', evolvedWeapon: { name: "Crimson Shroud", type: 'evo_damage_cap', isEvolved: true, damageCap: 10, retaliateDamage: 10, charges: 1, active: false, cooldown: 5000 } }
 };
@@ -270,16 +270,13 @@ function getWeaponUpgradeDescription(weapon) {
     switch (weapon.id) {
          case 'laser':
             if (nextLevel === 2 || nextLevel === 4) return `เพิ่มจำนวนลำแสงเป็น ${weapon.count + 1} ลำ`;
-            return `เพิ่มพลังโจมตีและความเร็ว`;
+            return `เพิ่มพลังโจมตีและเพิ่มระยะ`;
         case 'lightning':
-            if (nextLevel === 2) return `เพิ่มจำนวนเป็น 2 ลูก`;
-            if (nextLevel === 3) return `หมุนเร็วขึ้นและกว้างขึ้น`;
-            if (nextLevel === 4) return `เพิ่มจำนวนเป็น 3 ลูก`;
-            if (nextLevel === 5) return `เพิ่มจำนวนเป็น 4 ลูก, หมุนเร็วขึ้นและกว้างขึ้น`;
-            return `เพิ่มพลังโจมตี`;
+            if (nextLevel === 2 || nextLevel === 4 || nextLevel === 5) return `เพิ่มจำนวนเป็น ${weapon.count + 1} ลูก`;
+            return `เพิ่มพลังโจมตีและขยายขอบเขต`;
         case 'axe':
             if (nextLevel === 2 || nextLevel === 4 || nextLevel === 5) return `เพิ่มขวานเป็น ${weapon.count + 1} ชิ้น`;
-            return `เพิ่มพลังโจมตีและลดคูลดาวน์`;
+            return `เพิ่มพลังโจมตีและขนาด`;
         case 'garlic':
             return `เพิ่มพลังโจมตีและขยายขอบเขต`;
         case 'missile':
@@ -287,14 +284,14 @@ function getWeaponUpgradeDescription(weapon) {
              return `เพิ่มพลังโจมตีและการเจาะทะลุ`;
         case 'sword':
              if (nextLevel === 2 || nextLevel === 4 || nextLevel === 5) return `เพิ่มดาบเป็น ${weapon.count + 1} เล่ม`;
-             return `เพิ่มความเร็วโจมตีและการเจาะทะลุ`;
+             return `เพิ่มพลังโจมตีและขนาด`;
         case 'santa_water':
             return 'เพิ่มจำนวนพื้นที่และลดคูลดาวน์';
         case 'pentagram':
             return 'เพิ่มโอกาสแสดงผลและลดคูลดาวน์';
         case 'gun_one':
         case 'gun_two':
-            return 'เพิ่มพลังโจมตีและลดคูลดาวน์';
+            return 'เพิ่มพลังโจมตี, ขนาด และความเร็วโจมตี';
         case 'laurel':
             return 'เพิ่มจำนวนครั้งที่ป้องกันและลดคูลดาวน์';
         case 'clock_lancet':
@@ -309,18 +306,21 @@ function upgradeWeapon(weapon) {
     switch (weapon.id) {
         case 'laser':
             weapon.damage += 5;
+            weapon.range += ( (canvasWidth / 2) - (200 * RENDER_SCALE) ) / 4;
             if (level === 2 || level === 4) weapon.count++;
             weapon.cooldown *= 0.92;
             break;
         case 'lightning': 
             weapon.damage += 2; 
+            weapon.range += 10 * RENDER_SCALE; // Increase range/size
             if (level === 2) weapon.count = 2;
-            if (level === 3) { weapon.speed += 0.005; weapon.range += 5 * RENDER_SCALE; }
+            if (level === 3) { weapon.speed += 0.005; }
             if (level === 4) weapon.count = 3;
-            if (level === 5) { weapon.count = 4; weapon.speed += 0.005; weapon.range += 5 * RENDER_SCALE; }
+            if (level === 5) { weapon.count = 4; weapon.speed += 0.005; }
             break;
         case 'axe':
             weapon.damage += 8;
+            weapon.size = (weapon.size || 15 * RENDER_SCALE) * 1.15;
             if (level === 2 || level === 4 || level === 5) weapon.count++;
             weapon.cooldown *= 0.95;
             break;
@@ -337,11 +337,9 @@ function upgradeWeapon(weapon) {
             if (level === 5) { weapon.count = 4; weapon.pierce = 5; }
             break;
         case 'sword':
-            weapon.cooldown *= 0.85;
-            if (level === 2) { weapon.count = 2; weapon.pierce = 1; }
-            if (level === 3) { weapon.pierce = 2; }
-            if (level === 4) { weapon.count = 3; weapon.pierce = 3; }
-            if (level === 5) { weapon.count = 4; weapon.pierce = 5; }
+            weapon.damage += 5;
+            weapon.size = (weapon.size || 15 * RENDER_SCALE) * 1.15;
+            if (level === 2 || level === 4 || level === 5) weapon.count++;
             break;
         case 'santa_water':
             weapon.count++;
@@ -355,7 +353,8 @@ function upgradeWeapon(weapon) {
         case 'gun_one':
         case 'gun_two':
             weapon.damage += 2;
-            weapon.cooldown *= 0.95;
+            weapon.cooldown *= 0.9; // Faster firing
+            weapon.size = (weapon.size || 7 * RENDER_SCALE) * 1.1; // Bigger bullets
             break;
         case 'laurel':
             if (level === 3 || level === 5) weapon.charges++;
@@ -859,7 +858,7 @@ function updateWeapons() {
             const angleInc = (2 * Math.PI) / w.count;
             for (let i = 0; i < w.count; i++) {
                 const angle = w.angle + i * angleInc;
-                w.projectiles.push({ x: player.x + Math.cos(angle) * w.range, y: player.y + Math.sin(angle) * w.range, radius: 10 * RENDER_SCALE, lastHit: new Map() });
+                w.projectiles.push({ x: player.x + Math.cos(angle) * w.range, y: player.y + Math.sin(angle) * w.range, radius: w.size || 10 * RENDER_SCALE, lastHit: new Map() });
             }
         } else if (w.type === 'laser_beam' && Date.now() - w.lastAttackTime > cooldown) {
             w.lastAttackTime = Date.now(); w.projectiles = [];
@@ -998,6 +997,37 @@ function updateWeapons() {
                 const x = player.x + Math.cos(randomAngle) * randomDist;
                 const y = player.y + Math.sin(randomAngle) * randomDist;
                 w.projectiles.push({x: x, y: y, radius: 80 * RENDER_SCALE, spawnTime: Date.now(), lastHit: new Map()});
+            }
+        }
+
+        // --- SPECIAL UPDATE LOGIC for channeled/active weapons ---
+        if (w.type === 'evo_rotating_lasers') {
+            if (!w.attackStartTime && Date.now() - w.lastAttackTime > w.cooldown) {
+                w.attackStartTime = Date.now();
+            }
+            if (w.attackStartTime) {
+                const age = Date.now() - w.attackStartTime;
+                if (age > w.duration) {
+                    w.attackStartTime = null;
+                    w.lastAttackTime = Date.now();
+                    w.projectiles = [];
+                } else {
+                    const rotationProgress = age / w.duration;
+                    const currentRotation = Math.PI * 2 * rotationProgress;
+                    const angleInc = (Math.PI * 2) / w.count;
+                    w.projectiles = [];
+                    for (let i = 0; i < w.count; i++) {
+                        const angle = (i * angleInc) + currentRotation;
+                        w.projectiles.push({
+                            startX: player.x,
+                            startY: player.y,
+                            endX: player.x + Math.cos(angle) * w.range,
+                            endY: player.y + Math.sin(angle) * w.range,
+                            width: 12 * RENDER_SCALE,
+                            lastHit: w.lastHit
+                        });
+                    }
+                }
             }
         }
 
@@ -1170,8 +1200,8 @@ function updateWeapons() {
                     if (!enemy) continue;
                     let hit = false;
                     if (w.type === 'orbital' || w.type === 'sword_orbital') {
-                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.type === 'sword_orbital' ? 15 : (w.id === 'demonic_orbit' ? 20 : 12)) * RENDER_SCALE + enemy.radius) hit = true;
-                    } else if (w.type === 'laser_beam') {
+                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.type === 'sword_orbital' ? (w.size || 15 * RENDER_SCALE) : (w.id === 'demonic_orbit' ? (w.size || 20 * RENDER_SCALE) : (w.size || 12 * RENDER_SCALE))) + enemy.radius) hit = true;
+                    } else if (w.type === 'laser_beam' || w.type === 'evo_rotating_lasers') {
                         const dx = p.endX - p.startX; const dy = p.endY - p.startY; const len = Math.hypot(dx, dy);
                         if (len > 0) {
                             const dot = (((enemy.x - p.startX) * dx) + ((enemy.y - p.startY) * dy)) / (len * len);
@@ -1181,11 +1211,11 @@ function updateWeapons() {
                             }
                         }
                     } else if (w.type === 'directional' || w.type === 'homing' || w.type === 'arc' || w.type === 'evo_spiral' || w.type === 'evo_stream' || w.type === 'evo_sword_orbit' || w.type === 'evo_rotating_beams') {
-                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (15 * RENDER_SCALE) + enemy.radius) hit = true;
+                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.size || 15 * RENDER_SCALE) + enemy.radius) hit = true;
                     }
 
                     if (hit && (!p.lastHit || !p.lastHit.has(enemy.id) || Date.now() - p.lastHit.get(enemy.id) > 500)) {
-                         if(!p.lastHit) p.lastHit = new Map();
+                        if(!p.lastHit) p.lastHit = new Map();
                         p.lastHit.set(enemy.id, Date.now());
                         enemy.hp -= damage;
                         createDamageNumber(enemy.x, enemy.y, damage);
@@ -1212,7 +1242,7 @@ function updateWeapons() {
                     const enemy = enemies[i];
                     if (!enemy) continue;
                     let hit = false;
-                     if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (15 * RENDER_SCALE) + enemy.radius) hit = true;
+                     if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.size || 15 * RENDER_SCALE) + enemy.radius) hit = true;
 
                     if (hit && (!p.lastHit.has(enemy.id) || Date.now() - p.lastHit.get(enemy.id) > 500)) {
                         p.lastHit.set(enemy.id, Date.now());
@@ -1706,7 +1736,7 @@ function updateWeapons() {
                             ctx.shadowColor = 'red';
                             ctx.shadowBlur = 15;
                         }
-                        drawCustomSword(ctx, 20 * RENDER_SCALE);
+                        drawCustomSword(ctx, w.size);
                     }
                 } else if (w.type === 'arc' || w.type === 'evo_spiral') {
                     ctx.rotate(p.angle);
@@ -1715,9 +1745,9 @@ function updateWeapons() {
                             ctx.shadowColor = 'red';
                             ctx.shadowBlur = 10;
                         }
-                        drawCustomScythe(ctx, 36 * RENDER_SCALE);
+                        drawCustomScythe(ctx, w.size);
                     } else {
-                        drawCustomAxe(ctx, 15 * RENDER_SCALE);
+                        drawCustomAxe(ctx, w.size);
                     }
                 } else if (w.type === 'homing' || w.type === 'evo_stream') {
                     const angle = p.target && p.target.hp > 0 ? Math.atan2(p.target.y - p.y, p.target.x - p.x) : Math.PI * 1.5;
@@ -1731,15 +1761,15 @@ function updateWeapons() {
                 } else if (w.type === 'sword_orbital') {
                     const angle = Math.atan2(p.y - player.y, p.x - player.x) + Math.PI / 2;
                     ctx.rotate(angle);
-                    drawCustomSword(ctx, 15 * RENDER_SCALE);
+                    drawCustomSword(ctx, w.size);
                 } else if (w.type === 'directional' || w.type === 'evo_rotating_beams') {
-                    const color = w.id === 'phieraggi' ? `hsl(${Date.now()/10 % 360}, 100%, 70%)` : (w.id === 'gun_one' ? '#63b3ed' : '#f56565');
+                    const color = w.id === 'phieraggi' ? `hsl(${Date.now()/10 % 360}, 100%, 70%)` : (w.id === 'gun_one' ? '#63b3ed' : '#8b5cf6');
                     ctx.fillStyle = color;
                     if (!lowMode) {
                         ctx.shadowColor = 'white'; 
                         ctx.shadowBlur = 8; 
                     }
-                    ctx.beginPath(); ctx.arc(0, 0, 7 * RENDER_SCALE, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 0, w.size, 0, Math.PI * 2); ctx.fill();
                 }
                 ctx.restore();
             });
@@ -1748,16 +1778,17 @@ function updateWeapons() {
                 ctx.save(); ctx.translate(p.x, p.y);
                 const angle = p.target && p.target.hp > 0 ? Math.atan2(p.target.y - p.y, p.target.x - p.x) : (p.lastAngle || Math.PI * 1.5);
                 p.lastAngle = angle; ctx.rotate(angle + Math.PI / 2);
-                drawCustomSword(ctx, 15 * RENDER_SCALE);
+                drawCustomSword(ctx, w.size);
                 ctx.restore();
             });
 
-            if (w.type === 'laser_beam') {
+            if (w.type === 'laser_beam' || w.type === 'evo_rotating_lasers') {
                 (w.projectiles || []).forEach(p => {
                     ctx.save(); ctx.beginPath(); ctx.moveTo(p.startX, p.startY); ctx.lineTo(p.endX, p.endY);
-                    ctx.strokeStyle = w.id === 'supercharge_beam' ? 'cyan' : '#f56565'; ctx.lineWidth = p.width;
+                    ctx.strokeStyle = (w.id === 'supercharge_beam' || w.id === 'laser') ? 'cyan' : '#f56565'; 
+                    ctx.lineWidth = p.width;
                     if (!lowMode) {
-                        ctx.shadowColor = w.id === 'supercharge_beam' ? 'white' : 'orange'; 
+                        ctx.shadowColor = (w.id === 'supercharge_beam' || w.id === 'laser') ? 'white' : 'orange'; 
                         ctx.shadowBlur = 15;
                     }
                      ctx.stroke(); ctx.restore();
