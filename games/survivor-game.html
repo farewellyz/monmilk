@@ -12,9 +12,9 @@
     <canvas id="gameCanvas"></canvas>
 
     <!-- UI Elements -->
-    <div id="uiContainer" class="ui-container pointer-events-none">
+    <div id="uiContainer" class="ui-container">
         <!-- Top UI -->
-        <div class="absolute top-0 left-0 w-full p-2 sm:p-4">
+        <div class="absolute top-0 left-0 w-full p-2 sm:p-4 pointer-events-none">
              <div class="relative w-full h-12">
                 <!-- Top-Left Group -->
                 <div class="absolute top-0 left-0 flex items-start gap-3">
@@ -40,14 +40,14 @@
         </div>
 
         <!-- Bottom UI -->
-        <div class="absolute bottom-0 left-0 w-full">
+        <div class="absolute bottom-0 left-0 w-full pointer-events-none">
             <div class="w-full bg-gray-900 bg-opacity-50 h-1.5 sm:h-2">
                 <div id="xpBar" class="bg-blue-500 h-full" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Joystick UI -->
-        <div id="joystick-container" class="hidden">
+        <div id="joystick-container" class="hidden pointer-events-none">
             <div id="joystick-base" class="hidden">
                 <div id="joystick-knob"></div>
             </div>
@@ -56,14 +56,14 @@
         
     <div id="damageNumbersContainer"></div>
 
-    <!-- Main Menu Modal -->
-    <div id="mainMenuScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-40 p-4 main-menu-bg">
-         <div class="menu-content-box w-full max-w-sm">
-            <h1 class="game-title text-5xl sm:text-7xl font-bold mb-10 text-center">Survivor Arena</h1>
-            <div class="flex flex-col gap-5">
+     <!-- Main Menu Modal -->
+    <div id="mainMenuScreen" class="modal fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex flex-col justify-center items-center z-40 p-4">
+        <div class="main-menu-box">
+            <h1 class="game-title">Survivor Arena</h1>
+            <div class="flex flex-col gap-4 w-full">
                 <button id="menuStartButton" class="menu-button bg-green-500">เริ่มเกม</button>
                 <button id="menuGuideButton" class="menu-button bg-blue-500">คู่มือ</button>
-                <button id="menuSettingsButton" class="menu-button bg-gray-600">ตั้งค่า</button>
+                <button id="menuSettingsButton" class="menu-button bg-gray-500">ตั้งค่า</button>
             </div>
         </div>
     </div>
@@ -83,39 +83,34 @@
             <!-- Content -->
             <div class="flex-grow p-2 sm:p-4 overflow-y-auto">
                 <div id="evoGuideContainer" class="guide-content grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full text-lg sm:text-xl"></div>
-                <div id="weaponGuideContainer" class="guide-content hidden grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
-                <div id="passiveGuideContainer" class="guide-content hidden grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
+                <div id="weaponGuideContainer" class="guide-content hidden grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
+                <div id="passiveGuideContainer" class="guide-content hidden grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 w-full"></div>
             </div>
              <div class="p-4 border-t border-gray-700 bg-gray-900 text-center">
-                <button id="guideBackButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl shadow-lg">กลับ</button>
+                <button id="guideBackButton" class="menu-button bg-red-500 w-auto px-8">กลับ</button>
             </div>
         </div>
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-40 hidden p-4 main-menu-bg">
-        <div class="menu-content-box w-full max-w-md">
-            <h2 class="text-3xl sm:text-4xl font-bold text-center text-yellow-300 mb-8">ตั้งค่า</h2>
-            
+    <div id="settingsScreen" class="modal fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex flex-col justify-center items-center z-40 hidden p-4">
+        <div class="main-menu-box w-full max-w-md">
+            <h2 class="text-4xl font-bold text-center text-yellow-300 mb-6">ตั้งค่า</h2>
             <div class="space-y-6">
-                 <div>
-                    <p class="text-lg text-gray-300 text-center mb-3">รูปแบบการควบคุม:</p>
+                <div>
+                    <h3 class="text-lg text-gray-300 text-center mb-2">รูปแบบการควบคุม:</h3>
                     <div class="flex flex-col gap-3">
-                        <button id="controlDrag" class="control-button"></button>
-                        <button id="controlJoystick" class="control-button"></button>
+                        <button id="controlDrag" class="menu-button-setting"></button>
+                        <button id="controlJoystick" class="menu-button-setting"></button>
                     </div>
                 </div>
-
                 <div>
-                    <p class="text-lg text-gray-300 text-center mb-3">ประสิทธิภาพ:</p>
-                     <div class="flex flex-col gap-3">
-                        <button id="lowModeToggle" class="control-button"></button>
-                    </div>
+                    <h3 class="text-lg text-gray-300 text-center mb-2">ประสิทธิภาพ:</h3>
+                    <button id="lowModeToggle" class="menu-button-setting"></button>
                 </div>
             </div>
-
             <div class="mt-8 text-center">
-                 <button id="settingsBackButton" class="menu-button bg-red-500">กลับ</button>
+                 <button id="settingsBackButton" class="menu-button bg-red-500 w-auto px-8">กลับ</button>
             </div>
         </div>
     </div>
@@ -164,6 +159,22 @@
         <p class="text-lg sm:text-2xl mb-8 text-yellow-400">ได้รับ: <span id="coinsEarned" class="font-bold">0</span> เหรียญม่อน</p>
         <a href="./index.html" id="restartButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-xl sm:text-2xl shadow-lg no-underline">กลับเมนูหลัก</a>
     </div>
+
+    <!-- Treasure Chest Modal -->
+    <div id="chestScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-95 flex-col justify-center items-center z-50 hidden p-4 text-center transition-opacity duration-300">
+        <div class="w-full max-w-lg">
+            <h2 id="chestTitle" class="text-5xl font-bold mb-6 text-yellow-300" style="text-shadow: 0 0 10px #fef08a;">หีบสมบัติ!</h2>
+            <div id="chestAnimationContainer" class="mb-6">
+                <p class="text-2xl text-white mb-4">คุณได้รับการอัปเกรดแบบสุ่ม...</p>
+                <div id="chestUpgradeCount" class="text-8xl font-bold text-green-400 animate-pulse">?</div>
+            </div>
+            <div id="chestRewardsContainer" class="hidden flex flex-col items-center gap-4 mb-8">
+                <!-- Reward icons will be inserted here -->
+            </div>
+            <button id="chestContinueButton" class="menu-button bg-blue-500 hidden">ไปต่อ</button>
+        </div>
+    </div>
+
 
     <script src="game.js"></script>
 </body>

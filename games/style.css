@@ -21,6 +21,7 @@ canvas {
     width: 100%;
     height: 100%;
     z-index: 10;
+    pointer-events: none;
 }
 .modal {
     pointer-events: auto;
@@ -133,75 +134,71 @@ canvas {
     border-left: 4px solid #f6e05e;
 }
 
-/* New Menu Styles */
-.main-menu-bg {
-    background: radial-gradient(circle at center, #2c3e50 0%, #17202a 100%);
-}
-.menu-content-box {
-    background-color: rgba(23, 32, 42, 0.8);
+/* New Main Menu Styles */
+.main-menu-box {
+    background-color: rgba(23, 31, 42, 0.8);
     border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+    border-radius: 1.5rem;
     padding: 2rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     backdrop-filter: blur(10px);
 }
 .game-title {
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    font-weight: 800;
+    margin-bottom: 2rem;
     background: -webkit-linear-gradient(45deg, #fde047, #f59e0b, #d97706);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 2px 10px rgba(253, 186, 116, 0.3);
+    text-shadow: 0 2px 10px rgba(252, 211, 77, 0.3);
 }
 .menu-button {
-    color: white;
-    font-weight: bold;
+    display: block;
+    width: 100%;
     padding: 0.8rem 2rem;
-    border-radius: 12px;
-    font-size: 1.25rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-    transition: all 0.2s ease-in-out;
-    border-bottom: 4px solid rgba(0,0,0,0.3);
+    border-radius: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    border: none;
+    border-bottom: 4px solid rgba(0,0,0,0.4);
+    transition: all 0.1s ease-in-out;
+    cursor: pointer;
 }
 .menu-button:hover {
     transform: translateY(-2px);
     filter: brightness(1.1);
 }
 .menu-button:active {
-    transform: translateY(1px);
-    filter: brightness(0.9);
+    transform: translateY(2px);
+    border-bottom-width: 2px;
 }
-
-/* Settings Buttons */
-.control-button {
+.menu-button-setting {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
     color: white;
-    font-weight: bold;
-    padding: 0.8rem 1.5rem;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
-    transition: all 0.2s ease-in-out;
+    text-align: center;
+    background-color: #4b5563; /* bg-gray-600 */
     border: 2px solid transparent;
-    background-color: #4b5563; /* gray-600 */
+    transition: all 0.2s ease-in-out;
+}
+.menu-button-setting.selected {
+    background-color: #1d4ed8; /* bg-blue-700 */
+    border-color: #60a5fa; /* border-blue-400 */
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+}
+.menu-button-setting:not(.selected) {
     opacity: 0.7;
 }
-.control-button:hover {
-    opacity: 1;
-}
-.control-button.selected {
-    opacity: 1;
-    background-color: #2563eb; /* blue-600 */
-    border-color: #60a5fa; /* blue-400 */
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
-}
-.checkmark-icon {
-    font-weight: bold;
-    font-size: 1.2em;
-}
-
 
 /* Joystick Styles */
 #joystick-container {
@@ -210,7 +207,6 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Let touches pass through to the canvas */
 }
 #joystick-base {
     position: absolute;
@@ -219,6 +215,7 @@ canvas {
     background: rgba(100, 100, 100, 0.3);
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.2);
+    pointer-events: auto; /* It can be touched once visible */
 }
 #joystick-knob {
     position: absolute;
@@ -230,5 +227,33 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Chest screen styles */
+.chest-reward-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 350px;
+    animation: fadeInReward 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInReward {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+#chestUpgradeCount {
+    animation: numberPulse 1s infinite;
+}
+
+@keyframes numberPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 

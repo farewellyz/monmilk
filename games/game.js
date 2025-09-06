@@ -15,6 +15,12 @@ const pauseScreen = document.getElementById('pauseScreen');
 const startScreen = document.getElementById('startScreen');
 const levelUpScreen = document.getElementById('levelUpScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
+const chestScreen = document.getElementById('chestScreen');
+const chestTitle = document.getElementById('chestTitle');
+const chestAnimationContainer = document.getElementById('chestAnimationContainer');
+const chestUpgradeCount = document.getElementById('chestUpgradeCount');
+const chestRewardsContainer = document.getElementById('chestRewardsContainer');
+const chestContinueButton = document.getElementById('chestContinueButton');
 const menuStartButton = document.getElementById('menuStartButton');
 const menuGuideButton = document.getElementById('menuGuideButton');
 const menuSettingsButton = document.getElementById('menuSettingsButton');
@@ -1086,6 +1092,10 @@ function updateWeapons() {
                     player.hp = Math.min(player.maxHp, player.hp + 20);
                 } else if (pickup.type === 'magnet') {
                     magnetCollected = true;
+                } else if (pickup.type === 'chest') {
+                    openTreasureChest();
+                    pickups.splice(index, 1);
+                    return; // Crucial: Stop processing other pickups this frame
                 }
                 pickups.splice(index, 1); // Remove collected item
             }
@@ -1232,8 +1242,8 @@ function updateWeapons() {
                     pickups.push({type: 'health', x: enemy.x, y: enemy.y, radius: 10 * RENDER_SCALE});
                 }
                 if (enemy.isBoss) {
-                    pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
-                    for(let j = 0; j < 20; j++) { const angle = (j / 20) * Math.PI * 2; xpGems.push({x: enemy.x + Math.cos(angle)*30*RENDER_SCALE, y: enemy.y + Math.sin(angle)*30*RENDER_SCALE, radius: 8*RENDER_SCALE, value: 50, color: getXPGemColor(50)}); }
+                    pickups.push({type: 'chest', x: enemy.x, y: enemy.y, radius: 20 * RENDER_SCALE});
+                    for(let j = 0; j < 20; j++) { const angle = (j / 20) * Math.PI * 2; xpGems.push({x: enemy.x + Math.cos(angle)*30*RENDER_SCALE, y: enemy.y + Math.sin(angle)*30*RENDER_SCALE, value: 50}); }
                 }
 
                 // Handle random/default drops for non-special enemies
@@ -1619,7 +1629,7 @@ function updateWeapons() {
 
             if (!lowMode && g.value >= 50) {
                 ctx.shadowColor = color;
-                ctx.shadowBlur = g.value >= 100 ? 15 : 8;
+                ctx.shadowBlur = g.value >= 500 ? 20 : (g.value >= 100 ? 15 : 8);
             }
 
             // Draw crystal shape
@@ -1650,6 +1660,18 @@ function updateWeapons() {
                 ctx.textBaseline = 'middle';
                 ctx.font = `bold ${p.radius * 1.5}px sans-serif`;
                 ctx.fillText('🧲', 0, p.radius * 0.1);
+                ctx.restore();
+            } else if (p.type === 'chest') {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.font = `bold ${p.radius * 2}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (!lowMode) {
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.shadowBlur = 15;
+                }
+                ctx.fillText('🎁', 0, 0);
                 ctx.restore();
             }
         });
@@ -1815,7 +1837,7 @@ function updateWeapons() {
 
         if (healthSpawnTimer > 30) { spawnHealthEnemy(); healthSpawnTimer = 0; }
         if (gameTime >= nextBossTime) { spawnBoss(); nextBossTime += 300; }
-        if (gameTime > 360 && watcherSpawnTimer > 20) {
+        if (gameTime > 600 && watcherSpawnTimer > 20) { // Changed from 360 to 600
              for(let i=0; i<3; i++) spawnWatcher();
              watcherSpawnTimer = 0;
         }
@@ -1959,6 +1981,123 @@ function updateWeapons() {
         }
     }
 
+    function openTreasureChest() {
+        gameState = 'chestOpening';
+        cancelAnimationFrame(animationFrameId);
+
+        // Reset UI
+        chestAnimationContainer.classList.remove('hidden');
+        chestRewardsContainer.classList.add('hidden');
+        chestRewardsContainer.innerHTML = '';
+        chestContinueButton.classList.add('hidden');
+        chestUpgradeCount.textContent = '?';
+        chestTitle.textContent = 'หีบสมบัติ!';
+
+        chestScreen.classList.remove('hidden');
+        
+        const upgradeCount = Math.floor(Math.random() * 5) + 1;
+        
+        // Animate the number roll
+        let currentDisplay = 0;
+        const rollInterval = setInterval(() => {
+            currentDisplay = Math.floor(Math.random() * 9) + 1;
+            chestUpgradeCount.textContent = currentDisplay;
+        }, 80);
+
+        setTimeout(() => {
+            clearInterval(rollInterval);
+            chestUpgradeCount.textContent = upgradeCount;
+            chestAnimationContainer.classList.add('hidden');
+            chestRewardsContainer.classList.remove('hidden');
+            applyChestUpgrades(upgradeCount);
+        }, 2000); // Roll for 2 seconds
+    }
+
+    function applyChestUpgrades(count) {
+        let possibleUpgrades = [];
+
+        // 1. Check for evolutions first
+        for (const evoKey in EVOLUTIONS) {
+            const evo = EVOLUTIONS[evoKey];
+            let canEvolve = false;
+            if (Array.isArray(evo.baseWeaponId)) {
+                const hasAllWeapons = evo.baseWeaponId.every(id => 
+                    weapons.find(w => w.id === id && w.level === WEAPONS_MASTER_LIST[id].maxLevel)
+                );
+                const hasPassive = player.passives.find(p => p.id === evo.passiveId && p.level === PASSIVES_MASTER_LIST[p.id].maxLevel);
+                if (hasAllWeapons && hasPassive) canEvolve = true;
+            } else {
+                const weapon = weapons.find(w => w.id === evo.baseWeaponId && w.level === WEAPONS_MASTER_LIST[w.id].maxLevel);
+                const passive = player.passives.find(p => p.id === evo.passiveId && p.level === PASSIVES_MASTER_LIST[p.id].maxLevel);
+                if (weapon && passive) canEvolve = true;
+            }
+
+            if (canEvolve) {
+                 possibleUpgrades.push({
+                    id: `evolve_${evoKey}`, 
+                    icon: evo.icon, 
+                    name: `วิวัฒนาการ: ${evo.name}`,
+                    isEvolution: true,
+                    apply: () => {
+                        const baseIds = Array.isArray(evo.baseWeaponId) ? evo.baseWeaponId : [evo.baseWeaponId];
+                        weapons = weapons.filter(w => !baseIds.includes(w.id));
+                        const evolved = JSON.parse(JSON.stringify(evo.evolvedWeapon));
+                        evolved.id = evoKey;
+                        evolved.level = 'MAX';
+                        if (evolved.type === 'aura' || evolved.type === 'evo_orbital_ring') { evolved.lastHit = new Map(); }
+                        weapons.push(evolved);
+                    }
+                });
+            }
+        }
+        
+        // 2. Add normal weapon upgrades
+        weapons.forEach((w) => {
+            const master = WEAPONS_MASTER_LIST[w.id];
+            if (master && w.level < master.maxLevel && !w.isEvolved) {
+                possibleUpgrades.push({ id: `upgrade_${w.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => upgradeWeapon(w) });
+            }
+        });
+
+        // 3. Add passive upgrades
+        player.passives.forEach((p) => {
+            const master = PASSIVES_MASTER_LIST[p.id];
+            if (master && p.level < master.maxLevel) {
+                possibleUpgrades.push({ id: `upgrade_${p.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => { p.level++; master.apply(player, p.level); } });
+            }
+        });
+        
+        if (possibleUpgrades.length === 0) {
+             chestRewardsContainer.innerHTML = `<p class="text-xl text-gray-400">ไม่มีไอเทมอัปเกรดได้แล้ว!</p>`;
+             chestContinueButton.classList.remove('hidden');
+             return;
+        }
+
+        // Shuffle and pick upgrades
+        for (let i = possibleUpgrades.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [possibleUpgrades[i], possibleUpgrades[j]] = [possibleUpgrades[j], possibleUpgrades[i]];
+        }
+
+        const upgradesToApply = possibleUpgrades.slice(0, count);
+
+        chestTitle.textContent = 'ได้รับไอเทม!';
+        upgradesToApply.forEach((upgrade, index) => {
+            upgrade.apply();
+            
+            const rewardEl = document.createElement('div');
+            rewardEl.className = 'chest-reward-item';
+            rewardEl.style.animationDelay = `${index * 0.2}s`;
+            rewardEl.innerHTML = `
+                <div class="inventory-icon rounded-md text-3xl ${upgrade.isEvolution ? 'bg-green-700 border-green-400' : ''}">${upgrade.icon}</div>
+                <span class="text-xl text-white font-semibold">${upgrade.name}</span>
+            `;
+            chestRewardsContainer.appendChild(rewardEl);
+        });
+        
+        chestContinueButton.classList.remove('hidden');
+    }
+
 
     // --- Initializer ---
     function init() {
@@ -2064,6 +2203,13 @@ function updateWeapons() {
             } else {
                 mainMenuScreen.classList.remove('hidden');
             }
+        });
+        
+        chestContinueButton.addEventListener('click', () => {
+            chestScreen.classList.add('hidden');
+            gameState = 'playing';
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
         });
 
         // Guide Tab Logic
