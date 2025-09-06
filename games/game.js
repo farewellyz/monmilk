@@ -144,6 +144,7 @@ let joystick = {
     dx: 0,
     dy: 0,
 };
+let touchId = null; // To track a specific touch for the joystick
 
 // --- UI Functions ---
 function updateInventoryUI() {
@@ -501,53 +502,143 @@ window.addEventListener('resize', () => { canvas.width = window.innerWidth; canv
 window.addEventListener('keydown', (e) => keys[e.code] = true);
 window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-function handleDragStart(e) { if (gameState !== 'playing' || controlMode !== 'drag') return; isPointerDown = true; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
-function handleDragMove(e) { if (!isPointerDown || controlMode !== 'drag') return; const pos = e.touches ? e.touches[0] : e; pointerPos.x = pos.clientX; pointerPos.y = pos.clientY; }
-function handleDragEnd(e) { isPointerDown = false; }
+function handleControlStart(e) {
+    if (gameState !== 'playing') return;
 
-function handleJoystickStart(e) {
-    if (gameState !== 'playing' || controlMode !== 'joystick') return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    joystick.baseX = touch.clientX;
-    joystick.baseY = touch.clientY;
-    joystick.stickX = touch.clientX;
-    joystick.stickY = touch.clientY;
-    joystick.active = true;
-    joystickBase.style.left = `${joystick.baseX - 75}px`;
-    joystickBase.style.top = `${joystick.baseY - 75}px`;
-    joystickBase.classList.remove('hidden');
-}
+    let pos;
+    // Handle Touch Event
+    if (e.touches) {
+        pos = e.touches[0];
+        // Joystick Logic for Touch
+        if (controlMode === 'joystick' && pos.clientX < window.innerWidth / 2 && touchId === null) {
+            e.preventDefault();
+            touchId = pos.identifier;
+            joystick.active = true;
+            joystick.baseX = pos.clientX;
+            joystick.baseY = pos.clientY;
+            joystick.stickX = pos.clientX;
+            joystick.stickY = pos.clientY;
 
-function handleJoystickMove(e) {
-    if (!joystick.active || controlMode !== 'joystick') return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    joystick.stickX = touch.clientX;
-    joystick.stickY = touch.clientY;
-    
-    let dx = joystick.stickX - joystick.baseX;
-    let dy = joystick.stickY - joystick.baseY;
-    const dist = Math.hypot(dx, dy);
-    const maxDist = 60; // Max radius for the knob
-    
-    if (dist > maxDist) {
-        dx = (dx / dist) * maxDist;
-        dy = (dy / dist) * maxDist;
+            joystickBase.style.left = `${joystick.baseX - 75}px`;
+            joystickBase.style.top = `${joystick.baseY - 75}px`;
+            joystickContainer.classList.remove('hidden');
+            joystickBase.classList.remove('hidden');
+            
+            window.addEventListener('touchmove', handleControlMove, { passive: false });
+            window.addEventListener('touchend', handleControlEnd, { passive: false });
+            window.addEventListener('touchcancel', handleControlEnd, { passive: false });
+            return; // Exit to not trigger drag logic
+        }
+    } else {
+        // Handle Mouse Event
+        pos = e;
     }
-    
-    joystickKnob.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-    joystick.dx = dx / maxDist;
-    joystick.dy = dy / maxDist;
+
+    // Drag Logic (for mouse, or for touch if joystick isn't triggered)
+    if (controlMode === 'drag') {
+        isPointerDown = true;
+        pointerPos.x = pos.clientX;
+        pointerPos.y = pos.clientY;
+        if (e.touches) {
+            window.addEventListener('touchmove', handleControlMove, { passive: false });
+            window.addEventListener('touchend', handleControlEnd, { passive: false });
+            window.addEventListener('touchcancel', handleControlEnd, { passive: false });
+        } else {
+            window.addEventListener('mousemove', handleControlMove);
+            window.addEventListener('mouseup', handleControlEnd);
+            window.addEventListener('mouseleave', handleControlEnd);
+        }
+    }
 }
 
-function handleJoystickEnd(e) {
-    if (!joystick.active || controlMode !== 'joystick') return;
-    joystick.active = false;
-    joystick.dx = 0;
-    joystick.dy = 0;
-    joystickKnob.style.transform = `translate3d(0px, 0px, 0)`;
-    joystickBase.classList.add('hidden');
+function handleControlMove(e) {
+    if (gameState !== 'playing') return;
+
+    let pos;
+    // Handle Touch Event
+    if (e.touches) {
+        // Find the correct touch for joystick
+        if (controlMode === 'joystick' && joystick.active) {
+            let found = false;
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === touchId) {
+                    pos = e.touches[i];
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return; // Not our joystick touch
+        } else {
+            pos = e.touches[0];
+        }
+    } else {
+        // Handle Mouse Event
+        pos = e;
+    }
+
+    // Joystick Move Logic
+    if (controlMode === 'joystick' && joystick.active) {
+        e.preventDefault();
+        joystick.stickX = pos.clientX;
+        joystick.stickY = pos.clientY;
+        
+        let dx = joystick.stickX - joystick.baseX;
+        let dy = joystick.stickY - joystick.baseY;
+        const dist = Math.hypot(dx, dy);
+        const maxDist = 60;
+        
+        if (dist > maxDist) {
+            dx = (dx / dist) * maxDist;
+            dy = (dy / dist) * maxDist;
+        }
+        
+        joystickKnob.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+        joystick.dx = dx / maxDist;
+        joystick.dy = dy / maxDist;
+    } 
+    // Drag Move Logic
+    else if (controlMode === 'drag' && isPointerDown) {
+        pointerPos.x = pos.clientX;
+        pointerPos.y = pos.clientY;
+    }
+}
+
+function handleControlEnd(e) {
+    if (gameState !== 'playing') return;
+    
+    // Joystick End Logic
+    if (controlMode === 'joystick' && joystick.active) {
+        let touchEnded = false;
+        if (e.changedTouches) {
+             for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === touchId) {
+                    touchEnded = true;
+                    break;
+                }
+            }
+        }
+        
+        if (touchEnded) {
+            joystick.active = false;
+            joystick.dx = 0;
+            joystick.dy = 0;
+            joystickKnob.style.transform = `translate3d(0px, 0px, 0)`;
+            joystickBase.classList.add('hidden');
+            joystickContainer.classList.add('hidden');
+            touchId = null;
+        }
+    }
+
+    // Drag End Logic
+    isPointerDown = false;
+
+    // Remove all window listeners
+    window.removeEventListener('touchmove', handleControlMove);
+    window.removeEventListener('touchend', handleControlEnd);
+    window.removeEventListener('touchcancel', handleControlEnd);
+    window.removeEventListener('mousemove', handleControlMove);
+    window.removeEventListener('mouseup', handleControlEnd);
+    window.removeEventListener('mouseleave', handleControlEnd);
 }
 
 // --- Game Logic ---
@@ -1673,33 +1764,6 @@ function updateWeapons() {
         
         controlDragBtn.classList.toggle('selected', mode === 'drag');
         controlJoystickBtn.classList.toggle('selected', mode === 'joystick');
-
-        // Remove old listeners to prevent duplicates
-        canvas.removeEventListener('touchstart', handleDragStart);
-        canvas.removeEventListener('touchmove', handleDragMove);
-        canvas.removeEventListener('touchend', handleDragEnd);
-        canvas.removeEventListener('mousedown', handleDragStart);
-        canvas.removeEventListener('mousemove', handleDragMove);
-        canvas.removeEventListener('mouseup', handleDragEnd);
-        canvas.removeEventListener('mouseleave', handleDragEnd);
-        joystickContainer.removeEventListener('touchstart', handleJoystickStart);
-        joystickContainer.removeEventListener('touchmove', handleJoystickMove);
-        joystickContainer.removeEventListener('touchend', handleJoystickEnd);
-
-        // Add new listeners based on selected mode
-        if (mode === 'drag') {
-            canvas.addEventListener('touchstart', handleDragStart, { passive: false });
-            canvas.addEventListener('touchmove', handleDragMove, { passive: false });
-            canvas.addEventListener('touchend', handleDragEnd);
-            canvas.addEventListener('mousedown', handleDragStart);
-            canvas.addEventListener('mousemove', handleDragMove);
-            canvas.addEventListener('mouseup', handleDragEnd);
-            canvas.addEventListener('mouseleave', handleDragEnd);
-        } else { // joystick
-             joystickContainer.addEventListener('touchstart', handleJoystickStart, { passive: false });
-             joystickContainer.addEventListener('touchmove', handleJoystickMove, { passive: false });
-             joystickContainer.addEventListener('touchend', handleJoystickEnd);
-        }
     }
 
 
@@ -1711,6 +1775,12 @@ function updateWeapons() {
         // Load saved control mode
         const savedMode = localStorage.getItem('survivorGameControlMode');
         applyControlSetting(savedMode || 'drag');
+
+
+        // --- Centralized Event Listeners ---
+        canvas.addEventListener('mousedown', handleControlStart);
+        canvas.addEventListener('touchstart', handleControlStart, { passive: false });
+
 
         // Event Listeners for UI
         menuStartButton.addEventListener('click', () => {
