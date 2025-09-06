@@ -85,7 +85,7 @@ const WEAPONS_MASTER_LIST = {
     garlic: { name: "ออร่ากระเทียม", icon: "🧄", type: 'aura', damage: 3, count: 1, range: 100 * RENDER_SCALE, cooldown: 500, lastAttackTime: 0, lastHit: new Map(), projectiles: [], maxLevel: 5, description: "สร้างออร่าทำความเสียหายรอบตัว" },
     missile: { name: "กระสุนเวทนำวิถี", icon: "✨", type: 'homing', damage: 20, count: 1, speed: 6 * RENDER_SCALE, cooldown: 1800, lastAttackTime: 0, projectiles: [], maxLevel: 5, pierce: 1, description: "ยิงกระสุนเวทติดตามศัตรู" },
     sword: { name: "ดาบบินได้", icon: "⚔️", type: 'sword_orbital', damage: 18, count: 1, range: 90 * RENDER_SCALE, speed: 0.04, angle: 0, cooldown: 10000, lastAttackTime: 0, projectiles: [], homingProjectiles: [], pierce: 1, maxLevel: 5, description: "ดาบโคจรรอบตัวและพุ่งโจมตี" },
-    santa_water: { name: "น้ำมนต์", icon: "💧", type: 'area_denial', damage: 10, count: 1, duration: 4000, cooldown: 2200, lastAttackTime: 0, projectiles: [], maxLevel: 5, radius: 50 * RENDER_SCALE, description: "สร้างพื้นที่ศักดิ์สิทธิ์ทำความเสียหาย" },
+    santa_water: { name: "น้ำมนต์", icon: "💧", type: 'area_denial', damage: 5, count: 1, duration: 4000, cooldown: 2200, lastAttackTime: 0, projectiles: [], maxLevel: 5, radius: 50 * RENDER_SCALE, description: "สร้างพื้นที่ศักดิ์สิทธิ์ทำความเสียหาย" },
     pentagram: { name: "ดาวห้าแฉก", icon: "✡️", type: 'screen_clear', damage: 9999, cooldown: 60000, lastAttackTime: 0, projectiles: [], maxLevel: 5, chance: 0.3, description: "มีโอกาสลบศัตรูทั้งหมดบนหน้าจอ" },
     gun_one: { name: "Eight The Sparrow", icon: "🔵", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'horizontal', description: "ยิงกระสุนแนวนอน (ซ้าย-ขวา)" },
     gun_two: { name: "Phiera Der Tuphello", icon: "🔴", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'vertical', description: "ยิงกระสุนแนวตั้ง (บน-ล่าง)" },
@@ -109,7 +109,7 @@ const EVOLUTIONS = {
     soul_eater: { name: "เครื่องดูดวิญญาณ", icon: "👻", baseWeaponId: 'garlic', passiveId: 'armor', evolvedWeapon: { name: "เครื่องดูดวิญญาณ", type: 'aura', damage: 15, range: 150 * RENDER_SCALE, cooldown: 300, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true, lifestealOnKillChance: 0.25 } },
     thousand_edge: { name: "พันศาสตรา", icon: "🗡️", baseWeaponId: 'missile', passiveId: 'tome', evolvedWeapon: { name: "พันศาสตรา", type: 'homing', damage: 50, count: 5, speed: 8 * RENDER_SCALE, cooldown: 5000, lastAttackTime: 0, projectiles: [], isEvolved: true, pierce: 10 } },
     demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 50, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true } },
-    la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 20, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
+    la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 10, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     gorgeous_moon: { name: "Gorgeous Moon", icon: "🌕", baseWeaponId: 'pentagram', passiveId: 'crown', evolvedWeapon: { name: "Gorgeous Moon", type: 'evo_xp_clear', damage: 9999, cooldown: 45000, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 30, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0 } },
     infinite_corridor: { name: "Infinite Corridor", icon: "⏳", baseWeaponId: 'clock_lancet', passiveId: 'tome', evolvedWeapon: { name: "Infinite Corridor", type: 'freeze_beam', damage: 0, cooldown: 5000, lastAttackTime: 0, duration: 2500, projectiles: [], isEvolved: true, count: 12, width: 10 * RENDER_SCALE } },
@@ -508,39 +508,29 @@ window.addEventListener('keyup', (e) => keys[e.code] = false);
 function handleControlStart(e) {
     if (gameState !== 'playing') return;
 
-    // Joystick logic for touch
-    if (e.touches) {
-        if (controlMode === 'joystick') {
-            const touch = e.touches[0];
-            // Activate joystick potential on any first touch that isn't already active
-            if (!joystick.active && !joystick.potential) {
-                e.preventDefault();
-                joystick.potential = true;
-                joystick.touchId = touch.identifier;
-                joystick.startX = touch.clientX;
-                joystick.startY = touch.clientY;
-                
-                window.addEventListener('touchmove', handleControlMove, { passive: false });
-                window.addEventListener('touchend', handleControlEnd, { passive: false });
-                window.addEventListener('touchcancel', handleControlEnd, { passive: false });
-                return;
-            }
-        }
-    }
+    const touch = e.touches ? e.touches[0] : null;
 
-    // Drag logic for mouse, or for touch if joystick isn't triggered
-    if (controlMode === 'drag') {
+    if (controlMode === 'joystick' && touch) {
+        if (!joystick.active && !joystick.potential) {
+            e.preventDefault();
+            joystick.potential = true;
+            joystick.touchId = touch.identifier;
+            joystick.startX = touch.clientX;
+            joystick.startY = touch.clientY;
+        }
+    } else if (controlMode === 'drag') {
         isPointerDown = true;
-        const pos = e.touches ? e.touches[0] : e;
+        const pos = touch || e;
         pointerPos.x = pos.clientX;
         pointerPos.y = pos.clientY;
-        if (e.touches) {
-            // Re-add listeners if they weren't added by joystick logic
-            if (!joystick.potential) {
-                 window.addEventListener('touchmove', handleControlMove, { passive: false });
-                 window.addEventListener('touchend', handleControlEnd, { passive: false });
-                 window.addEventListener('touchcancel', handleControlEnd, { passive: false });
-            }
+    }
+    
+    // Add move/end listeners only once on start
+    if (!joystick.active) {
+        if (touch) {
+            window.addEventListener('touchmove', handleControlMove, { passive: false });
+            window.addEventListener('touchend', handleControlEnd, { passive: false });
+            window.addEventListener('touchcancel', handleControlEnd, { passive: false });
         } else {
             window.addEventListener('mousemove', handleControlMove);
             window.addEventListener('mouseup', handleControlEnd);
@@ -553,31 +543,17 @@ function handleControlStart(e) {
 function handleControlMove(e) {
     if (gameState !== 'playing') return;
 
-    let touch;
-    if (e.touches) {
-        // Find the correct touch
-        let found = false;
-        for (let i = 0; i < e.touches.length; i++) {
-            if (e.touches[i].identifier === joystick.touchId) {
-                touch = e.touches[i];
-                found = true;
-                break;
-            }
-        }
-        if (!found) return; // Not our touch
-    } else {
-        touch = e; // It's a mouse event
-    }
+    const touch = e.touches ? Array.from(e.touches).find(t => t.identifier === joystick.touchId) : null;
+    const pos = touch || e;
 
-    // Joystick Logic
     if (controlMode === 'joystick' && (joystick.potential || joystick.active)) {
+        if (!touch) return; // Ignore mouse move for joystick
         e.preventDefault();
 
-        // If it's a potential joystick, check if it should become active
         if (joystick.potential) {
-            const dx = touch.clientX - joystick.startX;
-            const dy = touch.clientY - joystick.startY;
-            if (Math.hypot(dx, dy) > 10) { // Activation threshold: 10 pixels
+            const dx = pos.clientX - joystick.startX;
+            const dy = pos.clientY - joystick.startY;
+            if (Math.hypot(dx, dy) > 10) {
                 joystick.potential = false;
                 joystick.active = true;
                 joystick.baseX = joystick.startX;
@@ -590,15 +566,14 @@ function handleControlMove(e) {
             }
         }
         
-        // If joystick is active, update its position
         if (joystick.active) {
-            joystick.stickX = touch.clientX;
-            joystick.stickY = touch.clientY;
+            joystick.stickX = pos.clientX;
+            joystick.stickY = pos.clientY;
             
             let dx = joystick.stickX - joystick.baseX;
             let dy = joystick.stickY - joystick.baseY;
             const dist = Math.hypot(dx, dy);
-            const maxDist = 60; // Max distance the knob can move from the center
+            const maxDist = 60;
             
             if (dist > maxDist) {
                 dx = (dx / dist) * maxDist;
@@ -609,34 +584,24 @@ function handleControlMove(e) {
             joystick.dx = dx / maxDist;
             joystick.dy = dy / maxDist;
         }
-    } 
-    // Drag Logic
-    else if (controlMode === 'drag' && isPointerDown) {
-        pointerPos.x = touch.clientX;
-        pointerPos.y = touch.clientY;
+    } else if (controlMode === 'drag' && isPointerDown) {
+        pointerPos.x = pos.clientX;
+        pointerPos.y = pos.clientY;
     }
 }
 
 
 function handleControlEnd(e) {
-    // This function can now run even if the game state is not 'playing'
-    // to correctly reset the joystick when a level-up screen appears.
-
     let touchEnded = false;
     if (e.changedTouches) {
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === joystick.touchId) {
-                touchEnded = true;
-                break;
-            }
+        if (Array.from(e.changedTouches).some(t => t.identifier === joystick.touchId)) {
+            touchEnded = true;
         }
     } else {
-        // This is for mouseup, which doesn't have changedTouches
-        touchEnded = true;
+        touchEnded = true; // For mouse
     }
 
     if (touchEnded) {
-        // Reset Joystick
         if (joystick.active || joystick.potential) {
             joystick.active = false;
             joystick.potential = false;
@@ -647,10 +612,8 @@ function handleControlEnd(e) {
             joystickBase.classList.add('hidden');
         }
 
-        // Reset Drag
         isPointerDown = false;
 
-        // Remove window listeners
         window.removeEventListener('touchmove', handleControlMove);
         window.removeEventListener('touchend', handleControlEnd);
         window.removeEventListener('touchcancel', handleControlEnd);
@@ -1228,9 +1191,9 @@ function updateWeapons() {
                         player.hp = Math.min(player.maxHp, player.hp + 1);
                     }
 
-                    if (Math.random() < 0.02) { // 2% chance for magnet
+                    if (Math.random() < 0.005) { // 0.5% chance for magnet
                          pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
-                    } else { // 98% chance for XP gem
+                    } else { // 99.5% chance for XP gem
                         xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
                     }
                 }
@@ -1689,14 +1652,30 @@ function updateWeapons() {
     }
 
     // --- Game Loop and State ---
-    let lastTime = 0, spawnTimer = 0, gameClockTimer = 0, healthSpawnTimer = 0, watcherSpawnTimer = 0;
+    let lastTime = 0, spawnTimer = 0, gameClockTimer = 0, healthSpawnTimer = 0, watcherSpawnTimer = 0, cleanupTimer = 0;
     function gameLoop(timestamp) {
         if (gameState !== 'playing') return;
         const deltaTime = (timestamp - lastTime) / 1000; lastTime = timestamp;
-        spawnTimer += deltaTime; gameClockTimer += deltaTime; healthSpawnTimer += deltaTime; watcherSpawnTimer += deltaTime;
+        spawnTimer += deltaTime; gameClockTimer += deltaTime; healthSpawnTimer += deltaTime; watcherSpawnTimer += deltaTime; cleanupTimer += deltaTime;
 
         if (gameClockTimer >= 1) { gameTime++; gameClockTimer = 0; }
         
+        // --- LAG FIX: Cleanup lastHit maps periodically ---
+        if (cleanupTimer > 2) { // Run every 2 seconds
+            const now = Date.now();
+            const maxAge = 3000; // Remove entries older than 3 seconds
+            weapons.forEach(w => {
+                if (w.lastHit instanceof Map) {
+                    for (const [key, value] of w.lastHit.entries()) {
+                        if (now - value > maxAge) {
+                            w.lastHit.delete(key);
+                        }
+                    }
+                }
+            });
+            cleanupTimer = 0;
+        }
+
         const RAMP_UP_DURATION = 360; // 6 minutes
         const progress = Math.min(1.0, gameTime / RAMP_UP_DURATION);
         const easedProgress = progress * progress; // Quadratic easing (slow start)
