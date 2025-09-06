@@ -1,14 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap');
-
 body {
     font-family: 'Kanit', sans-serif;
     touch-action: none;
     overflow: hidden;
+    background-color: #1a202c;
     color: white;
-    background-color: #0c0a18;
-    background-image:
-        radial-gradient(at 0% 0%, hsla(253, 100%, 7%, 1) 0px, transparent 50%),
-        radial-gradient(at 98% 1%, hsla(240, 100%, 7%, 1) 0px, transparent 50%);
 }
 canvas {
     background-color: #0d1117;
@@ -137,6 +133,76 @@ canvas {
     border-left: 4px solid #f6e05e;
 }
 
+/* New Menu Styles */
+.main-menu-bg {
+    background: radial-gradient(circle at center, #2c3e50 0%, #17202a 100%);
+}
+.menu-content-box {
+    background-color: rgba(23, 32, 42, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+}
+.game-title {
+    background: -webkit-linear-gradient(45deg, #fde047, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(253, 186, 116, 0.3);
+}
+.menu-button {
+    color: white;
+    font-weight: bold;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    transition: all 0.2s ease-in-out;
+    border-bottom: 4px solid rgba(0,0,0,0.3);
+}
+.menu-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+.menu-button:active {
+    transform: translateY(1px);
+    filter: brightness(0.9);
+}
+
+/* Settings Buttons */
+.control-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: white;
+    font-weight: bold;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+    transition: all 0.2s ease-in-out;
+    border: 2px solid transparent;
+    background-color: #4b5563; /* gray-600 */
+    opacity: 0.7;
+}
+.control-button:hover {
+    opacity: 1;
+}
+.control-button.selected {
+    opacity: 1;
+    background-color: #2563eb; /* blue-600 */
+    border-color: #60a5fa; /* blue-400 */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 4px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+}
+.checkmark-icon {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+
 /* Joystick Styles */
 #joystick-container {
     position: absolute;
@@ -144,7 +210,7 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
+    pointer-events: none; /* Let touches pass through to the canvas */
 }
 #joystick-base {
     position: absolute;
@@ -164,60 +230,5 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     border: 2px solid rgba(255, 255, 255, 0.4);
-}
-
-/* New UI Styles */
-.menu-card {
-    background: rgba(30, 30, 52, 0.5);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-.menu-btn {
-    background-image: linear-gradient(to right, #4f46e5, #7c3aed, #c026d3);
-    border: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px 0 rgba(99, 60, 234, 0.4);
-    position: relative;
-    overflow: hidden;
-}
-
-.menu-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px 0 rgba(99, 60, 234, 0.5);
-}
-
-.menu-btn:active {
-    transform: translateY(1px);
-}
-
-.text-gradient {
-    background: linear-gradient(to right, #facc15, #fb923c, #f87171);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-}
-
-.control-button {
-    background-color: #4b5563; /* bg-gray-600 */
-    border: 2px solid transparent;
-    opacity: 0.6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.control-button.selected {
-    background-color: #22c55e; /* green-500 */
-    border-color: #86efac; /* green-300 */
-    opacity: 1;
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
 }
 

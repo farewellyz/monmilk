@@ -30,6 +30,7 @@ const pausePassiveIconsContainer = document.getElementById('pausePassiveIcons');
 const coinsEarnedText = document.getElementById('coinsEarned');
 const controlDragBtn = document.getElementById('controlDrag');
 const controlJoystickBtn = document.getElementById('controlJoystick');
+const lowModeToggleBtn = document.getElementById('lowModeToggle');
 const joystickContainer = document.getElementById('joystick-container');
 const joystickBase = document.getElementById('joystick-base');
 const joystickKnob = document.getElementById('joystick-knob');
@@ -58,6 +59,7 @@ const RENDER_SCALE = 0.75; // Zoom out factor
 let guideReturnState = 'menu';
 let isBonusGame = false;
 let controlMode = 'drag'; // 'drag' or 'joystick'
+let lowMode = false;
 
 // --- Player ---
 const player = {
@@ -601,7 +603,7 @@ function handleControlEnd(e) {
             touchEnded = true;
         }
         // For drag mode, any touch ending stops the drag
-        else if (controlMode === 'drag' && isPointerDown) {
+        else if (controlMode === 'drag') {
             touchEnded = true;
         }
     } else { // Mouse event
@@ -1202,11 +1204,26 @@ function updateWeapons() {
                     if(soulEater && Math.hypot(player.x - enemy.x, player.y - enemy.y) < soulEater.range && soulEater.lifestealOnKillChance && Math.random() < soulEater.lifestealOnKillChance) {
                         player.hp = Math.min(player.maxHp, player.hp + 1);
                     }
-
+                    
                     if (Math.random() < 0.005) { // 0.5% chance for magnet
                          pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
                     } else { // 99.5% chance for XP gem
-                        xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                        if (lowMode) {
+                            const MERGE_RADIUS = 70 * RENDER_SCALE;
+                            let merged = false;
+                            for (const gem of xpGems) {
+                                if (Math.hypot(gem.x - enemy.x, gem.y - enemy.y) < MERGE_RADIUS) {
+                                    gem.value += enemy.xpValue;
+                                    merged = true;
+                                    break;
+                                }
+                            }
+                            if (!merged) {
+                                xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                            }
+                        } else {
+                             xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                        }
                     }
                 }
 
@@ -1216,7 +1233,16 @@ function updateWeapons() {
         }
     }
     
-    function createDamageNumber(x, y, amount) { const el = document.createElement('div'); el.className = 'damage-number'; el.textContent = Math.round(amount); el.style.left = `${x}px`; el.style.top = `${y}px`; damageNumbersContainer.appendChild(el); setTimeout(() => el.remove(), 700); }
+    function createDamageNumber(x, y, amount) { 
+        if (lowMode) return;
+        const el = document.createElement('div'); 
+        el.className = 'damage-number'; 
+        el.textContent = Math.round(amount); 
+        el.style.left = `${x}px`; 
+        el.style.top = `${y}px`; 
+        damageNumbersContainer.appendChild(el); 
+        setTimeout(() => el.remove(), 700); 
+    }
 
     function checkLevelUp() {
         while (player.xp >= player.xpToNextLevel) {
@@ -1298,10 +1324,12 @@ function updateWeapons() {
         ctx.save();
         ctx.translate(p.x, p.y);
         // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.ellipse(0, p.radius, p.radius, p.radius * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (!lowMode) {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, p.radius, p.radius, p.radius * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         // Body
         ctx.fillStyle = p.isInvincible ? 'rgba(255, 255, 255, 0.5)' : p.color;
@@ -1326,7 +1354,7 @@ function updateWeapons() {
         
         // Shield Visual
         const shield = weapons.find(w => w.id === 'laurel' || w.id === 'crimson_shroud');
-        if (shield) {
+        if (shield && !lowMode) {
             const largeRadius = p.radius + 20 * RENDER_SCALE; // Larger radius
             const smallerRadius = p.radius + 18 * RENDER_SCALE; // Slightly smaller for pulsing
             if (shield.active) { // When it just blocked a hit
@@ -1359,10 +1387,12 @@ function updateWeapons() {
     function drawEnemy(e) {
         ctx.save();
         ctx.translate(e.x, e.y);
-        ctx.fillStyle = 'rgba(0,0,0,0.2)';
-        ctx.beginPath();
-        ctx.ellipse(0, e.radius, e.radius * 0.9, e.radius * 0.4, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (!lowMode) {
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(0, e.radius, e.radius * 0.9, e.radius * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         if (e.frozenUntil && Date.now() < e.frozenUntil) {
             ctx.globalAlpha = 0.5;
@@ -1405,7 +1435,7 @@ function updateWeapons() {
             ctx.beginPath();
             ctx.ellipse(0, 0, e.radius * 0.7, e.radius, 0, 0, Math.PI * 2); // Body
             ctx.fill();
-            if (e.type !== 'watcher') { // Wings for bats
+            if (e.type !== 'watcher' && !lowMode) { // Wings for bats
                 ctx.beginPath();
                 ctx.moveTo(0, -e.radius * 0.5);
                 ctx.quadraticCurveTo(-e.radius * 1.5, -e.radius * 0.5 + wingFlap, -e.radius * 0.8, e.radius * 0.5);
@@ -1454,8 +1484,10 @@ function updateWeapons() {
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.fillStyle = '#f56565';
-            ctx.shadowColor = '#c53030';
-            ctx.shadowBlur = 8 * RENDER_SCALE;
+            if (!lowMode) {
+                ctx.shadowColor = '#c53030';
+                ctx.shadowBlur = 8 * RENDER_SCALE;
+            }
             ctx.beginPath();
             ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
             ctx.fill();
@@ -1475,10 +1507,14 @@ function updateWeapons() {
                      const life = (Date.now() - puddle.spawnTime) / w.duration;
                      const currentRadius = w.id === 'la_borra' ? puddle.radius * Math.sin(life * Math.PI) : puddle.radius; // Growing/shrinking for evo
                      if (currentRadius > 0) {
-                         const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
-                         gradient.addColorStop(0, 'rgba(135, 206, 250, 0.6)');
-                         gradient.addColorStop(1, 'rgba(135, 206, 250, 0)');
-                         ctx.fillStyle = gradient;
+                         if (lowMode) {
+                            ctx.fillStyle = 'rgba(135, 206, 250, 0.4)';
+                         } else {
+                            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
+                            gradient.addColorStop(0, 'rgba(135, 206, 250, 0.6)');
+                            gradient.addColorStop(1, 'rgba(135, 206, 250, 0)');
+                            ctx.fillStyle = gradient;
+                         }
                          ctx.beginPath();
                          ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
                          ctx.fill();
@@ -1498,12 +1534,14 @@ function updateWeapons() {
                 if (w.id === 'thunder_loop') {
                     ctx.strokeStyle = `rgba(251, 211, 141, ${0.7 + Math.sin(Date.now() / 150) * 0.3})`;
                     ctx.lineWidth = 5 * RENDER_SCALE;
-                    ctx.shadowColor = 'white';
-                    ctx.shadowBlur = 15 * RENDER_SCALE;
+                    if (!lowMode) {
+                        ctx.shadowColor = 'white';
+                        ctx.shadowBlur = 15 * RENDER_SCALE;
+                    }
                     ctx.beginPath();
                     ctx.arc(0, 0, w.range, 0, Math.PI * 2);
                     ctx.stroke();
-                     if (Math.random() > 0.5) { // To make it flicker
+                     if (Math.random() > 0.5 && !lowMode) { // To make it flicker
                         ctx.save();
                         ctx.lineWidth = 2 * RENDER_SCALE;
                         ctx.shadowColor = 'white';
@@ -1526,17 +1564,21 @@ function updateWeapons() {
                         ctx.restore();
                     }
                 } else {
-                    const gradient = ctx.createRadialGradient(0, 0, Math.max(0, w.range * 0.7), 0, 0, Math.max(1, w.range));
-                    if (w.id === 'soul_eater') { 
-                        gradient.addColorStop(0, 'rgba(147, 51, 234, 0.05)');
-                        gradient.addColorStop(0.8, 'rgba(147, 51, 234, 0.4)');
-                        gradient.addColorStop(1, 'rgba(167, 139, 250, 0.6)');
-                    } else { // Garlic
-                        gradient.addColorStop(0, 'rgba(254, 249, 195, 0.05)');
-                        gradient.addColorStop(0.8, 'rgba(254, 249, 195, 0.3)');
-                        gradient.addColorStop(1, 'rgba(253, 224, 71, 0.5)');
+                    if (lowMode) {
+                        ctx.fillStyle = w.id === 'soul_eater' ? 'rgba(147, 51, 234, 0.4)' : 'rgba(253, 224, 71, 0.3)';
+                    } else {
+                        const gradient = ctx.createRadialGradient(0, 0, Math.max(0, w.range * 0.7), 0, 0, Math.max(1, w.range));
+                        if (w.id === 'soul_eater') { 
+                            gradient.addColorStop(0, 'rgba(147, 51, 234, 0.05)');
+                            gradient.addColorStop(0.8, 'rgba(147, 51, 234, 0.4)');
+                            gradient.addColorStop(1, 'rgba(167, 139, 250, 0.6)');
+                        } else { // Garlic
+                            gradient.addColorStop(0, 'rgba(254, 249, 195, 0.05)');
+                            gradient.addColorStop(0.8, 'rgba(254, 249, 195, 0.3)');
+                            gradient.addColorStop(1, 'rgba(253, 224, 71, 0.5)');
+                        }
+                        ctx.fillStyle = gradient;
                     }
-                    ctx.fillStyle = gradient;
                     ctx.beginPath();
                     ctx.arc(0, 0, w.range, 0, Math.PI * 2);
                     ctx.fill();
@@ -1545,7 +1587,7 @@ function updateWeapons() {
             }
         });
 
-        xpGems.forEach(g => { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(Math.PI / 4); ctx.fillStyle = g.color; ctx.fillRect(-g.radius, -g.radius, g.radius*2, g.radius*2); ctx.restore(); });
+        xpGems.forEach(g => { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(Math.PI / 4); ctx.fillStyle = getXPGemColor(g.value); ctx.fillRect(-g.radius, -g.radius, g.radius*2, g.radius*2); ctx.restore(); });
         pickups.forEach(p => { 
             if (p.type === 'health') { 
                 ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 3*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x - 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x, p.y + 9*RENDER_SCALE, p.x, p.y + 12*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y + 9*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x + 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x, p.y - 7*RENDER_SCALE, p.x, p.y - 3*RENDER_SCALE); ctx.fill(); 
@@ -1575,13 +1617,15 @@ function updateWeapons() {
                  if (w.type === 'orbital') {
                     if (w.id === 'lightning') {
                         ctx.save();
-                        ctx.shadowColor = '#90cdf4';
-                        ctx.shadowBlur = 15 * RENDER_SCALE;
+                        if (!lowMode) {
+                            ctx.shadowColor = '#90cdf4';
+                            ctx.shadowBlur = 15 * RENDER_SCALE;
+                        }
                         const gradient = ctx.createRadialGradient(0, 0, p.radius * 0.2, 0, 0, p.radius);
                         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
                         gradient.addColorStop(0.5, 'rgba(191, 219, 254, 1)');
                         gradient.addColorStop(1, 'rgba(96, 165, 250, 0.5)');
-                        ctx.fillStyle = gradient;
+                        ctx.fillStyle = lowMode ? 'rgba(191, 219, 254, 1)' : gradient;
                         ctx.beginPath();
                         ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
                         ctx.fill();
@@ -1589,15 +1633,19 @@ function updateWeapons() {
                     } else if (w.id === 'demonic_orbit') {
                         const angle = Math.atan2(p.y - player.y, p.x - player.x) + Math.PI / 2;
                         ctx.rotate(angle);
-                        ctx.shadowColor = 'red';
-                        ctx.shadowBlur = 15;
+                        if (!lowMode) {
+                            ctx.shadowColor = 'red';
+                            ctx.shadowBlur = 15;
+                        }
                         drawCustomSword(ctx, 20 * RENDER_SCALE);
                     }
                 } else if (w.type === 'arc' || w.type === 'evo_spiral') {
                     ctx.rotate(p.angle);
                     if (w.id === 'death_spiral') {
-                        ctx.shadowColor = 'red';
-                        ctx.shadowBlur = 10;
+                        if (!lowMode) {
+                            ctx.shadowColor = 'red';
+                            ctx.shadowBlur = 10;
+                        }
                         drawCustomScythe(ctx, 36 * RENDER_SCALE);
                     } else {
                         drawCustomAxe(ctx, 15 * RENDER_SCALE);
@@ -1606,8 +1654,11 @@ function updateWeapons() {
                     const angle = p.target && p.target.hp > 0 ? Math.atan2(p.target.y - p.y, p.target.x - p.x) : Math.PI * 1.5;
                     ctx.rotate(angle + Math.PI / 2);
                     ctx.fillStyle = w.id === 'thousand_edge' ? '#93c5fd' : '#FFFF00';
-                    ctx.shadowColor = w.id === 'thousand_edge' ? 'white' : 'yellow';
-                    ctx.shadowBlur = 10; ctx.beginPath(); ctx.moveTo(0, -10 * RENDER_SCALE); ctx.lineTo(-5 * RENDER_SCALE, 10 * RENDER_SCALE); ctx.lineTo(5 * RENDER_SCALE, 10 * RENDER_SCALE); ctx.closePath(); ctx.fill();
+                    if (!lowMode) {
+                        ctx.shadowColor = w.id === 'thousand_edge' ? 'white' : 'yellow';
+                        ctx.shadowBlur = 10; 
+                    }
+                    ctx.beginPath(); ctx.moveTo(0, -10 * RENDER_SCALE); ctx.lineTo(-5 * RENDER_SCALE, 10 * RENDER_SCALE); ctx.lineTo(5 * RENDER_SCALE, 10 * RENDER_SCALE); ctx.closePath(); ctx.fill();
                 } else if (w.type === 'sword_orbital') {
                     const angle = Math.atan2(p.y - player.y, p.x - player.x) + Math.PI / 2;
                     ctx.rotate(angle);
@@ -1615,7 +1666,11 @@ function updateWeapons() {
                 } else if (w.type === 'directional' || w.type === 'evo_rotating_beams') {
                     const color = w.id === 'phieraggi' ? `hsl(${Date.now()/10 % 360}, 100%, 70%)` : (w.id === 'gun_one' ? '#63b3ed' : '#f56565');
                     ctx.fillStyle = color;
-                    ctx.shadowColor = 'white'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(0, 0, 7 * RENDER_SCALE, 0, Math.PI * 2); ctx.fill();
+                    if (!lowMode) {
+                        ctx.shadowColor = 'white'; 
+                        ctx.shadowBlur = 8; 
+                    }
+                    ctx.beginPath(); ctx.arc(0, 0, 7 * RENDER_SCALE, 0, Math.PI * 2); ctx.fill();
                 }
                 ctx.restore();
             });
@@ -1632,7 +1687,11 @@ function updateWeapons() {
                 (w.projectiles || []).forEach(p => {
                     ctx.save(); ctx.beginPath(); ctx.moveTo(p.startX, p.startY); ctx.lineTo(p.endX, p.endY);
                     ctx.strokeStyle = w.id === 'supercharge_beam' ? 'cyan' : '#f56565'; ctx.lineWidth = p.width;
-                    ctx.shadowColor = w.id === 'supercharge_beam' ? 'white' : 'orange'; ctx.shadowBlur = 15; ctx.stroke(); ctx.restore();
+                    if (!lowMode) {
+                        ctx.shadowColor = w.id === 'supercharge_beam' ? 'white' : 'orange'; 
+                        ctx.shadowBlur = 15;
+                    }
+                     ctx.stroke(); ctx.restore();
                 });
             }
 
@@ -1648,9 +1707,9 @@ function updateWeapons() {
                 (w.projectiles || []).forEach(p => {
                     ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(p.angle);
                     const alpha = 1 - ((Date.now() - p.spawnTime) / 500);
-                    const gradient = ctx.createLinearGradient(0, -w.width / 2, 0, w.width / 2);
-                    gradient.addColorStop(0.5, `rgba(173, 216, 230, ${alpha * 0.7})`); gradient.addColorStop(0, `rgba(173, 216, 230, 0)`); gradient.addColorStop(1, `rgba(173, 216, 230, 0)`);
-                    ctx.strokeStyle = gradient; ctx.lineWidth = w.width; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(canvas.width * 2, 0); ctx.stroke(); ctx.restore();
+                    ctx.strokeStyle = `rgba(173, 216, 230, ${alpha * 0.7})`;
+                    ctx.lineWidth = w.width; 
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(canvas.width * 2, 0); ctx.stroke(); ctx.restore();
                 });
             }
         });
@@ -1824,34 +1883,28 @@ function updateWeapons() {
     }
 
     // --- Settings Logic ---
-    function applyControlSetting(mode) {
-        controlMode = mode;
-        localStorage.setItem('survivorGameControlMode', mode);
+    function applySettings() {
+        // Control Mode
+        localStorage.setItem('survivorGameControlMode', controlMode);
+        controlDragBtn.classList.toggle('selected', controlMode === 'drag');
+        controlJoystickBtn.classList.toggle('selected', controlMode === 'joystick');
         
-        // Reset both buttons
-        controlDragBtn.classList.remove('selected');
-        controlJoystickBtn.classList.remove('selected');
-        // Clear old checkmarks
-        controlDragBtn.querySelector('.checkmark-icon')?.remove();
-        controlJoystickBtn.querySelector('.checkmark-icon')?.remove();
+        controlDragBtn.innerHTML = 'ระบบลากเดิน';
+        controlJoystickBtn.innerHTML = 'จอยสติ๊ก';
 
-        // Find the selected button
-        let selectedBtn;
-        if (mode === 'drag') {
-            selectedBtn = controlDragBtn;
+        const selectedControlBtn = controlMode === 'drag' ? controlDragBtn : controlJoystickBtn;
+        selectedControlBtn.innerHTML = `<span class="checkmark-icon">✓ </span> ${selectedControlBtn.innerHTML}`;
+
+
+        // Low Mode
+        localStorage.setItem('survivorGameLowMode', lowMode);
+        lowModeToggleBtn.classList.toggle('selected', lowMode);
+        
+        if(lowMode) {
+             lowModeToggleBtn.innerHTML = `<span class="checkmark-icon">✓ </span> โหมดประสิทธิภาพ: เปิด`;
         } else {
-            selectedBtn = controlJoystickBtn;
+             lowModeToggleBtn.innerHTML = `โหมดประสิทธิภาพ: ปิด`;
         }
-
-        // Apply selected state
-        selectedBtn.classList.add('selected');
-
-        // Add checkmark icon
-        const checkmarkSVG = `
-            <svg class="checkmark-icon h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>`;
-        selectedBtn.insertAdjacentHTML('afterbegin', checkmarkSVG);
     }
 
 
@@ -1860,9 +1913,10 @@ function updateWeapons() {
         const urlParams = new URLSearchParams(window.location.search);
         isBonusGame = urlParams.get('bonus') === 'true';
 
-        // Load saved control mode
-        const savedMode = localStorage.getItem('survivorGameControlMode');
-        applyControlSetting(savedMode || 'drag');
+        // Load saved settings
+        controlMode = localStorage.getItem('survivorGameControlMode') || 'drag';
+        lowMode = localStorage.getItem('survivorGameLowMode') === 'true';
+        applySettings();
 
 
         // --- Centralized Event Listeners ---
@@ -1907,8 +1961,18 @@ function updateWeapons() {
              mainMenuScreen.classList.remove('hidden');
         });
 
-        controlDragBtn.addEventListener('click', () => applyControlSetting('drag'));
-        controlJoystickBtn.addEventListener('click', () => applyControlSetting('joystick'));
+        controlDragBtn.addEventListener('click', () => {
+            controlMode = 'drag';
+            applySettings();
+        });
+        controlJoystickBtn.addEventListener('click', () => {
+            controlMode = 'joystick';
+            applySettings();
+        });
+        lowModeToggleBtn.addEventListener('click', () => {
+            lowMode = !lowMode;
+            applySettings();
+        });
 
         pauseButton.addEventListener('click', () => {
             if(gameState === 'playing') {

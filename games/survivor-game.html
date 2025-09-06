@@ -57,13 +57,13 @@
     <div id="damageNumbersContainer"></div>
 
     <!-- Main Menu Modal -->
-    <div id="mainMenuScreen" class="modal fixed inset-0 flex flex-col justify-center items-center z-40 p-4">
-        <div class="menu-card p-8 sm:p-12 w-full max-w-md text-center">
-            <h1 class="text-5xl sm:text-7xl font-bold mb-12 text-gradient">Survivor Arena</h1>
-            <div class="flex flex-col gap-6 w-full max-w-xs mx-auto">
-                <button id="menuStartButton" class="menu-btn text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl">เริ่มเกม</button>
-                <button id="menuGuideButton" class="menu-btn text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl">คู่มือ</button>
-                <button id="menuSettingsButton" class="menu-btn text-white font-bold py-3 sm:py-4 px-12 rounded-lg text-xl sm:text-2xl">ตั้งค่า</button>
+    <div id="mainMenuScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-80 flex flex-col justify-center items-center z-40 p-4 main-menu-bg">
+         <div class="menu-content-box w-full max-w-sm">
+            <h1 class="game-title text-5xl sm:text-7xl font-bold mb-10 text-center">Survivor Arena</h1>
+            <div class="flex flex-col gap-5">
+                <button id="menuStartButton" class="menu-button bg-green-500">เริ่มเกม</button>
+                <button id="menuGuideButton" class="menu-button bg-blue-500">คู่มือ</button>
+                <button id="menuSettingsButton" class="menu-button bg-gray-600">ตั้งค่า</button>
             </div>
         </div>
     </div>
@@ -93,20 +93,29 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-40 hidden p-4">
-        <div class="menu-card w-full max-w-md p-6 sm:p-8 rounded-lg">
-            <h2 class="text-3xl sm:text-4xl font-bold text-center text-gradient mb-8">ตั้งค่า</h2>
-            <div class="space-y-4">
-                <p class="text-lg text-gray-300 text-center">เลือกรูปแบบการควบคุม:</p>
-                <button id="controlDrag" class="control-button w-full text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl">
-                    <span>ระบบลากเดิน</span>
-                </button>
-                <button id="controlJoystick" class="control-button w-full text-white font-bold py-3 px-6 rounded-lg text-lg sm:text-xl">
-                    <span>จอยสติ๊ก</span>
-                </button>
+    <div id="settingsScreen" class="modal fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-40 hidden p-4 main-menu-bg">
+        <div class="menu-content-box w-full max-w-md">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center text-yellow-300 mb-8">ตั้งค่า</h2>
+            
+            <div class="space-y-6">
+                 <div>
+                    <p class="text-lg text-gray-300 text-center mb-3">รูปแบบการควบคุม:</p>
+                    <div class="flex flex-col gap-3">
+                        <button id="controlDrag" class="control-button"></button>
+                        <button id="controlJoystick" class="control-button"></button>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-lg text-gray-300 text-center mb-3">ประสิทธิภาพ:</p>
+                     <div class="flex flex-col gap-3">
+                        <button id="lowModeToggle" class="control-button"></button>
+                    </div>
+                </div>
             </div>
+
             <div class="mt-8 text-center">
-                 <button id="settingsBackButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text-lg sm:text-xl shadow-lg">กลับ</button>
+                 <button id="settingsBackButton" class="menu-button bg-red-500">กลับ</button>
             </div>
         </div>
     </div>
