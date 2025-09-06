@@ -60,6 +60,7 @@ let guideReturnState = 'menu';
 let isBonusGame = false;
 let controlMode = 'drag'; // 'drag' or 'joystick'
 let lowMode = false;
+let pendingLevelUps = 0;
 
 // --- Player ---
 const player = {
@@ -495,13 +496,47 @@ function displayUpgradeOptions(options) {
 
 function selectUpgrade(upgrade) {
     upgrade.apply();
-    levelUpScreen.classList.add('hidden');
-    levelUpScreen.classList.remove('flex');
-    gameState = 'playing';
-    lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
+    pendingLevelUps--;
+
+    if (pendingLevelUps > 0) {
+        showNextLevelUpOptions();
+    } else {
+        levelUpScreen.classList.add('hidden');
+        levelUpScreen.classList.remove('flex');
+        gameState = 'playing';
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
 }
 
+function showNextLevelUpOptions() {
+    const options = getUpgradeOptions();
+    displayUpgradeOptions(options);
+    levelUpScreen.classList.remove('hidden');
+    levelUpScreen.classList.add('flex');
+}
+
+function checkLevelUp() {
+    if (gameState === 'levelUp') return; // Don't check for more levels while one is already processing UI
+
+    let leveledUpThisFrame = false;
+    while (player.xp >= player.xpToNextLevel) {
+        leveledUpThisFrame = true;
+        pendingLevelUps++;
+        player.level++;
+        player.xp -= player.xpToNextLevel;
+        player.xpToNextLevel = Math.floor(player.xpToNextLevel * 1.2 + 20);
+        player.maxHp += 5;
+        player.hp = Math.min(player.maxHp, player.hp + 5);
+    }
+
+    if (leveledUpThisFrame) {
+        gameState = 'levelUp';
+        cancelAnimationFrame(animationFrameId);
+        showNextLevelUpOptions();
+    }
+}
+    
 // --- Event Listeners and Controls ---
 window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 window.addEventListener('keydown', (e) => keys[e.code] = true);
@@ -680,6 +715,9 @@ function getEnemyColor(timeMinutes) {
 }
 
 function getXPGemColor(value) {
+    if (value >= 500) return '#FFFFFF'; // White/Gold for legendary
+    if (value >= 100) return '#ec4899'; // Pink 500 for epic
+    if (value >= 50) return '#f97316'; // Orange 500 for rare
     if (value >= 20) return '#a21caf'; // Fuchsia 700
     if (value >= 10) return '#facc15'; // Yellow 400
     if (value >= 5) return '#4ade80'; // Green 400
@@ -1219,10 +1257,10 @@ function updateWeapons() {
                                 }
                             }
                             if (!merged) {
-                                xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                                xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue});
                             }
                         } else {
-                             xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue, color: getXPGemColor(enemy.xpValue)});
+                             xpGems.push({x: enemy.x, y: enemy.y, radius: 5 * RENDER_SCALE, value: enemy.xpValue});
                         }
                     }
                 }
@@ -1242,22 +1280,6 @@ function updateWeapons() {
         el.style.top = `${y}px`; 
         damageNumbersContainer.appendChild(el); 
         setTimeout(() => el.remove(), 700); 
-    }
-
-    function checkLevelUp() {
-        while (player.xp >= player.xpToNextLevel) {
-            player.level++;
-            player.xp -= player.xpToNextLevel;
-            player.xpToNextLevel = Math.floor(player.xpToNextLevel * 1.2 + 20);
-            player.maxHp += 5;
-            player.hp = Math.min(player.maxHp, player.hp + 5);
-            gameState = 'levelUp';
-            const options = getUpgradeOptions();
-            displayUpgradeOptions(options);
-            levelUpScreen.classList.remove('hidden');
-            levelUpScreen.classList.add('flex');
-            cancelAnimationFrame(animationFrameId);
-        }
     }
     
     // --- Drawing Helpers ---
@@ -1587,7 +1609,32 @@ function updateWeapons() {
             }
         });
 
-        xpGems.forEach(g => { ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(Math.PI / 4); ctx.fillStyle = getXPGemColor(g.value); ctx.fillRect(-g.radius, -g.radius, g.radius*2, g.radius*2); ctx.restore(); });
+        xpGems.forEach(g => { 
+            ctx.save(); 
+            ctx.translate(g.x, g.y); 
+            const color = getXPGemColor(g.value);
+            ctx.fillStyle = color;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1 * RENDER_SCALE;
+
+            if (!lowMode && g.value >= 50) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = g.value >= 100 ? 15 : 8;
+            }
+
+            // Draw crystal shape
+            ctx.beginPath();
+            ctx.moveTo(0, -g.radius * 1.5);
+            ctx.lineTo(g.radius, 0);
+            ctx.lineTo(0, g.radius * 1.5);
+            ctx.lineTo(-g.radius, 0);
+            ctx.closePath();
+            ctx.fill();
+            if (!lowMode && g.value >= 20) {
+                ctx.stroke();
+            }
+            ctx.restore(); 
+        });
         pickups.forEach(p => { 
             if (p.type === 'health') { 
                 ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 3*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x - 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x, p.y + 9*RENDER_SCALE, p.x, p.y + 12*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y + 9*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x + 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x, p.y - 7*RENDER_SCALE, p.x, p.y - 3*RENDER_SCALE); ctx.fill(); 
@@ -1792,6 +1839,7 @@ function updateWeapons() {
         weapons = []; enemies = []; xpGems = []; pickups = []; monsterProjectiles = [];
         gameTime = 0; enemiesKilledCount = 0; spawnTimer = 0; gameClockTimer = 0; healthSpawnTimer = 0; watcherSpawnTimer = 0; nextBossTime = 300;
         difficultyManager = { enemyHpMultiplier: 1.0, enemySpeedMultiplier: 1.0 };
+        pendingLevelUps = 0;
     }
     
     function startGame() {
@@ -1884,6 +1932,8 @@ function updateWeapons() {
 
     // --- Settings Logic ---
     function applySettings() {
+        const checkmarkSVG = `<span class="checkmark-icon">✓ </span>`;
+        
         // Control Mode
         localStorage.setItem('survivorGameControlMode', controlMode);
         controlDragBtn.classList.toggle('selected', controlMode === 'drag');
@@ -1892,16 +1942,18 @@ function updateWeapons() {
         controlDragBtn.innerHTML = 'ระบบลากเดิน';
         controlJoystickBtn.innerHTML = 'จอยสติ๊ก';
 
-        const selectedControlBtn = controlMode === 'drag' ? controlDragBtn : controlJoystickBtn;
-        selectedControlBtn.innerHTML = `<span class="checkmark-icon">✓ </span> ${selectedControlBtn.innerHTML}`;
-
+        if (controlMode === 'drag') {
+            controlDragBtn.innerHTML = checkmarkSVG + controlDragBtn.innerHTML;
+        } else {
+            controlJoystickBtn.innerHTML = checkmarkSVG + controlJoystickBtn.innerHTML;
+        }
 
         // Low Mode
         localStorage.setItem('survivorGameLowMode', lowMode);
         lowModeToggleBtn.classList.toggle('selected', lowMode);
         
         if(lowMode) {
-             lowModeToggleBtn.innerHTML = `<span class="checkmark-icon">✓ </span> โหมดประสิทธิภาพ: เปิด`;
+             lowModeToggleBtn.innerHTML = checkmarkSVG + 'โหมดประสิทธิภาพ: เปิด';
         } else {
              lowModeToggleBtn.innerHTML = `โหมดประสิทธิภาพ: ปิด`;
         }
