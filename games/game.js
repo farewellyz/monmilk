@@ -1582,7 +1582,7 @@ function updateWeapons() {
                 coinsWon *= 2;
             }
 
-            state.playCoins += coinsWon;
+            state.monCoins += coinsWon;
             localStorage.setItem('monGameDataV17', JSON.stringify(state));
             coinsEarnedText.textContent = coinsWon;
         }
@@ -1693,5 +1693,4 @@ function updateWeapons() {
 
     // Start the whole process
     init();
-
 
