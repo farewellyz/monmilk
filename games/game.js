@@ -82,7 +82,8 @@ const player = {
         damageReduction: 0,
         pickupRadius: 100 * RENDER_SCALE,
         xpGainModifier: 1.0,
-        revives: 0
+        revives: 0,
+        lifestealChance: 0
     }
 };
 
@@ -94,6 +95,7 @@ const WEAPONS_MASTER_LIST = {
     garlic: { name: "ออร่ากระเทียม", icon: "🧄", type: 'aura', damage: 3, count: 1, range: 100 * RENDER_SCALE, cooldown: 500, lastAttackTime: 0, lastHit: new Map(), projectiles: [], maxLevel: 5, description: "สร้างออร่าทำความเสียหายรอบตัว" },
     missile: { name: "กระสุนเวทนำวิถี", icon: "✨", type: 'homing', damage: 20, count: 1, speed: 6 * RENDER_SCALE, cooldown: 1800, lastAttackTime: 0, projectiles: [], maxLevel: 5, pierce: 1, description: "ยิงกระสุนเวทติดตามศัตรู" },
     sword: { name: "ดาบบินได้", icon: "⚔️", type: 'sword_orbital', damage: 18, count: 1, range: 90 * RENDER_SCALE, speed: 0.04, angle: 0, cooldown: 10000, lastAttackTime: 0, projectiles: [], homingProjectiles: [], pierce: 1, maxLevel: 5, description: "ดาบโคจรรอบตัวและพุ่งโจมตี", size: 15 * RENDER_SCALE },
+    chakram: { name: "ดาวกระจายวงจัก", icon: "☸️", type: 'bouncing', damage: 20, count: 1, speed: 5 * RENDER_SCALE, projectiles: [], maxLevel: 5, description: "ขว้างดาวกระจายที่ชิ่งไปมากับขอบจอ", size: 12 * RENDER_SCALE },
     santa_water: { name: "น้ำมนต์", icon: "💧", type: 'area_denial', damage: 5, count: 1, duration: 4000, cooldown: 2200, lastAttackTime: 0, projectiles: [], maxLevel: 5, radius: 50 * RENDER_SCALE, description: "สร้างพื้นที่ศักดิ์สิทธิ์ทำความเสียหาย" },
     pentagram: { name: "ดาวห้าแฉก", icon: "✡️", type: 'screen_clear', damage: 9999, cooldown: 60000, lastAttackTime: 0, projectiles: [], maxLevel: 5, chance: 0.3, description: "มีโอกาสลบศัตรูทั้งหมดบนหน้าจอ" },
     gun_one: { name: "Eight The Sparrow", icon: "🔵", type: 'directional', damage: 10, cooldown: 500, lastAttackTime: 0, speed: 10 * RENDER_SCALE, projectiles: [], maxLevel: 5, direction: 'horizontal', description: "ยิงกระสุนแนวนอน (ซ้าย-ขวา)", size: 7 * RENDER_SCALE },
@@ -109,7 +111,8 @@ const PASSIVES_MASTER_LIST = {
     candelabrador: { name: "เชิงเทียน", icon: "🕯️", description: "เพิ่มความเร็วของโปรเจคไทล์", maxLevel: 5, apply: (p, level) => { p.stats.projectileSpeedModifier = 1 + (0.1 * level); } },
     magnet: { name: "แม่เหล็ก", icon: "🧲", description: "เพิ่มระยะการดูดไอเทมและ EXP", maxLevel: 5, apply: (p, level) => { p.stats.pickupRadius = (100 * RENDER_SCALE) * (1 + 0.25 * level); } },
     crown: { name: "มงกุฎ", icon: "👑", description: "เพิ่ม EXP ที่ได้รับ", maxLevel: 5, apply: (p, level) => { p.stats.xpGainModifier = 1 + (0.1 * level); } },
-    tiragisu: { name: "ทีรามิสุ", icon: "🍰", description: "ให้การฟื้นคืนชีพเมื่อตาย", maxLevel: 2, apply: (p, level) => { p.stats.revives = level; } }
+    tiragisu: { name: "ทีรามิสุ", icon: "🍰", description: "ให้การฟื้นคืนชีพเมื่อตาย", maxLevel: 2, apply: (p, level) => { p.stats.revives = level; } },
+    vampire: { name: "แวมไพร์", icon: "🧛", description: "มีโอกาสดูดเลือดเมื่อโจมตี", maxLevel: 5, apply: (p, level) => { p.stats.lifestealChance = 0.1 + (0.025 * (level - 1)); } }
 };
 const EVOLUTIONS = {
     supercharge_beam: { name: "ลำแสงซูเปอร์ชาร์จ", icon: "💥", baseWeaponId: 'laser', passiveId: 'spinach', evolvedWeapon: { name: "ลำแสงซูเปอร์ชาร์จ", type: 'evo_rotating_lasers', damage: 40, count: 8, range: 2000, duration: 2000, cooldown: 5000, lastAttackTime: 0, attackStartTime: null, projectiles: [], lastHit: new Map(), isEvolved: true } },
@@ -118,6 +121,7 @@ const EVOLUTIONS = {
     soul_eater: { name: "เครื่องดูดวิญญาณ", icon: "👻", baseWeaponId: 'garlic', passiveId: 'armor', evolvedWeapon: { name: "เครื่องดูดวิญญาณ", type: 'aura', damage: 15, range: 150 * RENDER_SCALE, cooldown: 300, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true, lifestealOnKillChance: 0.25 } },
     thousand_edge: { name: "พันศาสตรา", icon: "🗡️", baseWeaponId: 'missile', passiveId: 'tome', evolvedWeapon: { name: "พันศาสตรา", type: 'homing', damage: 50, count: 5, speed: 8 * RENDER_SCALE, cooldown: 5000, lastAttackTime: 0, projectiles: [], isEvolved: true, pierce: 10 } },
     demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 50, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
+    cosmic_annihilator: { name: "จักรวาลสังหาร", icon: "🌌", baseWeaponId: 'chakram', passiveId: 'vampire', evolvedWeapon: { name: "จักรวาลสังหาร", type: 'bouncing', damage: 60, count: 10, speed: 8 * RENDER_SCALE, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
     la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 10, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     gorgeous_moon: { name: "Gorgeous Moon", icon: "🌕", baseWeaponId: 'pentagram', passiveId: 'crown', evolvedWeapon: { name: "Gorgeous Moon", type: 'evo_xp_clear', damage: 9999, cooldown: 45000, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 30, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0, size: 12 * RENDER_SCALE } },
@@ -285,6 +289,9 @@ function getWeaponUpgradeDescription(weapon) {
         case 'sword':
              if (nextLevel === 2 || nextLevel === 4 || nextLevel === 5) return `เพิ่มดาบเป็น ${weapon.count + 1} เล่ม`;
              return `เพิ่มพลังโจมตีและขนาด`;
+        case 'chakram':
+            if (nextLevel === 2 || nextLevel === 4 || nextLevel === 5) return `เพิ่มดาวกระจายเป็น ${weapon.count + 1} ชิ้น`;
+            return `เพิ่มพลังโจมตี, ขนาด และความเร็ว`;
         case 'santa_water':
             return 'เพิ่มจำนวนพื้นที่และลดคูลดาวน์';
         case 'pentagram':
@@ -339,6 +346,12 @@ function upgradeWeapon(weapon) {
         case 'sword':
             weapon.damage += 5;
             weapon.size = (weapon.size || 15 * RENDER_SCALE) * 1.15;
+            if (level === 2 || level === 4 || level === 5) weapon.count++;
+            break;
+        case 'chakram':
+            weapon.damage += 5;
+            weapon.size *= 1.1;
+            weapon.speed *= 1.08;
             if (level === 2 || level === 4 || level === 5) weapon.count++;
             break;
         case 'santa_water':
@@ -405,7 +418,10 @@ function getUpgradeOptions() {
                     const evolved = JSON.parse(JSON.stringify(evo.evolvedWeapon));
                     evolved.id = evoKey;
                     evolved.level = 'MAX';
-                    if (evolved.type === 'aura' || evolved.type === 'evo_orbital_ring') { evolved.lastHit = new Map(); }
+                    // FIX: Re-initialize Map objects after JSON serialization breaks them
+                    if (evo.evolvedWeapon.lastHit) {
+                        evolved.lastHit = new Map();
+                    }
                     weapons.push(evolved);
                 }
             });
@@ -769,7 +785,7 @@ function spawnBoss() {
     if (side === 0) { x = Math.random() * canvas.width; y = -50; } else if (side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; } else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; } else { x = -50; y = Math.random() * canvas.height; }
     const bossLevel = Math.floor(gameTime / 300) + 1;
     const hp = 500 * bossLevel * difficultyManager.enemyHpMultiplier;
-    enemies.push({ id: `b-${Date.now()}`, type: 'boss', x, y, radius: 40 * RENDER_SCALE, hp: hp, maxHp: hp, speed: 1.5 * difficultyManager.enemySpeedMultiplier * RENDER_SCALE, color: '#44337a', xpValue: 100, isBoss: true });
+    enemies.push({ id: `b-${Date.now()}`, type: 'boss', x, y, radius: 40 * RENDER_SCALE, hp: hp, maxHp: hp, speed: 1.5 * difficultyManager.enemySpeedMultiplier * RENDER_SCALE, color: '#44337a', xpValue: 100, isBoss: true, level: bossLevel });
 }
 
 function updateEnemies() {
@@ -806,7 +822,9 @@ function updateEnemies() {
                 damageWasBlocked = true;
                 shield.charges--;
                 shield.active = true; // Put shield on cooldown
-                setTimeout(() => { shield.active = false; }, shield.cooldown * player.stats.cooldownModifier);
+                
+                // BUG FIX: Instead of setTimeout, use a timestamp
+                shield.cooldownEndTime = Date.now() + (shield.cooldown * player.stats.cooldownModifier);
 
                 if (shield.id === 'crimson_shroud') {
                     // Retaliate with damage
@@ -851,6 +869,13 @@ function updateWeapons() {
         const cooldown = w.cooldown * player.stats.cooldownModifier;
         const speed = (w.speed || 0) * player.stats.projectileSpeedModifier;
 
+        // BUG FIX: Check Laurel cooldown here
+        if (w.id === 'laurel' || w.id === 'crimson_shroud') {
+            if (w.active && Date.now() > w.cooldownEndTime) {
+                w.active = false;
+            }
+        }
+
         // --- PROJECTILE CREATION & ORBITING LOGIC ---
         if (w.type === 'orbital') {
             w.angle = (w.angle + w.speed) % (Math.PI * 2);
@@ -859,6 +884,21 @@ function updateWeapons() {
             for (let i = 0; i < w.count; i++) {
                 const angle = w.angle + i * angleInc;
                 w.projectiles.push({ x: player.x + Math.cos(angle) * w.range, y: player.y + Math.sin(angle) * w.range, radius: w.size || 10 * RENDER_SCALE, lastHit: new Map() });
+            }
+        } else if (w.type === 'bouncing') {
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1', '#ff9ff3', '#f368e0', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1'];
+            while (w.projectiles.length < w.count) {
+                const angle = Math.random() * Math.PI * 2;
+                w.projectiles.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: Math.cos(angle) * w.speed,
+                    vy: Math.sin(angle) * w.speed,
+                    lastHit: new Map(),
+                    rotation: 0,
+                    rotationSpeed: 0.1 * (Math.random() > 0.5 ? 1 : -1),
+                    color: colors[w.projectiles.length % colors.length]
+                });
             }
         } else if (w.type === 'laser_beam' && Date.now() - w.lastAttackTime > cooldown) {
             w.lastAttackTime = Date.now(); w.projectiles = [];
@@ -1052,6 +1092,13 @@ function updateWeapons() {
                 }
                 if (p.y < -20 || p.x < -20 || p.x > canvas.width + 20) { w.projectiles.splice(index, 1); return; }
             }
+             if (w.type === 'bouncing') {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+                if (p.x < w.size || p.x > canvasWidth - w.size) { p.vx *= -1; p.x = Math.max(w.size, Math.min(canvasWidth - w.size, p.x)); }
+                if (p.y < w.size || p.y > canvasHeight - w.size) { p.vy *= -1; p.y = Math.max(w.size, Math.min(canvasHeight - w.size, p.y)); }
+            }
             if (w.type === 'evo_spiral') { p.y += p.vy; p.x += p.vx; p.angle += p.rotationSpeed; if (Date.now() - p.spawnTime > 3000) { w.projectiles.splice(index, 1); return; } }
             if (w.type === 'directional' || w.type === 'evo_rotating_beams') {
                 p.x += p.vx;
@@ -1173,6 +1220,7 @@ function updateWeapons() {
                          const dist = Math.hypot(puddle.x - enemy.x, puddle.y - enemy.y);
                          if (dist < puddle.radius + enemy.radius && (!puddle.lastHit.has(enemy.id) || Date.now() - puddle.lastHit.get(enemy.id) > cooldown)) {
                             puddle.lastHit.set(enemy.id, Date.now()); enemy.hp -= damage; createDamageNumber(enemy.x, enemy.y, damage);
+                            if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         }
                     });
                      if (w.duration && Date.now() - puddle.spawnTime > w.duration) {
@@ -1200,7 +1248,7 @@ function updateWeapons() {
                     if (!enemy) continue;
                     let hit = false;
                     if (w.type === 'orbital' || w.type === 'sword_orbital') {
-                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.type === 'sword_orbital' ? (w.size || 15 * RENDER_SCALE) : (w.id === 'demonic_orbit' ? (w.size || 20 * RENDER_SCALE) : (w.size || 12 * RENDER_SCALE))) + enemy.radius) hit = true;
+                         if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.size || 15 * RENDER_SCALE) + enemy.radius) hit = true;
                     } else if (w.type === 'laser_beam' || w.type === 'evo_rotating_lasers') {
                         const dx = p.endX - p.startX; const dy = p.endY - p.startY; const len = Math.hypot(dx, dy);
                         if (len > 0) {
@@ -1210,7 +1258,7 @@ function updateWeapons() {
                                 if (Math.hypot(enemy.x - closestX, enemy.y - closestY) < enemy.radius + p.width / 2) hit = true;
                             }
                         }
-                    } else if (w.type === 'directional' || w.type === 'homing' || w.type === 'arc' || w.type === 'evo_spiral' || w.type === 'evo_stream' || w.type === 'evo_sword_orbit' || w.type === 'evo_rotating_beams') {
+                    } else if (w.type === 'directional' || w.type === 'homing' || w.type === 'arc' || w.type === 'evo_spiral' || w.type === 'evo_stream' || w.type === 'evo_sword_orbit' || w.type === 'evo_rotating_beams' || w.type === 'bouncing') {
                          if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < (w.size || 15 * RENDER_SCALE) + enemy.radius) hit = true;
                     }
 
@@ -1219,7 +1267,7 @@ function updateWeapons() {
                         p.lastHit.set(enemy.id, Date.now());
                         enemy.hp -= damage;
                         createDamageNumber(enemy.x, enemy.y, damage);
-                        if (w.lifestealChance && Math.random() < w.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
+                        if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         
                         if (p.pierceLeft !== undefined) {
                             if (p.pierceLeft > 1) {
@@ -1248,6 +1296,7 @@ function updateWeapons() {
                         p.lastHit.set(enemy.id, Date.now());
                         enemy.hp -= damage;
                         createDamageNumber(enemy.x, enemy.y, damage);
+                         if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         
                         if (p.pierceLeft > 1) {
                             p.pierceLeft--;
@@ -1273,7 +1322,17 @@ function updateWeapons() {
                 }
                 if (enemy.isBoss) {
                     pickups.push({type: 'chest', x: enemy.x, y: enemy.y, radius: 20 * RENDER_SCALE});
-                    for(let j = 0; j < 20; j++) { const angle = (j / 20) * Math.PI * 2; xpGems.push({x: enemy.x + Math.cos(angle)*30*RENDER_SCALE, y: enemy.y + Math.sin(angle)*30*RENDER_SCALE, value: 50}); }
+                    
+                    const bossLevel = enemy.level || 1;
+                    // Drop a high-value EXP gem
+                    xpGems.push({x: enemy.x, y: enemy.y, value: 100 * bossLevel});
+                    // Drop health based on boss level
+                    for(let j = 0; j < bossLevel; j++) { 
+                        const angle = (j / bossLevel) * Math.PI * 2;
+                        const dropX = enemy.x + Math.cos(angle) * 40 * RENDER_SCALE;
+                        const dropY = enemy.y + Math.sin(angle) * 40 * RENDER_SCALE;
+                        pickups.push({type: 'health', x: dropX, y: dropY, radius: 10 * RENDER_SCALE});
+                    }
                 }
 
                 // Handle random/default drops for non-special enemies
@@ -1379,6 +1438,54 @@ function updateWeapons() {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+    }
+
+    function drawCustomMagnet(ctx, radius) {
+        const angle = Math.PI / 6; 
+        const innerRadius = radius * 0.6;
+
+        ctx.fillStyle = '#EF4444'; // Red part
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, -Math.PI / 2 - angle, -Math.PI / 2 + angle, true);
+        ctx.arc(0, 0, innerRadius, -Math.PI / 2 + angle, -Math.PI / 2 - angle, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, Math.PI / 2 - angle, Math.PI / 2 + angle, true);
+        ctx.arc(0, 0, innerRadius, Math.PI / 2 + angle, Math.PI / 2 - angle, false);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#D1D5DB'; // Silver tips
+        ctx.fillRect(-radius, -radius * 0.2, radius - innerRadius, radius * 0.2);
+        ctx.fillRect(innerRadius, -radius * 0.2, radius - innerRadius, radius * 0.2);
+    }
+
+    function drawCustomChakram(ctx, size, color) {
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = size * 0.1;
+
+        ctx.beginPath();
+        ctx.moveTo(0, -size); // Top point
+        ctx.lineTo(size * 0.3, -size * 0.3);
+        ctx.lineTo(size, 0); // Right point
+        ctx.lineTo(size * 0.3, size * 0.3);
+        ctx.lineTo(0, size); // Bottom point
+        ctx.lineTo(-size * 0.3, size * 0.3);
+        ctx.lineTo(-size, 0); // Left point
+        ctx.lineTo(-size * 0.3, -size * 0.3);
+        ctx.closePath();
+        
+        ctx.fill();
+        if(!lowMode) ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fill();
+        ctx.restore();
     }
 
     // --- Main Drawing Function ---
@@ -1676,24 +1783,18 @@ function updateWeapons() {
             ctx.restore(); 
         });
         pickups.forEach(p => { 
+            ctx.save();
+            ctx.translate(p.x, p.y);
             if (p.type === 'health') { 
-                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(p.x, p.y - 3*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x - 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x - 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x, p.y + 9*RENDER_SCALE, p.x, p.y + 12*RENDER_SCALE); ctx.bezierCurveTo(p.x, p.y + 9*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y + 5*RENDER_SCALE, p.x + 6*RENDER_SCALE, p.y); ctx.bezierCurveTo(p.x + 6*RENDER_SCALE, p.y - 7*RENDER_SCALE, p.x, p.y - 7*RENDER_SCALE, p.x, p.y - 3*RENDER_SCALE); ctx.fill(); 
+                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -3*RENDER_SCALE); ctx.bezierCurveTo(0, -7*RENDER_SCALE, -6*RENDER_SCALE, -7*RENDER_SCALE, -6*RENDER_SCALE, 0); ctx.bezierCurveTo(-6*RENDER_SCALE, 5*RENDER_SCALE, 0, 9*RENDER_SCALE, 0, 12*RENDER_SCALE); ctx.bezierCurveTo(0, 9*RENDER_SCALE, 6*RENDER_SCALE, 5*RENDER_SCALE, 6*RENDER_SCALE, 0); ctx.bezierCurveTo(6*RENDER_SCALE, -7*RENDER_SCALE, 0, -7*RENDER_SCALE, 0, -3*RENDER_SCALE); ctx.fill(); 
             } else if (p.type === 'magnet') {
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.fillStyle = '#facc15'; // yellow-400
-                ctx.beginPath();
-                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = `bold ${p.radius * 1.5}px sans-serif`;
-                ctx.fillText('🧲', 0, p.radius * 0.1);
-                ctx.restore();
+                 if (!lowMode) {
+                    ctx.shadowColor = '#fef08a';
+                    ctx.shadowBlur = 20 + Math.sin(Date.now() / 150) * 5;
+                }
+                ctx.rotate(Math.PI / 8);
+                drawCustomMagnet(ctx, p.radius * 1.2);
             } else if (p.type === 'chest') {
-                ctx.save();
-                ctx.translate(p.x, p.y);
                 ctx.font = `bold ${p.radius * 2}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -1702,8 +1803,8 @@ function updateWeapons() {
                     ctx.shadowBlur = 15;
                 }
                 ctx.fillText('🎁', 0, 0);
-                ctx.restore();
             }
+            ctx.restore();
         });
         enemies.forEach(e => drawEnemy(e));
         drawMonsterProjectiles();
@@ -1770,6 +1871,9 @@ function updateWeapons() {
                         ctx.shadowBlur = 8; 
                     }
                     ctx.beginPath(); ctx.arc(0, 0, w.size, 0, Math.PI * 2); ctx.fill();
+                } else if (w.type === 'bouncing') {
+                    ctx.rotate(p.rotation);
+                    drawCustomChakram(ctx, w.size, p.color);
                 }
                 ctx.restore();
             });
@@ -1856,15 +1960,22 @@ function updateWeapons() {
         const INITIAL_SPEED_MULT = 0.8; const RAMP_END_SPEED_MULT = 1.0;
         
         difficultyManager.enemyHpMultiplier = INITIAL_HP_MULT * (1 - easedProgress) + RAMP_END_HP_MULT * easedProgress;
-        difficultyManager.enemySpeedMultiplier = INITIAL_SPEED_MULT * (1 - easedProgress) + RAMP_END_SPEED_MULT * easedProgress;
-        const currentSpawnRateMultiplier = INITIAL_SPAWN_MULT * (1 - easedProgress) + RAMP_END_SPAWN_MULT * easedProgress;
+        
+        let currentSpeedMultiplier = INITIAL_SPEED_MULT * (1 - easedProgress) + RAMP_END_SPEED_MULT * easedProgress;
         
         // After ramp-up, continue scaling difficulty
         if (gameTime > RAMP_UP_DURATION) {
             const postRampMinutes = (gameTime - RAMP_UP_DURATION) / 60;
             difficultyManager.enemyHpMultiplier += postRampMinutes * 0.5;
-            difficultyManager.enemySpeedMultiplier += postRampMinutes * 0.08;
+            
+            // Cap speed increase after 15 minutes
+            if (gameTime < 900) { 
+                 currentSpeedMultiplier += postRampMinutes * 0.08;
+            }
         }
+        difficultyManager.enemySpeedMultiplier = currentSpeedMultiplier;
+
+        const currentSpawnRateMultiplier = INITIAL_SPAWN_MULT * (1 - easedProgress) + RAMP_END_SPAWN_MULT * easedProgress;
 
         if (healthSpawnTimer > 30) { spawnHealthEnemy(); healthSpawnTimer = 0; }
         if (gameTime >= nextBossTime) { spawnBoss(); nextBossTime += 300; }
@@ -1888,7 +1999,7 @@ function updateWeapons() {
         player.xpToNextLevel = 10;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
         player.passives = [];
-        player.stats = { speed: 3 * RENDER_SCALE, damageModifier: 1.0, cooldownModifier: 1.0, projectileSpeedModifier: 1.0, damageReduction: 0, pickupRadius: 100 * RENDER_SCALE, xpGainModifier: 1.0, revives: 0 };
+        player.stats = { speed: 3 * RENDER_SCALE, damageModifier: 1.0, cooldownModifier: 1.0, projectileSpeedModifier: 1.0, damageReduction: 0, pickupRadius: 100 * RENDER_SCALE, xpGainModifier: 1.0, revives: 0, lifestealChance: 0 };
         weapons = []; enemies = []; xpGems = []; pickups = []; monsterProjectiles = [];
         gameTime = 0; enemiesKilledCount = 0; spawnTimer = 0; gameClockTimer = 0; healthSpawnTimer = 0; watcherSpawnTimer = 0; nextBossTime = 300;
         difficultyManager = { enemyHpMultiplier: 1.0, enemySpeedMultiplier: 1.0 };
@@ -2045,16 +2156,59 @@ function updateWeapons() {
     }
 
     function applyChestUpgrades(count) {
-        let possibleUpgrades = [];
-
-        // 1. Check for evolutions first
+        chestTitle.textContent = 'ได้รับไอเทม!';
+        let appliedUpgrades = [];
+    
+        // Apply upgrades one by one and re-evaluate possibilities each time
+        for (let i = 0; i < count; i++) {
+            let possibleUpgrades = getPossibleUpgradesForChest();
+    
+            if (possibleUpgrades.length === 0) {
+                // If no more upgrades are possible, stop
+                break;
+            }
+    
+            // Shuffle and pick one upgrade
+            for (let k = possibleUpgrades.length - 1; k > 0; k--) {
+                const j = Math.floor(Math.random() * (k + 1));
+                [possibleUpgrades[k], possibleUpgrades[j]] = [possibleUpgrades[j], possibleUpgrades[k]];
+            }
+            const upgradeToApply = possibleUpgrades[0];
+            
+            // Apply it and store its info for display
+            upgradeToApply.apply();
+            appliedUpgrades.push(upgradeToApply);
+        }
+    
+        // Display all collected upgrades
+        if (appliedUpgrades.length > 0) {
+            appliedUpgrades.forEach((upgrade, index) => {
+                const rewardEl = document.createElement('div');
+                rewardEl.className = 'chest-reward-item';
+                rewardEl.style.animationDelay = `${index * 0.2}s`;
+                rewardEl.innerHTML = `
+                    <div class="inventory-icon rounded-md text-3xl ${upgrade.isEvolution ? 'bg-green-700 border-green-400' : ''}">${upgrade.icon}</div>
+                    <span class="text-xl text-white font-semibold">${upgrade.name}</span>
+                `;
+                chestRewardsContainer.appendChild(rewardEl);
+            });
+        } else {
+             chestRewardsContainer.innerHTML = `<p class="text-xl text-gray-400">ไม่มีไอเทมอัปเกรดได้แล้ว!</p>`;
+        }
+        
+        chestContinueButton.classList.remove('hidden');
+    }
+    
+    // Helper function for applyChestUpgrades to get the current list of possible upgrades
+    function getPossibleUpgradesForChest() {
+        let possible = [];
+        
+        // Check for evolutions
         for (const evoKey in EVOLUTIONS) {
             const evo = EVOLUTIONS[evoKey];
             let canEvolve = false;
             if (Array.isArray(evo.baseWeaponId)) {
-                const hasAllWeapons = evo.baseWeaponId.every(id => 
-                    weapons.find(w => w.id === id && w.level === WEAPONS_MASTER_LIST[id].maxLevel)
-                );
+                const hasAllWeapons = evo.baseWeaponId.every(id => weapons.find(w => w.id === id && w.level === WEAPONS_MASTER_LIST[id].maxLevel));
                 const hasPassive = player.passives.find(p => p.id === evo.passiveId && p.level === PASSIVES_MASTER_LIST[p.id].maxLevel);
                 if (hasAllWeapons && hasPassive) canEvolve = true;
             } else {
@@ -2064,69 +2218,38 @@ function updateWeapons() {
             }
 
             if (canEvolve) {
-                 possibleUpgrades.push({
-                    id: `evolve_${evoKey}`, 
-                    icon: evo.icon, 
-                    name: `วิวัฒนาการ: ${evo.name}`,
-                    isEvolution: true,
+                 possible.push({
+                    id: `evolve_${evoKey}`, icon: evo.icon, name: `วิวัฒนาการ: ${evo.name}`, isEvolution: true,
                     apply: () => {
                         const baseIds = Array.isArray(evo.baseWeaponId) ? evo.baseWeaponId : [evo.baseWeaponId];
                         weapons = weapons.filter(w => !baseIds.includes(w.id));
                         const evolved = JSON.parse(JSON.stringify(evo.evolvedWeapon));
                         evolved.id = evoKey;
                         evolved.level = 'MAX';
-                        if (evolved.type === 'aura' || evolved.type === 'evo_orbital_ring') { evolved.lastHit = new Map(); }
+                        if (evo.evolvedWeapon.lastHit) { evolved.lastHit = new Map(); }
                         weapons.push(evolved);
                     }
                 });
             }
         }
         
-        // 2. Add normal weapon upgrades
-        weapons.forEach((w) => {
+        // Add normal weapon upgrades
+        weapons.forEach(w => {
             const master = WEAPONS_MASTER_LIST[w.id];
             if (master && w.level < master.maxLevel && !w.isEvolved) {
-                possibleUpgrades.push({ id: `upgrade_${w.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => upgradeWeapon(w) });
+                possible.push({ id: `upgrade_${w.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => upgradeWeapon(w) });
             }
         });
 
-        // 3. Add passive upgrades
-        player.passives.forEach((p) => {
+        // Add passive upgrades
+        player.passives.forEach(p => {
             const master = PASSIVES_MASTER_LIST[p.id];
             if (master && p.level < master.maxLevel) {
-                possibleUpgrades.push({ id: `upgrade_${p.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => { p.level++; master.apply(player, p.level); } });
+                possible.push({ id: `upgrade_${p.id}`, icon: master.icon, name: `อัปเกรด ${master.name}`, apply: () => { p.level++; master.apply(player, p.level); } });
             }
         });
-        
-        if (possibleUpgrades.length === 0) {
-             chestRewardsContainer.innerHTML = `<p class="text-xl text-gray-400">ไม่มีไอเทมอัปเกรดได้แล้ว!</p>`;
-             chestContinueButton.classList.remove('hidden');
-             return;
-        }
 
-        // Shuffle and pick upgrades
-        for (let i = possibleUpgrades.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [possibleUpgrades[i], possibleUpgrades[j]] = [possibleUpgrades[j], possibleUpgrades[i]];
-        }
-
-        const upgradesToApply = possibleUpgrades.slice(0, count);
-
-        chestTitle.textContent = 'ได้รับไอเทม!';
-        upgradesToApply.forEach((upgrade, index) => {
-            upgrade.apply();
-            
-            const rewardEl = document.createElement('div');
-            rewardEl.className = 'chest-reward-item';
-            rewardEl.style.animationDelay = `${index * 0.2}s`;
-            rewardEl.innerHTML = `
-                <div class="inventory-icon rounded-md text-3xl ${upgrade.isEvolution ? 'bg-green-700 border-green-400' : ''}">${upgrade.icon}</div>
-                <span class="text-xl text-white font-semibold">${upgrade.name}</span>
-            `;
-            chestRewardsContainer.appendChild(rewardEl);
-        });
-        
-        chestContinueButton.classList.remove('hidden');
+        return possible;
     }
 
 
@@ -2200,6 +2323,14 @@ function updateWeapons() {
             if(gameState === 'playing') {
                 gameState = 'paused';
                 cancelAnimationFrame(animationFrameId);
+                
+                // BUG FIX: Handle Laurel's cooldown when pausing
+                weapons.forEach(w => {
+                    if ((w.id === 'laurel' || w.id === 'crimson_shroud') && w.active) {
+                        w.remainingCooldown = w.cooldownEndTime - Date.now();
+                    }
+                });
+                
                 updateInventoryUI(); // Update inventory when pausing
                 pauseScreen.classList.remove('hidden');
                 pauseScreen.classList.add('flex');
@@ -2211,6 +2342,15 @@ function updateWeapons() {
             pauseScreen.classList.remove('flex');
             gameState = 'playing';
             lastTime = performance.now();
+            
+            // BUG FIX: Restore Laurel's cooldown when resuming
+            weapons.forEach(w => {
+                 if ((w.id === 'laurel' || w.id === 'crimson_shroud') && w.active && w.remainingCooldown > 0) {
+                     w.cooldownEndTime = Date.now() + w.remainingCooldown;
+                     w.remainingCooldown = 0;
+                 }
+            });
+
             gameLoop(lastTime);
         });
         
