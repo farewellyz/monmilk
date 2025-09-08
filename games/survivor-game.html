@@ -12,9 +12,9 @@
     <canvas id="gameCanvas"></canvas>
 
     <!-- UI Elements -->
-    <div id="uiContainer" class="ui-container">
+    <div id="uiContainer" class="ui-container pointer-events-none">
         <!-- Top UI -->
-        <div class="absolute top-0 left-0 w-full p-2 sm:p-4 pointer-events-none">
+        <div class="absolute top-0 left-0 w-full p-2 sm:p-4">
              <div class="relative w-full h-12">
                 <!-- Top-Left Group -->
                 <div class="absolute top-0 left-0 flex items-start gap-3">
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Bottom UI -->
-        <div class="absolute bottom-0 left-0 w-full pointer-events-none">
+        <div class="absolute bottom-0 left-0 w-full">
             <div class="w-full bg-gray-900 bg-opacity-50 h-1.5 sm:h-2">
                 <div id="xpBar" class="bg-blue-500 h-full" style="width: 0%"></div>
             </div>
@@ -105,8 +105,13 @@
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-lg text-gray-300 text-center mb-2">ประสิทธิภาพ:</h3>
-                    <button id="lowModeToggle" class="menu-button-setting"></button>
+                     <h3 class="text-lg text-gray-300 text-center mb-2">ประสิทธิภาพ:</h3>
+                    <div class="flex flex-col gap-3">
+                        <button id="setting-damageNumbers" class="menu-button-setting"></button>
+                        <button id="setting-mergeXp" class="menu-button-setting"></button>
+                        <button id="setting-lowQualityEnemies" class="menu-button-setting"></button>
+                        <button id="setting-specialEffects" class="menu-button-setting"></button>
+                    </div>
                 </div>
             </div>
             <div class="mt-8 text-center">

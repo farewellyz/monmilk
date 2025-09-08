@@ -34,9 +34,15 @@ const restartButton = document.getElementById('restartButton');
 const pauseWeaponIconsContainer = document.getElementById('pauseWeaponIcons');
 const pausePassiveIconsContainer = document.getElementById('pausePassiveIcons');
 const coinsEarnedText = document.getElementById('coinsEarned');
+
+// Settings Buttons
 const controlDragBtn = document.getElementById('controlDrag');
 const controlJoystickBtn = document.getElementById('controlJoystick');
-const lowModeToggleBtn = document.getElementById('lowModeToggle');
+const settingDamageNumbersBtn = document.getElementById('setting-damageNumbers');
+const settingMergeXpBtn = document.getElementById('setting-mergeXp');
+const settingLowQualityEnemiesBtn = document.getElementById('setting-lowQualityEnemies');
+const settingSpecialEffectsBtn = document.getElementById('setting-specialEffects');
+
 const joystickContainer = document.getElementById('joystick-container');
 const joystickBase = document.getElementById('joystick-base');
 const joystickKnob = document.getElementById('joystick-knob');
@@ -64,9 +70,16 @@ let nextBossTime = 300; // 5 minutes
 const RENDER_SCALE = 0.75; // Zoom out factor
 let guideReturnState = 'menu';
 let isBonusGame = false;
-let controlMode = 'drag'; // 'drag' or 'joystick'
-let lowMode = false;
 let pendingLevelUps = 0;
+
+// Settings object
+let settings = {
+    controlMode: 'drag',
+    showDamageNumbers: true,
+    mergeXp: false,
+    lowQualityEnemies: false,
+    specialEffects: true
+};
 
 // --- Player ---
 const player = {
@@ -83,7 +96,7 @@ const player = {
         pickupRadius: 100 * RENDER_SCALE,
         xpGainModifier: 1.0,
         revives: 0,
-        lifestealChance: 0
+        lifestealOnKillChance: 0
     }
 };
 
@@ -112,19 +125,19 @@ const PASSIVES_MASTER_LIST = {
     magnet: { name: "แม่เหล็ก", icon: "🧲", description: "เพิ่มระยะการดูดไอเทมและ EXP", maxLevel: 5, apply: (p, level) => { p.stats.pickupRadius = (100 * RENDER_SCALE) * (1 + 0.25 * level); } },
     crown: { name: "มงกุฎ", icon: "👑", description: "เพิ่ม EXP ที่ได้รับ", maxLevel: 5, apply: (p, level) => { p.stats.xpGainModifier = 1 + (0.1 * level); } },
     tiragisu: { name: "ทีรามิสุ", icon: "🍰", description: "ให้การฟื้นคืนชีพเมื่อตาย", maxLevel: 2, apply: (p, level) => { p.stats.revives = level; } },
-    vampire: { name: "แวมไพร์", icon: "🧛", description: "มีโอกาสดูดเลือดเมื่อโจมตี", maxLevel: 5, apply: (p, level) => { p.stats.lifestealChance = 0.1 + (0.025 * (level - 1)); } }
+    vampire: { name: "แวมไพร์", icon: "🧛", description: "มีโอกาสดูดเลือดเมื่อกำจัดศัตรู", maxLevel: 5, apply: (p, level) => { p.stats.lifestealOnKillChance = 0.02 * level; } }
 };
 const EVOLUTIONS = {
-    supercharge_beam: { name: "ลำแสงซูเปอร์ชาร์จ", icon: "💥", baseWeaponId: 'laser', passiveId: 'spinach', evolvedWeapon: { name: "ลำแสงซูเปอร์ชาร์จ", type: 'evo_rotating_lasers', damage: 40, count: 8, range: 2000, duration: 2000, cooldown: 5000, lastAttackTime: 0, attackStartTime: null, projectiles: [], lastHit: new Map(), isEvolved: true } },
-    thunder_loop: { name: "วงแหวนอัสนี", icon: "🌀", baseWeaponId: 'lightning', passiveId: 'wings', evolvedWeapon: { name: "วงแหวนอัสนี", type: 'evo_orbital_ring', damage: 25, range: 180 * RENDER_SCALE, cooldown: 250, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true } },
-    death_spiral: { name: "เกลียวมรณะ", icon: "💀", baseWeaponId: 'axe', passiveId: 'candelabrador', evolvedWeapon: { name: "เกลียวมรณะ", type: 'evo_spiral', damage: 60, count: 8, speed: 6 * RENDER_SCALE, cooldown: 2500, lastAttackTime: 0, projectiles: [], isEvolved: true, size: 36 * RENDER_SCALE } },
-    soul_eater: { name: "เครื่องดูดวิญญาณ", icon: "👻", baseWeaponId: 'garlic', passiveId: 'armor', evolvedWeapon: { name: "เครื่องดูดวิญญาณ", type: 'aura', damage: 15, range: 150 * RENDER_SCALE, cooldown: 300, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true, lifestealOnKillChance: 0.25 } },
-    thousand_edge: { name: "พันศาสตรา", icon: "🗡️", baseWeaponId: 'missile', passiveId: 'tome', evolvedWeapon: { name: "พันศาสตรา", type: 'homing', damage: 50, count: 5, speed: 8 * RENDER_SCALE, cooldown: 5000, lastAttackTime: 0, projectiles: [], isEvolved: true, pierce: 10 } },
-    demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 50, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
-    cosmic_annihilator: { name: "จักรวาลสังหาร", icon: "🌌", baseWeaponId: 'chakram', passiveId: 'vampire', evolvedWeapon: { name: "จักรวาลสังหาร", type: 'bouncing', damage: 60, count: 10, speed: 8 * RENDER_SCALE, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
-    la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 10, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
+    supercharge_beam: { name: "ลำแสงซูเปอร์ชาร์จ", icon: "💥", baseWeaponId: 'laser', passiveId: 'spinach', evolvedWeapon: { name: "ลำแสงซูเปอร์ชาร์จ", type: 'evo_rotating_lasers', damage: 45, count: 8, range: 2000, duration: 2000, cooldown: 5000, lastAttackTime: 0, attackStartTime: null, projectiles: [], lastHit: new Map(), isEvolved: true } },
+    thunder_loop: { name: "วงแหวนอัสนี", icon: "🌀", baseWeaponId: 'lightning', passiveId: 'wings', evolvedWeapon: { name: "วงแหวนอัสนี", type: 'evo_orbital_ring', damage: 30, range: 180 * RENDER_SCALE, cooldown: 250, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true } },
+    death_spiral: { name: "เกลียวมรณะ", icon: "💀", baseWeaponId: 'axe', passiveId: 'candelabrador', evolvedWeapon: { name: "เกลียวมรณะ", type: 'evo_spiral', damage: 65, count: 8, speed: 6 * RENDER_SCALE, cooldown: 2500, lastAttackTime: 0, projectiles: [], isEvolved: true, size: 36 * RENDER_SCALE } },
+    soul_eater: { name: "เครื่องดูดวิญญาณ", icon: "👻", baseWeaponId: 'garlic', passiveId: 'armor', evolvedWeapon: { name: "เครื่องดูดวิญญาณ", type: 'aura', damage: 20, range: 150 * RENDER_SCALE, cooldown: 300, lastAttackTime: 0, lastHit: new Map(), projectiles: [], isEvolved: true, lifestealOnKillChance: 0.25 } },
+    thousand_edge: { name: "พันศาสตรา", icon: "🗡️", baseWeaponId: 'missile', passiveId: 'tome', evolvedWeapon: { name: "พันศาสตรา", type: 'homing', damage: 55, count: 5, speed: 8 * RENDER_SCALE, cooldown: 5000, lastAttackTime: 0, projectiles: [], isEvolved: true, pierce: 10 } },
+    demonic_orbit: { name: "วงโคจรดาบปีศาจ", icon: "🔥", baseWeaponId: 'sword', passiveId: 'magnet', evolvedWeapon: { name: "วงโคจรดาบปีศาจ", type: 'orbital', damage: 60, count: 10, speed: 0.05, range: 120 * RENDER_SCALE, angle: 0, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
+    cosmic_annihilator: { name: "จักรวาลสังหาร", icon: "🌌", baseWeaponId: 'chakram', passiveId: 'vampire', evolvedWeapon: { name: "จักรวาลสังหาร", type: 'bouncing', damage: 70, count: 10, speed: 8 * RENDER_SCALE, projectiles: [], isEvolved: true, size: 25 * RENDER_SCALE } },
+    la_borra: { name: "La Borra", icon: "💦", baseWeaponId: 'santa_water', passiveId: 'magnet', evolvedWeapon: { name: "La Borra", type: 'evo_growing_pools', damage: 15, count: 3, duration: 6000, cooldown: 1500, lastAttackTime: 0, projectiles: [], isEvolved: true } },
     gorgeous_moon: { name: "Gorgeous Moon", icon: "🌕", baseWeaponId: 'pentagram', passiveId: 'crown', evolvedWeapon: { name: "Gorgeous Moon", type: 'evo_xp_clear', damage: 9999, cooldown: 45000, lastAttackTime: 0, projectiles: [], isEvolved: true } },
-    phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 30, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0, size: 12 * RENDER_SCALE } },
+    phieraggi: { name: "Phieraggi", icon: "💫", baseWeaponId: ['gun_one', 'gun_two'], passiveId: 'tiragisu', evolvedWeapon: { name: "Phieraggi", type: 'evo_rotating_beams', damage: 40, cooldown: 50, lastAttackTime: 0, projectiles: [], isEvolved: true, angle: 0, size: 12 * RENDER_SCALE } },
     infinite_corridor: { name: "Infinite Corridor", icon: "⏳", baseWeaponId: 'clock_lancet', passiveId: 'tome', evolvedWeapon: { name: "Infinite Corridor", type: 'freeze_beam', damage: 0, cooldown: 5000, lastAttackTime: 0, duration: 2500, projectiles: [], isEvolved: true, count: 12, width: 10 * RENDER_SCALE } },
     crimson_shroud: { name: "Crimson Shroud", icon: "❤️‍🩹", baseWeaponId: 'laurel', passiveId: 'armor', evolvedWeapon: { name: "Crimson Shroud", type: 'evo_damage_cap', isEvolved: true, damageCap: 10, retaliateDamage: 10, charges: 1, active: false, cooldown: 5000 } }
 };
@@ -468,7 +481,7 @@ function getUpgradeOptions() {
         const availableNewWeapons = Object.keys(WEAPONS_MASTER_LIST).filter(id => !takenBaseWeaponIds.has(id));
         availableNewWeapons.forEach(newId => {
             const master = WEAPONS_MASTER_LIST[newId];
-            upgrades.push({ id: `new_${newId}`, icon: master.icon, name: `รับอาวุธ: ${master.name}`, description: 'เพิ่มอาวุธใหม่', apply: () => { const inst = JSON.parse(JSON.stringify(WEAPONS_MASTER_LIST[newId])); inst.id = newId; inst.level = 1; if(inst.type==='aura' || inst.type === 'sword_orbital') inst.lastHit=new Map(); weapons.push(inst); } });
+            upgrades.push({ id: `new_${newId}`, icon: master.icon, name: `รับอาวุธ: ${master.name}`, description: 'เพิ่มอาวุธใหม่', apply: () => { const inst = JSON.parse(JSON.stringify(WEAPONS_MASTER_LIST[newId])); inst.id = newId; inst.level = 1; if(inst.type==='aura' || inst.type === 'sword_orbital' || inst.type === 'bouncing') inst.lastHit=new Map(); weapons.push(inst); } });
         });
     }
 
@@ -579,7 +592,7 @@ function handleControlStart(e) {
 
     const touch = e.touches ? e.touches[0] : null;
 
-    if (controlMode === 'joystick' && touch) {
+    if (settings.controlMode === 'joystick' && touch) {
         // We only start a "potential" joystick. It becomes active only on move.
         if (!joystick.active && !joystick.potential) {
             e.preventDefault();
@@ -588,7 +601,7 @@ function handleControlStart(e) {
             joystick.startX = touch.clientX;
             joystick.startY = touch.clientY;
         }
-    } else if (controlMode === 'drag') {
+    } else if (settings.controlMode === 'drag') {
         isPointerDown = true;
         const pos = touch || e;
         pointerPos.x = pos.clientX;
@@ -599,7 +612,7 @@ function handleControlStart(e) {
 function handleControlMove(e) {
     if (gameState !== 'playing') return;
 
-    if (controlMode === 'joystick') {
+    if (settings.controlMode === 'joystick') {
         const touch = e.touches ? Array.from(e.touches).find(t => t.identifier === joystick.touchId) : null;
         if (!touch) return; // This move event is not for our joystick touch
         e.preventDefault();
@@ -639,7 +652,7 @@ function handleControlMove(e) {
             joystick.dx = dx / maxDist;
             joystick.dy = dy / maxDist;
         }
-    } else if (controlMode === 'drag' && isPointerDown) {
+    } else if (settings.controlMode === 'drag' && isPointerDown) {
         const pos = e.touches ? e.touches[0] : e;
         if (pos) {
             pointerPos.x = pos.clientX;
@@ -655,11 +668,11 @@ function handleControlEnd(e) {
 
     if (e.changedTouches) { // Touch event
         // Check if the ended touch was the one used for the joystick
-        if (controlMode === 'joystick' && Array.from(e.changedTouches).some(t => t.identifier === joystick.touchId)) {
+        if (settings.controlMode === 'joystick' && Array.from(e.changedTouches).some(t => t.identifier === joystick.touchId)) {
             touchEnded = true;
         }
         // For drag mode, any touch ending stops the drag
-        else if (controlMode === 'drag') {
+        else if (settings.controlMode === 'drag') {
             touchEnded = true;
         }
     } else { // Mouse event
@@ -668,7 +681,7 @@ function handleControlEnd(e) {
 
     if (touchEnded) {
         // Reset Joystick state if it was active
-        if (controlMode === 'joystick' && (joystick.active || joystick.potential)) {
+        if (settings.controlMode === 'joystick' && (joystick.active || joystick.potential)) {
             joystick.active = false;
             joystick.potential = false;
             joystick.dx = 0;
@@ -679,7 +692,7 @@ function handleControlEnd(e) {
         }
 
         // Reset Drag state if it was active
-        if (controlMode === 'drag') {
+        if (settings.controlMode === 'drag') {
             isPointerDown = false;
         }
 
@@ -704,10 +717,10 @@ function updatePlayer() {
     if (keys['KeyD'] || keys['ArrowRight']) dx = 1;
     
     // Touch controls based on mode
-    if (controlMode === 'drag' && isPointerDown) {
+    if (settings.controlMode === 'drag' && isPointerDown) {
         dx = pointerPos.x - player.x;
         dy = pointerPos.y - player.y;
-    } else if (controlMode === 'joystick' && joystick.active) {
+    } else if (settings.controlMode === 'joystick' && joystick.active) {
         dx = joystick.dx;
         dy = joystick.dy;
     }
@@ -753,6 +766,15 @@ function spawnWatcher() {
     enemies.push({ id: `r-${Date.now()}`, type: 'watcher', x, y, radius: 15 * RENDER_SCALE, hp: hp, maxHp: hp, speed: speed, color: '#805ad5', xpValue: 5 + Math.floor(gameTime / 60), cooldown: 3000, lastAttackTime: Date.now() + Math.random() * 1000 });
 }
 
+function spawnBee() {
+    const side = Math.floor(Math.random() * 4); let x, y;
+    if (side === 0) { x = Math.random() * canvas.width; y = -20; } else if (side === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; } else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; } else { x = -20; y = Math.random() * canvas.height; }
+    const hp = 25 * difficultyManager.enemyHpMultiplier; // Less than slime
+    const speed = 1.8 * difficultyManager.enemySpeedMultiplier * RENDER_SCALE;
+    enemies.push({ id: `bee-${Date.now()}-${Math.random()}`, type: 'bee', x, y, radius: 14 * RENDER_SCALE, hp: hp, maxHp: hp, speed: speed, color: '#facc15', xpValue: 15 + Math.floor(gameTime / 60), state: 'seeking', chargeTime: 0, chargeDuration: 700, dashSpeed: 12 * RENDER_SCALE });
+}
+
+
 function spawnEnemy() {
     const side = Math.floor(Math.random() * 4); let x, y;
     if (side === 0) { x = Math.random() * canvas.width; y = -20; } else if (side === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; } else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; } else { x = -20; y = Math.random() * canvas.height; }
@@ -785,7 +807,19 @@ function spawnBoss() {
     if (side === 0) { x = Math.random() * canvas.width; y = -50; } else if (side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; } else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; } else { x = -50; y = Math.random() * canvas.height; }
     const bossLevel = Math.floor(gameTime / 300) + 1;
     const hp = 500 * bossLevel * difficultyManager.enemyHpMultiplier;
-    enemies.push({ id: `b-${Date.now()}`, type: 'boss', x, y, radius: 40 * RENDER_SCALE, hp: hp, maxHp: hp, speed: 1.5 * difficultyManager.enemySpeedMultiplier * RENDER_SCALE, color: '#44337a', xpValue: 100, isBoss: true, level: bossLevel });
+    const speed = 1.5 * difficultyManager.enemySpeedMultiplier * RENDER_SCALE;
+    
+    // Define boss appearances
+    const bossLooks = [
+        { color: '#44337a', size: 40 * RENDER_SCALE }, // Wave 1 (5 mins)
+        { color: '#7b341e', size: 45 * RENDER_SCALE }, // Wave 2 (10 mins)
+        { color: '#064e3b', size: 50 * RENDER_SCALE }, // Wave 3 (15 mins)
+        { color: '#b91c1c', size: 55 * RENDER_SCALE }, // Wave 4 (20 mins)
+        { color: '#4a044e', size: 60 * RENDER_SCALE }, // Wave 5+
+    ];
+    const look = bossLooks[Math.min(bossLevel - 1, bossLooks.length - 1)];
+
+    enemies.push({ id: `b-${Date.now()}`, type: 'boss', x, y, radius: look.size, hp: hp, maxHp: hp, speed: speed, color: look.color, xpValue: 100, isBoss: true, level: bossLevel });
 }
 
 function updateEnemies() {
@@ -796,8 +830,40 @@ function updateEnemies() {
 
         const dx = player.x - enemy.x; const dy = player.y - enemy.y; const dist = Math.hypot(dx, dy);
         
-        // Watcher enemy behavior
-        if (enemy.type === 'watcher' && dist < 400 * RENDER_SCALE) {
+        // Bee enemy logic
+        if (enemy.type === 'bee') {
+            if (enemy.state === 'seeking' && dist < 250 * RENDER_SCALE) {
+                enemy.state = 'charging';
+                enemy.chargeTime = Date.now();
+                enemy.chargeTargetX = player.x;
+                enemy.chargeTargetY = player.y;
+            } else if (enemy.state === 'charging') {
+                if (Date.now() - enemy.chargeTime > enemy.chargeDuration) {
+                    enemy.state = 'dashing';
+                    const dashDx = enemy.chargeTargetX - enemy.x;
+                    const dashDy = enemy.chargeTargetY - enemy.y;
+                    const dashDist = Math.hypot(dashDx, dashDy);
+                    if (dashDist > 0) {
+                        enemy.vx = (dashDx / dashDist) * enemy.dashSpeed;
+                        enemy.vy = (dashDy / dashDist) * enemy.dashSpeed;
+                    } else { // Failsafe if player hasn't moved
+                        enemy.vx = 0;
+                        enemy.vy = -enemy.dashSpeed;
+                    }
+                }
+            } else if (enemy.state === 'dashing') {
+                enemy.x += enemy.vx;
+                enemy.y += enemy.vy;
+                // If offscreen, remove or reset
+                if (enemy.x < -50 || enemy.x > canvasWidth + 50 || enemy.y < -50 || enemy.y > canvasHeight + 50) {
+                    enemy.state = 'seeking'; 
+                }
+            } else { // seeking
+                 if (dist > 0) { enemy.x += (dx / dist) * enemy.speed; enemy.y += (dy / dist) * enemy.speed; }
+            }
+        }
+        // Other enemies
+        else if (enemy.type === 'watcher' && dist < 400 * RENDER_SCALE) {
              if (Date.now() - enemy.lastAttackTime > enemy.cooldown) {
                 enemy.lastAttackTime = Date.now();
                 monsterProjectiles.push({ x: enemy.x, y: enemy.y, vx: (dx / dist) * 4 * RENDER_SCALE, vy: (dy / dist) * 4 * RENDER_SCALE, radius: 5 * RENDER_SCALE, spawnTime: Date.now() });
@@ -809,25 +875,19 @@ function updateEnemies() {
         // --- Refactored Collision and Damage Logic ---
         if (dist < player.radius + enemy.radius) { // A collision is detected
             if (player.isInvincible) {
-                // If player is already invincible from a previous hit in the same frame or a recent one, do nothing.
-                return; // Skips to the next enemy in the forEach loop.
+                return; 
             }
 
-            // If not invincible, a "hit event" occurs. Let's process it.
             const shield = weapons.find(w => w.id === 'laurel' || w.id === 'crimson_shroud');
             let damageWasBlocked = false;
 
-            // Step 1: Check if the shield can block the hit.
             if (shield && !shield.active && shield.charges > 0) {
                 damageWasBlocked = true;
                 shield.charges--;
-                shield.active = true; // Put shield on cooldown
-                
-                // BUG FIX: Instead of setTimeout, use a timestamp
+                shield.active = true;
                 shield.cooldownEndTime = Date.now() + (shield.cooldown * player.stats.cooldownModifier);
 
                 if (shield.id === 'crimson_shroud') {
-                    // Retaliate with damage
                     enemies.forEach(e => {
                         if (Math.hypot(player.x - e.x, player.y - e.y) < 200 * RENDER_SCALE) {
                             e.hp -= shield.retaliateDamage;
@@ -837,11 +897,13 @@ function updateEnemies() {
                 }
             }
 
-            // Step 2: If the shield did not block, apply damage.
             if (!damageWasBlocked) {
-                let damageTaken = (enemy.isBoss ? 25 : (enemy.isHealthDropper ? 15 : (enemy.type === 'tank' ? 20 : 10)));
-                
-                // Apply Crimson Shroud's damage cap if it exists (even when on cooldown)
+                let damageTaken = 10; // Default
+                if (enemy.isBoss) damageTaken = 25;
+                else if (enemy.isHealthDropper) damageTaken = 15;
+                else if (enemy.type === 'tank') damageTaken = 20;
+                else if (enemy.type === 'bee') damageTaken = 25;
+
                 if (shield && shield.id === 'crimson_shroud') {
                     damageTaken = Math.min(damageTaken, shield.damageCap);
                 }
@@ -851,12 +913,9 @@ function updateEnemies() {
                 setTimeout(() => uiContainer.classList.remove('screen-shake'), 300);
             }
             
-            // Step 3: ANY hit, whether blocked or not, grants invincibility frames.
-            // This is the key to preventing multi-hits in the same frame.
             player.isInvincible = true;
             player.lastHitTime = Date.now();
 
-            // Step 4: Check for game over only after all calculations for this hit are done.
             if (player.hp <= 0) {
                 gameOver();
             }
@@ -1220,7 +1279,6 @@ function updateWeapons() {
                          const dist = Math.hypot(puddle.x - enemy.x, puddle.y - enemy.y);
                          if (dist < puddle.radius + enemy.radius && (!puddle.lastHit.has(enemy.id) || Date.now() - puddle.lastHit.get(enemy.id) > cooldown)) {
                             puddle.lastHit.set(enemy.id, Date.now()); enemy.hp -= damage; createDamageNumber(enemy.x, enemy.y, damage);
-                            if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         }
                     });
                      if (w.duration && Date.now() - puddle.spawnTime > w.duration) {
@@ -1267,7 +1325,6 @@ function updateWeapons() {
                         p.lastHit.set(enemy.id, Date.now());
                         enemy.hp -= damage;
                         createDamageNumber(enemy.x, enemy.y, damage);
-                        if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         
                         if (p.pierceLeft !== undefined) {
                             if (p.pierceLeft > 1) {
@@ -1296,7 +1353,6 @@ function updateWeapons() {
                         p.lastHit.set(enemy.id, Date.now());
                         enemy.hp -= damage;
                         createDamageNumber(enemy.x, enemy.y, damage);
-                         if (player.stats.lifestealChance > 0 && Math.random() < player.stats.lifestealChance) { player.hp = Math.min(player.maxHp, player.hp + 1); }
                         
                         if (p.pierceLeft > 1) {
                             p.pierceLeft--;
@@ -1316,6 +1372,11 @@ function updateWeapons() {
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             if (enemy.hp <= 0) {
+
+                if (player.stats.lifestealOnKillChance > 0 && Math.random() < player.stats.lifestealOnKillChance) {
+                    player.hp = Math.min(player.maxHp, player.hp + 1);
+                }
+
                 // Handle guaranteed drops first
                 if (enemy.isHealthDropper) {
                     pickups.push({type: 'health', x: enemy.x, y: enemy.y, radius: 10 * RENDER_SCALE});
@@ -1337,15 +1398,10 @@ function updateWeapons() {
 
                 // Handle random/default drops for non-special enemies
                 if (!enemy.isHealthDropper && !enemy.isBoss) {
-                    const soulEater = weapons.find(w => w.id === 'soul_eater');
-                    if(soulEater && Math.hypot(player.x - enemy.x, player.y - enemy.y) < soulEater.range && soulEater.lifestealOnKillChance && Math.random() < soulEater.lifestealOnKillChance) {
-                        player.hp = Math.min(player.maxHp, player.hp + 1);
-                    }
-                    
                     if (Math.random() < 0.005) { // 0.5% chance for magnet
                          pickups.push({type: 'magnet', x: enemy.x, y: enemy.y, radius: 12 * RENDER_SCALE});
                     } else { // 99.5% chance for XP gem
-                        if (lowMode) {
+                        if (settings.mergeXp) {
                             const MERGE_RADIUS = 70 * RENDER_SCALE;
                             let merged = false;
                             for (const gem of xpGems) {
@@ -1371,7 +1427,7 @@ function updateWeapons() {
     }
     
     function createDamageNumber(x, y, amount) { 
-        if (lowMode) return;
+        if (!settings.showDamageNumbers) return;
         const el = document.createElement('div'); 
         el.className = 'damage-number'; 
         el.textContent = Math.round(amount); 
@@ -1479,7 +1535,7 @@ function updateWeapons() {
         ctx.closePath();
         
         ctx.fill();
-        if(!lowMode) ctx.stroke();
+        if(!settings.specialEffects) ctx.stroke();
         
         ctx.beginPath();
         ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
@@ -1493,7 +1549,7 @@ function updateWeapons() {
         ctx.save();
         ctx.translate(p.x, p.y);
         // Shadow
-        if (!lowMode) {
+        if (settings.specialEffects) {
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
             ctx.ellipse(0, p.radius, p.radius, p.radius * 0.5, 0, 0, Math.PI * 2);
@@ -1523,7 +1579,7 @@ function updateWeapons() {
         
         // Shield Visual
         const shield = weapons.find(w => w.id === 'laurel' || w.id === 'crimson_shroud');
-        if (shield && !lowMode) {
+        if (shield && settings.specialEffects) {
             const largeRadius = p.radius + 20 * RENDER_SCALE; // Larger radius
             const smallerRadius = p.radius + 18 * RENDER_SCALE; // Slightly smaller for pulsing
             if (shield.active) { // When it just blocked a hit
@@ -1556,7 +1612,7 @@ function updateWeapons() {
     function drawEnemy(e) {
         ctx.save();
         ctx.translate(e.x, e.y);
-        if (!lowMode) {
+        if (settings.specialEffects) {
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.beginPath();
             ctx.ellipse(0, e.radius, e.radius * 0.9, e.radius * 0.4, 0, 0, Math.PI * 2);
@@ -1570,7 +1626,7 @@ function updateWeapons() {
         }
 
         if (e.type === 'tank') {
-            const bodyWobble = Math.sin(Date.now() / 200) * (e.radius * 0.05);
+            const bodyWobble = settings.lowQualityEnemies ? 0 : Math.sin(Date.now() / 200) * (e.radius * 0.05);
             ctx.fillStyle = e.color;
             ctx.beginPath();
             ctx.ellipse(0, 0, e.radius + bodyWobble, e.radius - bodyWobble, 0, 0, Math.PI * 2);
@@ -1580,7 +1636,7 @@ function updateWeapons() {
             ctx.ellipse(-e.radius * 0.3, -e.radius * 0.3, e.radius * 0.3, e.radius * 0.2, -Math.PI / 4, 0, Math.PI * 2);
             ctx.fill();
         } else if (e.type === 'ghost') {
-            const bob = Math.sin(Date.now() / 150) * (e.radius * 0.1);
+            const bob = settings.lowQualityEnemies ? 0 : Math.sin(Date.now() / 150) * (e.radius * 0.1);
             ctx.fillStyle = e.color;
             ctx.globalAlpha = 0.85;
             ctx.beginPath();
@@ -1598,13 +1654,55 @@ function updateWeapons() {
             ctx.lineTo(e.radius, bob);
             ctx.fill();
             ctx.globalAlpha = 1;
-        } else { // Bat / Watcher
-            const wingFlap = Math.sin(Date.now() / 100) * (e.radius * 0.3);
+        } else if (e.type === 'bee') {
+             const wingFlap = Math.abs(Math.sin(Date.now() / 50)) * 5;
+             ctx.fillStyle = '#2d3748'; // wing color
+             ctx.beginPath();
+             ctx.ellipse(-e.radius * 0.7, -e.radius * 0.5 + wingFlap, e.radius * 0.4, e.radius * 0.8, -Math.PI / 4, 0, Math.PI * 2);
+             ctx.ellipse(e.radius * 0.7, -e.radius * 0.5 + wingFlap, e.radius * 0.4, e.radius * 0.8, Math.PI / 4, 0, Math.PI * 2);
+             ctx.fill();
+
+             ctx.fillStyle = e.color;
+             ctx.beginPath();
+             ctx.ellipse(0,0, e.radius, e.radius * 0.8, 0, 0, Math.PI * 2);
+             ctx.fill();
+
+             if (e.state === 'charging') {
+                 const chargeProgress = (Date.now() - e.chargeTime) / e.chargeDuration;
+                 ctx.save();
+                 ctx.translate(0, e.radius);
+                 ctx.fillStyle = `rgba(255, 100, 100, ${0.5 + chargeProgress * 0.5})`;
+                 const drillSize = e.radius * chargeProgress;
+                 ctx.beginPath();
+                 ctx.moveTo(0, 0);
+                 ctx.lineTo(-drillSize/2, drillSize);
+                 ctx.lineTo(drillSize/2, drillSize);
+                 ctx.closePath();
+                 ctx.fill();
+                 if (!settings.lowQualityEnemies) {
+                     ctx.rotate(Date.now()/50);
+                     ctx.strokeStyle = 'white';
+                     ctx.lineWidth = 2;
+                     ctx.stroke();
+                 }
+                 ctx.restore();
+             } else if (e.state === 'dashing') {
+                 // Dashing trail
+                 ctx.fillStyle = `rgba(255, 255, 0, 0.5)`;
+                 ctx.beginPath();
+                 ctx.moveTo(0,0);
+                 ctx.lineTo(-e.vx * 2, -e.vy * 2);
+                 ctx.lineTo(0,0);
+                 ctx.stroke();
+             }
+
+        } else { // Bat / Watcher / Boss
+            const wingFlap = settings.lowQualityEnemies ? 0 : Math.sin(Date.now() / 100) * (e.radius * 0.3);
             ctx.fillStyle = e.color;
             ctx.beginPath();
             ctx.ellipse(0, 0, e.radius * 0.7, e.radius, 0, 0, Math.PI * 2); // Body
             ctx.fill();
-            if (e.type !== 'watcher' && !lowMode) { // Wings for bats
+            if (e.type !== 'watcher' && e.type !== 'boss' && !settings.lowQualityEnemies) { // Wings for bats
                 ctx.beginPath();
                 ctx.moveTo(0, -e.radius * 0.5);
                 ctx.quadraticCurveTo(-e.radius * 1.5, -e.radius * 0.5 + wingFlap, -e.radius * 0.8, e.radius * 0.5);
@@ -1620,7 +1718,7 @@ function updateWeapons() {
         let eyeColor = e.isHealthDropper ? '#ef4444' : 'white';
         if (e.type === 'watcher') eyeColor = '#ECC94B';
         if (e.type === 'tank') eyeColor = 'black';
-        if (e.type !== 'ghost') {
+        if (e.type !== 'ghost' && e.type !== 'bee') {
             ctx.fillStyle = eyeColor;
             ctx.beginPath();
             const eyeRadius = e.type === 'watcher' ? e.radius * 0.4 : 2 * RENDER_SCALE;
@@ -1653,7 +1751,7 @@ function updateWeapons() {
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.fillStyle = '#f56565';
-            if (!lowMode) {
+            if (settings.specialEffects) {
                 ctx.shadowColor = '#c53030';
                 ctx.shadowBlur = 8 * RENDER_SCALE;
             }
@@ -1676,7 +1774,7 @@ function updateWeapons() {
                      const life = (Date.now() - puddle.spawnTime) / w.duration;
                      const currentRadius = w.id === 'la_borra' ? puddle.radius * Math.sin(life * Math.PI) : puddle.radius; // Growing/shrinking for evo
                      if (currentRadius > 0) {
-                         if (lowMode) {
+                         if (!settings.specialEffects) {
                             ctx.fillStyle = 'rgba(135, 206, 250, 0.4)';
                          } else {
                             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
@@ -1703,14 +1801,14 @@ function updateWeapons() {
                 if (w.id === 'thunder_loop') {
                     ctx.strokeStyle = `rgba(251, 211, 141, ${0.7 + Math.sin(Date.now() / 150) * 0.3})`;
                     ctx.lineWidth = 5 * RENDER_SCALE;
-                    if (!lowMode) {
+                    if (settings.specialEffects) {
                         ctx.shadowColor = 'white';
                         ctx.shadowBlur = 15 * RENDER_SCALE;
                     }
                     ctx.beginPath();
                     ctx.arc(0, 0, w.range, 0, Math.PI * 2);
                     ctx.stroke();
-                     if (Math.random() > 0.5 && !lowMode) { // To make it flicker
+                     if (Math.random() > 0.5 && settings.specialEffects) { // To make it flicker
                         ctx.save();
                         ctx.lineWidth = 2 * RENDER_SCALE;
                         ctx.shadowColor = 'white';
@@ -1733,7 +1831,7 @@ function updateWeapons() {
                         ctx.restore();
                     }
                 } else {
-                    if (lowMode) {
+                    if (!settings.specialEffects) {
                         ctx.fillStyle = w.id === 'soul_eater' ? 'rgba(147, 51, 234, 0.4)' : 'rgba(253, 224, 71, 0.3)';
                     } else {
                         const gradient = ctx.createRadialGradient(0, 0, Math.max(0, w.range * 0.7), 0, 0, Math.max(1, w.range));
@@ -1764,7 +1862,7 @@ function updateWeapons() {
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 1 * RENDER_SCALE;
 
-            if (!lowMode && g.value >= 50) {
+            if (settings.specialEffects && g.value >= 50) {
                 ctx.shadowColor = color;
                 ctx.shadowBlur = g.value >= 500 ? 20 : (g.value >= 100 ? 15 : 8);
             }
@@ -1777,7 +1875,7 @@ function updateWeapons() {
             ctx.lineTo(-g.radius, 0);
             ctx.closePath();
             ctx.fill();
-            if (!lowMode && g.value >= 20) {
+            if (settings.specialEffects && g.value >= 20) {
                 ctx.stroke();
             }
             ctx.restore(); 
@@ -1788,7 +1886,7 @@ function updateWeapons() {
             if (p.type === 'health') { 
                 ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -3*RENDER_SCALE); ctx.bezierCurveTo(0, -7*RENDER_SCALE, -6*RENDER_SCALE, -7*RENDER_SCALE, -6*RENDER_SCALE, 0); ctx.bezierCurveTo(-6*RENDER_SCALE, 5*RENDER_SCALE, 0, 9*RENDER_SCALE, 0, 12*RENDER_SCALE); ctx.bezierCurveTo(0, 9*RENDER_SCALE, 6*RENDER_SCALE, 5*RENDER_SCALE, 6*RENDER_SCALE, 0); ctx.bezierCurveTo(6*RENDER_SCALE, -7*RENDER_SCALE, 0, -7*RENDER_SCALE, 0, -3*RENDER_SCALE); ctx.fill(); 
             } else if (p.type === 'magnet') {
-                 if (!lowMode) {
+                 if (settings.specialEffects) {
                     ctx.shadowColor = '#fef08a';
                     ctx.shadowBlur = 20 + Math.sin(Date.now() / 150) * 5;
                 }
@@ -1798,7 +1896,7 @@ function updateWeapons() {
                 ctx.font = `bold ${p.radius * 2}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                if (!lowMode) {
+                if (settings.specialEffects) {
                     ctx.shadowColor = '#f59e0b';
                     ctx.shadowBlur = 15;
                 }
@@ -1817,7 +1915,7 @@ function updateWeapons() {
                  if (w.type === 'orbital') {
                     if (w.id === 'lightning') {
                         ctx.save();
-                        if (!lowMode) {
+                        if (settings.specialEffects) {
                             ctx.shadowColor = '#90cdf4';
                             ctx.shadowBlur = 15 * RENDER_SCALE;
                         }
@@ -1825,7 +1923,7 @@ function updateWeapons() {
                         gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
                         gradient.addColorStop(0.5, 'rgba(191, 219, 254, 1)');
                         gradient.addColorStop(1, 'rgba(96, 165, 250, 0.5)');
-                        ctx.fillStyle = lowMode ? 'rgba(191, 219, 254, 1)' : gradient;
+                        ctx.fillStyle = !settings.specialEffects ? 'rgba(191, 219, 254, 1)' : gradient;
                         ctx.beginPath();
                         ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
                         ctx.fill();
@@ -1833,7 +1931,7 @@ function updateWeapons() {
                     } else if (w.id === 'demonic_orbit') {
                         const angle = Math.atan2(p.y - player.y, p.x - player.x) + Math.PI / 2;
                         ctx.rotate(angle);
-                        if (!lowMode) {
+                        if (settings.specialEffects) {
                             ctx.shadowColor = 'red';
                             ctx.shadowBlur = 15;
                         }
@@ -1842,7 +1940,7 @@ function updateWeapons() {
                 } else if (w.type === 'arc' || w.type === 'evo_spiral') {
                     ctx.rotate(p.angle);
                     if (w.id === 'death_spiral') {
-                        if (!lowMode) {
+                        if (settings.specialEffects) {
                             ctx.shadowColor = 'red';
                             ctx.shadowBlur = 10;
                         }
@@ -1854,7 +1952,7 @@ function updateWeapons() {
                     const angle = p.target && p.target.hp > 0 ? Math.atan2(p.target.y - p.y, p.target.x - p.x) : Math.PI * 1.5;
                     ctx.rotate(angle + Math.PI / 2);
                     ctx.fillStyle = w.id === 'thousand_edge' ? '#93c5fd' : '#FFFF00';
-                    if (!lowMode) {
+                    if (settings.specialEffects) {
                         ctx.shadowColor = w.id === 'thousand_edge' ? 'white' : 'yellow';
                         ctx.shadowBlur = 10; 
                     }
@@ -1866,7 +1964,7 @@ function updateWeapons() {
                 } else if (w.type === 'directional' || w.type === 'evo_rotating_beams') {
                     const color = w.id === 'phieraggi' ? `hsl(${Date.now()/10 % 360}, 100%, 70%)` : (w.id === 'gun_one' ? '#63b3ed' : '#8b5cf6');
                     ctx.fillStyle = color;
-                    if (!lowMode) {
+                    if (settings.specialEffects) {
                         ctx.shadowColor = 'white'; 
                         ctx.shadowBlur = 8; 
                     }
@@ -1891,7 +1989,7 @@ function updateWeapons() {
                     ctx.save(); ctx.beginPath(); ctx.moveTo(p.startX, p.startY); ctx.lineTo(p.endX, p.endY);
                     ctx.strokeStyle = (w.id === 'supercharge_beam' || w.id === 'laser') ? 'cyan' : '#f56565'; 
                     ctx.lineWidth = p.width;
-                    if (!lowMode) {
+                    if (settings.specialEffects) {
                         ctx.shadowColor = (w.id === 'supercharge_beam' || w.id === 'laser') ? 'white' : 'orange'; 
                         ctx.shadowBlur = 15;
                     }
@@ -1927,11 +2025,11 @@ function updateWeapons() {
     }
 
     // --- Game Loop and State ---
-    let lastTime = 0, spawnTimer = 0, gameClockTimer = 0, healthSpawnTimer = 0, watcherSpawnTimer = 0, cleanupTimer = 0;
+    let lastTime = 0, spawnTimer = 0, gameClockTimer = 0, healthSpawnTimer = 0, watcherSpawnTimer = 0, beeSpawnTimer = 0, cleanupTimer = 0;
     function gameLoop(timestamp) {
         if (gameState !== 'playing') return;
         const deltaTime = (timestamp - lastTime) / 1000; lastTime = timestamp;
-        spawnTimer += deltaTime; gameClockTimer += deltaTime; healthSpawnTimer += deltaTime; watcherSpawnTimer += deltaTime; cleanupTimer += deltaTime;
+        spawnTimer += deltaTime; gameClockTimer += deltaTime; healthSpawnTimer += deltaTime; watcherSpawnTimer += deltaTime; beeSpawnTimer += deltaTime; cleanupTimer += deltaTime;
 
         if (gameClockTimer >= 1) { gameTime++; gameClockTimer = 0; }
         
@@ -1979,9 +2077,13 @@ function updateWeapons() {
 
         if (healthSpawnTimer > 30) { spawnHealthEnemy(); healthSpawnTimer = 0; }
         if (gameTime >= nextBossTime) { spawnBoss(); nextBossTime += 300; }
-        if (gameTime > 600 && watcherSpawnTimer > 20) { // Changed from 360 to 600
+        if (gameTime > 600 && watcherSpawnTimer > 20) {
              for(let i=0; i<3; i++) spawnWatcher();
              watcherSpawnTimer = 0;
+        }
+        if (gameTime > 900 && beeSpawnTimer > 15) {
+             for(let i=0; i<5; i++) spawnBee();
+             beeSpawnTimer = 0;
         }
         
         const spawnRate = Math.max(0.08, 0.5 * currentSpawnRateMultiplier);
@@ -1999,9 +2101,9 @@ function updateWeapons() {
         player.xpToNextLevel = 10;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
         player.passives = [];
-        player.stats = { speed: 3 * RENDER_SCALE, damageModifier: 1.0, cooldownModifier: 1.0, projectileSpeedModifier: 1.0, damageReduction: 0, pickupRadius: 100 * RENDER_SCALE, xpGainModifier: 1.0, revives: 0, lifestealChance: 0 };
+        player.stats = { speed: 3 * RENDER_SCALE, damageModifier: 1.0, cooldownModifier: 1.0, projectileSpeedModifier: 1.0, damageReduction: 0, pickupRadius: 100 * RENDER_SCALE, xpGainModifier: 1.0, revives: 0, lifestealOnKillChance: 0 };
         weapons = []; enemies = []; xpGems = []; pickups = []; monsterProjectiles = [];
-        gameTime = 0; enemiesKilledCount = 0; spawnTimer = 0; gameClockTimer = 0; healthSpawnTimer = 0; watcherSpawnTimer = 0; nextBossTime = 300;
+        gameTime = 0; enemiesKilledCount = 0; spawnTimer = 0; gameClockTimer = 0; healthSpawnTimer = 0; watcherSpawnTimer = 0; beeSpawnTimer = 0; nextBossTime = 300;
         difficultyManager = { enemyHpMultiplier: 1.0, enemySpeedMultiplier: 1.0 };
         pendingLevelUps = 0;
     }
@@ -2024,7 +2126,7 @@ function updateWeapons() {
             state.playCoins -= gameCost;
             localStorage.setItem('monGameDataV17', JSON.stringify(state));
             
-            if (controlMode === 'joystick') {
+            if (settings.controlMode === 'joystick') {
                 joystickContainer.classList.remove('hidden');
                 joystickBase.classList.add('hidden'); // Initially hide the base until touched
             } else {
@@ -2095,33 +2197,39 @@ function updateWeapons() {
     }
 
     // --- Settings Logic ---
-    function applySettings() {
+    function applyAndSaveSettings() {
+        localStorage.setItem('survivorGameSettings', JSON.stringify(settings));
+
         const checkmarkSVG = `<span class="checkmark-icon">✓ </span>`;
-        
+
         // Control Mode
-        localStorage.setItem('survivorGameControlMode', controlMode);
-        controlDragBtn.classList.toggle('selected', controlMode === 'drag');
-        controlJoystickBtn.classList.toggle('selected', controlMode === 'joystick');
-        
+        controlDragBtn.classList.toggle('selected', settings.controlMode === 'drag');
+        controlJoystickBtn.classList.toggle('selected', settings.controlMode === 'joystick');
         controlDragBtn.innerHTML = 'ระบบลากเดิน';
         controlJoystickBtn.innerHTML = 'จอยสติ๊ก';
-
-        if (controlMode === 'drag') {
+        if (settings.controlMode === 'drag') {
             controlDragBtn.innerHTML = checkmarkSVG + controlDragBtn.innerHTML;
         } else {
             controlJoystickBtn.innerHTML = checkmarkSVG + controlJoystickBtn.innerHTML;
         }
 
-        // Low Mode
-        localStorage.setItem('survivorGameLowMode', lowMode);
-        lowModeToggleBtn.classList.toggle('selected', lowMode);
+        // Damage Numbers
+        settingDamageNumbersBtn.classList.toggle('selected', settings.showDamageNumbers);
+        settingDamageNumbersBtn.innerHTML = settings.showDamageNumbers ? checkmarkSVG + 'ตัวเลขดาเมจ: เปิด' : 'ตัวเลขดาเมจ: ปิด';
+
+        // Merge XP
+        settingMergeXpBtn.classList.toggle('selected', settings.mergeXp);
+        settingMergeXpBtn.innerHTML = settings.mergeXp ? checkmarkSVG + 'รวม EXP: เปิด' : 'รวม EXP: ปิด';
+
+        // Low Quality Enemies
+        settingLowQualityEnemiesBtn.classList.toggle('selected', settings.lowQualityEnemies);
+        settingLowQualityEnemiesBtn.innerHTML = settings.lowQualityEnemies ? checkmarkSVG + 'ลดคุณภาพศัตรู: เปิด' : 'ลดคุณภาพศัตรู: ปิด';
         
-        if(lowMode) {
-             lowModeToggleBtn.innerHTML = checkmarkSVG + 'โหมดประสิทธิภาพ: เปิด';
-        } else {
-             lowModeToggleBtn.innerHTML = `โหมดประสิทธิภาพ: ปิด`;
-        }
+        // Special Effects
+        settingSpecialEffectsBtn.classList.toggle('selected', settings.specialEffects);
+        settingSpecialEffectsBtn.innerHTML = settings.specialEffects ? checkmarkSVG + 'เอฟเฟกต์พิเศษ: เปิด' : 'เอฟเฟกต์พิเศษ: ปิด';
     }
+
 
     function openTreasureChest() {
         gameState = 'chestOpening';
@@ -2259,9 +2367,11 @@ function updateWeapons() {
         isBonusGame = urlParams.get('bonus') === 'true';
 
         // Load saved settings
-        controlMode = localStorage.getItem('survivorGameControlMode') || 'drag';
-        lowMode = localStorage.getItem('survivorGameLowMode') === 'true';
-        applySettings();
+        const savedSettings = localStorage.getItem('survivorGameSettings');
+        if (savedSettings) {
+            settings = JSON.parse(savedSettings);
+        }
+        applyAndSaveSettings();
 
 
         // --- Centralized Event Listeners ---
@@ -2306,18 +2416,12 @@ function updateWeapons() {
              mainMenuScreen.classList.remove('hidden');
         });
 
-        controlDragBtn.addEventListener('click', () => {
-            controlMode = 'drag';
-            applySettings();
-        });
-        controlJoystickBtn.addEventListener('click', () => {
-            controlMode = 'joystick';
-            applySettings();
-        });
-        lowModeToggleBtn.addEventListener('click', () => {
-            lowMode = !lowMode;
-            applySettings();
-        });
+        controlDragBtn.addEventListener('click', () => { settings.controlMode = 'drag'; applyAndSaveSettings(); });
+        controlJoystickBtn.addEventListener('click', () => { settings.controlMode = 'joystick'; applyAndSaveSettings(); });
+        settingDamageNumbersBtn.addEventListener('click', () => { settings.showDamageNumbers = !settings.showDamageNumbers; applyAndSaveSettings(); });
+        settingMergeXpBtn.addEventListener('click', () => { settings.mergeXp = !settings.mergeXp; applyAndSaveSettings(); });
+        settingLowQualityEnemiesBtn.addEventListener('click', () => { settings.lowQualityEnemies = !settings.lowQualityEnemies; applyAndSaveSettings(); });
+        settingSpecialEffectsBtn.addEventListener('click', () => { settings.specialEffects = !settings.specialEffects; applyAndSaveSettings(); });
 
         pauseButton.addEventListener('click', () => {
             if(gameState === 'playing') {
