@@ -3,391 +3,431 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Daily Check-in สะสม 1001 วัน</title>
+<title>Daily Love Check-in 💖</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&family=Nunito:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Mitr', 'sans-serif'],
+            cute: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            rose: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e' },
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'bounce-slow': 'bounce 3s infinite',
+            'wiggle': 'wiggle 1s ease-in-out infinite',
+            'heartbeat': 'heartbeat 1.5s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            wiggle: {
+              '0%, 100%': { transform: 'rotate(-3deg)' },
+              '50%': { transform: 'rotate(3deg)' },
+            },
+            heartbeat: {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.1)' },
+            }
+          }
+        }
+      }
+    }
+</script>
 <style>
   body {
-    font-family: 'Mitr', sans-serif;
-    transition: background-color 0.5s ease;
+    background-color: #fff0f5; /* Lavender Blush */
+    overflow-x: hidden;
   }
 
-  /* Custom scrollbar for a cute theme */
-  #daysGrid::-webkit-scrollbar {
-    width: 8px;
-  }
-  #daysGrid::-webkit-scrollbar-track {
-    background: var(--scrollbar-track, #fbcfe8);
-  }
-  #daysGrid::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb, #f472b6);
-    border-radius: 4px;
-  }
-  #daysGrid::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thumb-hover, #ec4899);
-  }
-
-  /* Glow effects for reward days */
-  .reward-day:not(.checked) {
-    box-shadow: 0 0 12px 3px rgba(251, 191, 36, 0.8); /* amber-400 */
-    animation: pulse-amber 2s infinite;
-  }
-  .special-reward-day:not(.checked) {
-    box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.8); /* purple-500 */
-    animation: pulse-purple 2s infinite;
-  }
-  .super-reward-day:not(.checked) {
-    animation: pulse-rainbow 2.5s infinite;
+  /* Cute Background Pattern */
+  .bg-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image: radial-gradient(#fecdd3 15%, transparent 16%), radial-gradient(#fecdd3 15%, transparent 16%);
+    background-size: 60px 60px;
+    background-position: 0 0, 30px 30px;
+    opacity: 0.3;
   }
 
+  /* Floating Hearts Animation */
+  .floating-heart {
+    position: fixed;
+    color: rgba(255, 182, 193, 0.6);
+    animation: floatUp 15s linear infinite;
+    z-index: -1;
+    font-size: 24px;
+  }
 
-  /* Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  .fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.8; }
+    100% { transform: translateY(-20vh) scale(1.2) rotate(360deg); opacity: 0; }
   }
 
-  @keyframes pop {
-    0% { transform: scale(0.8); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+  /* Glass Card */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4);
+    border-radius: 40px;
   }
-  .pop {
-    animation: pop 0.4s ease-out forwards;
-  }
+
+  /* Custom Scrollbar */
+  #daysGrid::-webkit-scrollbar { width: 6px; }
+  #daysGrid::-webkit-scrollbar-track { background: transparent; }
+  #daysGrid::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 10px; }
   
-  /* Animation for the number/emoji inside the circle */
-  @keyframes content-pop-in {
-    0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  }
-  .content-animate {
-    display: inline-block;
-    animation: content-pop-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  /* Animations */
+  .pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
   }
 
-  @keyframes pulse-amber {
-    0%, 100% { box-shadow: 0 0 12px 3px rgba(251, 191, 36, 0.8); }
-    50% { box-shadow: 0 0 18px 5px rgba(251, 191, 36, 0.5); }
-  }
-  @keyframes pulse-purple {
-    0%, 100% { box-shadow: 0 0 15px 4px rgba(168, 85, 247, 0.8); }
-    50% { box-shadow: 0 0 22px 7px rgba(168, 85, 247, 0.5); }
-  }
-  @keyframes pulse-rainbow {
-    0%, 100% { box-shadow: 0 0 18px 4px #ef4444; } /* red-500 */
-    25% { box-shadow: 0 0 18px 4px #f59e0b; } /* amber-500 */
-    50% { box-shadow: 0 0 18px 4px #22c55e; } /* green-500 */
-    75% { box-shadow: 0 0 18px 4px #3b82f6; } /* blue-500 */
-  }
-
-  /* Particle effect container */
-  .particle {
+  .confetti-piece {
     position: absolute;
-    border-radius: 50%;
-    animation: fly 1s ease-out forwards;
-    pointer-events: none;
+    width: 10px;
+    height: 10px;
+    background-color: #ffd700;
+    animation: confetti-fall 3s linear forwards;
   }
-
-  /* --- REWARD EFFECTS --- */
-  @keyframes reward-glow {
-    0%, 100% { box-shadow: 0 0 25px 10px rgba(252, 211, 77, 0); }
-    50% { box-shadow: 0 0 60px 25px rgba(250, 204, 21, 0.7); } /* amber-400 */
-  }
-  .reward-glow {
-    animation: reward-glow 0.8s ease-in-out;
+  @keyframes confetti-fall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
 </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-slate-700">
 
-  <div id="mainContainer" class="w-full max-w-md mx-auto bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl p-6 border opacity-0 transition-colors duration-500">
-    <header class="text-center mb-4">
-      <h1 id="headerText" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r">สะสมเช็คอิน 1001 วัน</h1>
-      <p id="subHeaderText" class="mt-2">💖 เช็คอินทุกวันเพื่อรางวัลสุดน่ารัก! 💖</p>
-    </header>
+  <!-- Background Elements -->
+  <div class="bg-pattern"></div>
+  <div id="heartContainer"></div>
 
-    <div id="progressDisplay" class="text-center mb-4 p-3 rounded-xl border font-bold transition-colors duration-500">
+  <!-- Main App -->
+  <div id="mainApp" class="glass-panel w-full max-w-[400px] p-6 relative transform transition-all duration-500 opacity-0 scale-95">
+    
+    <!-- Mascot Section -->
+    <div class="absolute -top-16 left-1/2 transform -translate-x-1/2 w-32 h-32 flex items-center justify-center z-20">
+      <div id="mascot" class="text-[5rem] filter drop-shadow-xl cursor-pointer transition-transform hover:scale-110 active:scale-90 animate-float">
+        🐻
       </div>
-
-    <div id="daysGrid" class="grid grid-cols-7 gap-2 max-h-72 overflow-y-auto p-4 rounded-xl border mb-6 scroll-smooth transition-colors duration-500">
+      <!-- Speech Bubble -->
+      <div id="speechBubble" class="absolute -right-24 top-0 bg-white px-4 py-2 rounded-2xl rounded-bl-none shadow-lg text-sm font-bold text-rose-500 transform transition-all duration-300 opacity-0 scale-75 border-2 border-rose-100 whitespace-nowrap">
+        สวัสดีคับ! ❤️
       </div>
-
-    <div id="message" class="text-center text-lg min-h-[56px] flex items-center justify-center p-2 mb-6 text-slate-600">
-      <span>กดปุ่มเช็คอินได้เลย!</span>
     </div>
 
-    <div class="px-4">
-      <button id="checkinBtn" class="w-full text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-        เช็คอินวันนี้ ✨
-      </button>
+    <!-- Header -->
+    <div class="mt-14 text-center mb-6">
+      <h1 class="text-3xl font-bold text-rose-500 tracking-tight drop-shadow-sm">บันทึกรัก 1001 วัน</h1>
+      <p class="text-rose-400 text-sm mt-1 font-medium">สะสมวันแห่งความสุขไปด้วยกันนะ</p>
     </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-6">
+      <div class="flex justify-between text-xs font-bold text-rose-400 mb-2 px-1">
+        <span>เริ่มต้น</span>
+        <span id="progressText">0%</span>
+        <span>ตลอดไป</span>
+      </div>
+      <div class="h-6 w-full bg-rose-100 rounded-full p-1 shadow-inner">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-1000 relative" style="width: 0%">
+          <div class="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 bg-white w-2 h-2 rounded-full shadow"></div>
+        </div>
+      </div>
+      <div class="text-center mt-2 font-bold text-slate-600">
+        วันที่ <span id="dayCountDisplay" class="text-2xl text-rose-500 mx-1">207</span>
+      </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div id="daysGrid" class="grid grid-cols-7 gap-2 max-h-[280px] overflow-y-auto p-2 mb-6 scroll-smooth">
+      <!-- Generated by JS -->
+    </div>
+
+    <!-- Message Box -->
+    <div id="messageBox" class="min-h-[3rem] flex items-center justify-center text-center mb-4 px-4 py-2 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 font-medium text-sm transition-all">
+      พร้อมเช็คอินรึยังคนเก่ง? ✨
+    </div>
+
+    <!-- Action Button -->
+    <button id="checkinBtn" class="group relative w-full bg-gradient-to-r from-rose-400 to-pink-500 text-white font-bold text-lg py-4 rounded-3xl shadow-lg shadow-rose-200 transform transition-all hover:-translate-y-1 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden">
+      <div class="absolute inset-0 w-full h-full bg-white/20 group-hover:w-full transition-all duration-500 ease-out transform -translate-x-full group-hover:translate-x-0 skew-x-12"></div>
+      <span class="relative flex items-center justify-center gap-2">
+        <span class="animate-heartbeat">💖</span> เช็คอินวันนี้
+      </span>
+    </button>
+
   </div>
 
 <script>
+  // --- Configuration ---
   const TOTAL_DAYS = 1001;
-  const daysGrid = document.getElementById('daysGrid');
-  const checkinBtn = document.getElementById('checkinBtn');
-  const messageEl = document.getElementById('message');
-  const mainContainer = document.getElementById('mainContainer');
-  const progressDisplay = document.getElementById('progressDisplay');
-
-  let checkinCount = parseInt(localStorage.getItem('dailyCheckinCount1')) || 90;
-  let lastCheckin = localStorage.getItem('dailyLastCheckin1') || null;
-
-  // --- Theme Management ---
-  const themes = {
-    // Sunday: Red ❤️
-    0: { name: "วันอาทิตย์", body: "bg-red-100", container: "border-red-200", header: "from-red-500 to-orange-500", subHeader: "text-red-500", progress: "bg-red-100 border-red-200 text-red-600", grid: "bg-red-50 border-red-200", button: "bg-gradient-to-r from-red-400 to-orange-400 focus:ring-red-300", scrollbar: { track: '#fee2e2', thumb: '#f87171', hover: '#ef4444' } },
-    // Monday: Yellow 💛
-    1: { name: "วันจันทร์", body: "bg-amber-50", container: "border-amber-200", header: "from-amber-500 to-yellow-500", subHeader: "text-amber-500", progress: "bg-amber-100 border-amber-200 text-amber-600", grid: "bg-amber-50 border-amber-200", button: "bg-gradient-to-r from-amber-400 to-yellow-400 focus:ring-amber-300", scrollbar: { track: '#fef3c7', thumb: '#fbbf24', hover: '#f59e0b' } },
-    // Tuesday: Pink 💖
-    2: { name: "วันอังคาร", body: "bg-pink-100", container: "border-pink-200", header: "from-pink-500 to-rose-500", subHeader: "text-pink-500", progress: "bg-pink-100 border-pink-200 text-pink-600", grid: "bg-pink-50 border-pink-200", button: "bg-gradient-to-r from-pink-400 to-rose-400 focus:ring-pink-300", scrollbar: { track: '#fbcfe8', thumb: '#f472b6', hover: '#ec4899' } },
-    // Wednesday: Green 💚
-    3: { name: "วันพุธ", body: "bg-green-50", container: "border-green-200", header: "from-green-500 to-emerald-500", subHeader: "text-green-500", progress: "bg-green-100 border-green-200 text-green-600", grid: "bg-green-50 border-green-200", button: "bg-gradient-to-r from-green-400 to-emerald-400 focus:ring-green-300", scrollbar: { track: '#d1fae5', thumb: '#34d399', hover: '#10b981' } },
-    // Thursday: Orange 🧡
-    4: { name: "วันพฤหัสบดี", body: "bg-orange-50", container: "border-orange-200", header: "from-orange-500 to-amber-500", subHeader: "text-orange-500", progress: "bg-orange-100 border-orange-200 text-orange-600", grid: "bg-orange-50 border-orange-200", button: "bg-gradient-to-r from-orange-400 to-amber-400 focus:ring-orange-300", scrollbar: { track: '#ffedd5', thumb: '#fb923c', hover: '#f97316' } },
-    // Friday: Blue 💙
-    5: { name: "วันศุกร์", body: "bg-sky-50", container: "border-sky-200", header: "from-sky-500 to-blue-500", subHeader: "text-sky-500", progress: "bg-sky-100 border-sky-200 text-sky-600", grid: "bg-sky-50 border-sky-200", button: "bg-gradient-to-r from-sky-400 to-blue-400 focus:ring-sky-300", scrollbar: { track: '#e0f2fe', thumb: '#38bdf8', hover: '#0ea5e9' } },
-    // Saturday: Purple 💜
-    6: { name: "วันเสาร์", body: "bg-purple-50", container: "border-purple-200", header: "from-purple-500 to-violet-500", subHeader: "text-purple-500", progress: "bg-purple-100 border-purple-200 text-purple-600", grid: "bg-purple-50 border-purple-200", button: "bg-gradient-to-r from-purple-400 to-violet-400 focus:ring-purple-300", scrollbar: { track: '#f3e8ff', thumb: '#c084fc', hover: '#a855f7' } }
+  const START_DAY = 207; // Configured start day
+  const STORAGE_KEY_COUNT = 'dailyCheckinCount_v4'; // Changed key for fresh start
+  const STORAGE_KEY_DATE = 'dailyLastCheckin_v4';
+  
+  // --- Elements ---
+  const els = {
+    app: document.getElementById('mainApp'),
+    grid: document.getElementById('daysGrid'),
+    btn: document.getElementById('checkinBtn'),
+    msg: document.getElementById('messageBox'),
+    mascot: document.getElementById('mascot'),
+    bubble: document.getElementById('speechBubble'),
+    bar: document.getElementById('progressBar'),
+    progressText: document.getElementById('progressText'),
+    dayCount: document.getElementById('dayCountDisplay'),
+    heartContainer: document.getElementById('heartContainer')
   };
 
-  function applyTheme(theme) {
-    const elements = {
-      body: document.body,
-      container: document.getElementById('mainContainer'),
-      header: document.getElementById('headerText'),
-      subHeader: document.getElementById('subHeaderText'),
-      progress: document.getElementById('progressDisplay'),
-      grid: document.getElementById('daysGrid'),
-      button: document.getElementById('checkinBtn')
-    };
+  // --- State ---
+  let state = {
+    count: parseInt(localStorage.getItem(STORAGE_KEY_COUNT)) || START_DAY,
+    lastDate: localStorage.getItem(STORAGE_KEY_DATE),
+  };
 
-    // Reset all theme classes
-    Object.values(themes).forEach(t => {
-      elements.body.classList.remove(t.body);
-      elements.container.classList.remove(t.container);
-      elements.header.classList.remove(...t.header.split(' '));
-      elements.subHeader.classList.remove(t.subHeader);
-      elements.progress.classList.remove(...t.progress.split(' '));
-      elements.grid.classList.remove(...t.grid.split(' '));
-      elements.button.classList.remove(...t.button.split(' '));
+  const sweetMessages = [
+    "เก่งมากคนดี! 💖",
+    "คิดถึงนะจุ๊บๆ 😘",
+    "รักที่สุดเลยรู้มั้ย? 🐻",
+    "วันนี้ก็น่ารักอีกแล้วนะ ✨",
+    "ขอบคุณที่อยู่ข้างกันนะ 🌹",
+    "สู้ๆ นะคะคนเก่ง ✌️",
+    "งู้ยยย เช็คอินแล้ว! 🎉",
+    "แฟนใครทำไมเก่งจัง 🥰"
+  ];
+
+  const mascots = {
+    idle: "🐻",
+    happy: "🥰",
+    love: "😍",
+    celebrate: "🥳"
+  };
+
+  // --- Initialization ---
+  function init() {
+    createFloatingHearts();
+    renderGrid();
+    updateUI();
+    
+    // Animate Entry
+    setTimeout(() => {
+      els.app.classList.remove('opacity-0', 'scale-95');
+      els.app.classList.add('opacity-100', 'scale-100');
+    }, 100);
+
+    // Mascot Interaction
+    els.mascot.addEventListener('click', () => {
+      mascotSay("รักนะค้าบ ❤️");
+      playMascotAnim('wiggle');
     });
 
-    // Apply new theme classes
-    elements.body.classList.add(theme.body);
-    elements.container.classList.add(theme.container);
-    elements.header.classList.add(...theme.header.split(' '));
-    elements.subHeader.classList.add(theme.subHeader);
-    elements.progress.classList.add(...theme.progress.split(' '));
-    elements.grid.classList.add(...theme.grid.split(' '));
-    elements.button.classList.add(...theme.button.split(' '));
-    
-    // Update subheader text
-    elements.subHeader.textContent = `💖 ธีม${theme.name} 💖`;
-
-    // Update scrollbar colors via CSS variables
-    const root = document.documentElement;
-    root.style.setProperty('--scrollbar-track', theme.scrollbar.track);
-    root.style.setProperty('--scrollbar-thumb', theme.scrollbar.thumb);
-    root.style.setProperty('--scrollbar-thumb-hover', theme.scrollbar.hover);
-  }
-
-
-  // --- UI Effects ---
-  function createParticles(event) { /* ... (no changes) ... */ }
-  function createStarfall() { /* ... (no changes) ... */ }
-  function triggerRewardEffect() { /* ... (no changes) ... */ }
-  
-  // --- Core Functions ---
-  function isCheckedInToday() {
-    if (!lastCheckin) return false;
-    const lastDate = new Date(lastCheckin);
-    const today = new Date();
-    return lastDate.getFullYear() === today.getFullYear() &&
-           lastDate.getMonth() === today.getMonth() &&
-           lastDate.getDate() === today.getDate();
-  }
-
-  function renderDays() {
-    daysGrid.innerHTML = '';
-    for (let i = 1; i <= TOTAL_DAYS; i++) {
-      const dayDiv = document.createElement('div');
-      dayDiv.id = `day-${i}`;
-      const dayClasses = ['day-item', 'aspect-square', 'flex', 'items-center', 'justify-center', 'font-bold', 'rounded-full', 'text-sm', 'transition-all', 'duration-300', 'cursor-default'];
-      
-      const currentTheme = themes[new Date().getDay()];
-      const themeDayColor = currentTheme.progress.split(' ')[2];
-      const themeDayBg = currentTheme.progress.split(' ')[0];
-
-      dayDiv.innerHTML = `<span>${i}</span>`;
-      dayDiv.classList.add(...dayClasses, themeDayBg.replace('bg-', 'bg-opacity-50'), themeDayColor);
-
-      // --- vvvvvv แก้ไขเงื่อนไขตรงนี้ vvvvvvvv ---
-      if (i % 100 === 0 && i !== 100) { dayDiv.classList.add('super-reward-day'); } 
-      else if (i % 28 === 0) { dayDiv.classList.add('special-reward-day'); } 
-      else if (i % 7 === 0) { dayDiv.classList.add('reward-day'); }
-      // --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---
-
-      if (i <= checkinCount) {
-        dayDiv.innerHTML = `<span class="text-xl">✨</span>`;
-        dayDiv.classList.remove(themeDayBg.replace('bg-', 'bg-opacity-50'), themeDayColor);
-        
-        // --- vvvvvv แก้ไขเงื่อนไขตรงนี้ vvvvvvvv ---
-        if (i % 100 === 0 && i !== 100) {
-            dayDiv.classList.add('bg-gradient-to-br', 'from-red-400', 'via-amber-400', 'to-sky-400', 'text-white', 'shadow-lg', 'shadow-amber-500/50');
-        } else if (i % 28 === 0) {
-            dayDiv.classList.add('bg-purple-500', 'text-white', 'shadow-lg', 'shadow-purple-500/50');
-        } else if (i % 7 === 0) {
-            dayDiv.classList.add('bg-amber-400', 'text-slate-900', 'shadow-lg', 'shadow-amber-400/50');
-        } else {
-            dayDiv.classList.add(...currentTheme.button.split(' ').filter(c => c.startsWith('bg-gradient') || c.startsWith('from-') || c.startsWith('to-')));
-        }
-        // --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---
-        dayDiv.classList.add('checked');
-      }
-      daysGrid.appendChild(dayDiv);
-    }
-  }
-
-  function updateUI() {
-    renderDays();
-    progressDisplay.innerHTML = `💖 เดินทางมาแล้ว <span class="text-2xl">${checkinCount}</span> / ${TOTAL_DAYS} วัน 💖`;
-    if (checkinCount >= TOTAL_DAYS) {
-      messageEl.innerHTML = '🎉 <span class="font-bold text-green-500">ยินดีด้วย!</span> คุณสะสมครบ 1001 วันแล้ว! 🎁';
-      checkinBtn.disabled = true;
-      return;
-    }
-    
+    // Check if already checked in
     if (isCheckedInToday()) {
-      checkinBtn.disabled = true;
-      if (!messageEl.dataset.reward) {
-          messageEl.innerHTML = '<span class="text-slate-500">เช็คอินวันนี้แล้ว เจอกันพรุ่งนี้นะคะ 😊</span>';
-      }
-    } else {
-      checkinBtn.disabled = false;
-      messageEl.innerHTML = '<span class="text-slate-600">กดปุ่มเช็คอินได้เลย!</span>';
-      delete messageEl.dataset.reward;
+      disableCheckin("พรุ่งนี้มาเจอกันใหม่นะคนดี 🌙");
     }
   }
 
-  // --- Event Listeners ---
-  checkinBtn.addEventListener('click', (e) => {
+  // --- Core Logic ---
+  function isCheckedInToday() {
+    if (!state.lastDate) return false;
+    const last = new Date(state.lastDate);
+    const now = new Date();
+    return last.getDate() === now.getDate() && 
+           last.getMonth() === now.getMonth() && 
+           last.getFullYear() === now.getFullYear();
+  }
+
+  function handleCheckin(e) {
     if (isCheckedInToday()) return;
-    
-    createParticles(e);
-    checkinCount++;
-    lastCheckin = new Date().toISOString();
-    localStorage.setItem('dailyCheckinCount1', checkinCount);
-    localStorage.setItem('dailyLastCheckin1', lastCheckin);
-    updateUI();
-    const checkedDayEl = document.getElementById(`day-${checkinCount}`);
-    if (checkedDayEl) {
-        checkedDayEl.classList.add('pop');
-        const contentSpan = checkedDayEl.querySelector('span');
-        if(contentSpan) { contentSpan.classList.add('content-animate'); }
-    }
-    messageEl.dataset.reward = "true";
-    let isReward = false;
-    
-    // --- vvvvvv แก้ไขเงื่อนไขตรงนี้ vvvvvvvv ---
-    if (checkinCount % 100 === 0 && checkinCount !== 100) {
-      messageEl.innerHTML = `🌈 <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-sky-500">รางวัลสุดยอด!</span> ครบ ${checkinCount} วัน! 🎁`;
-      isReward = true;
-    } else if (checkinCount % 28 === 0) {
-      messageEl.innerHTML = `🎉 <span class="font-bold text-purple-500">รางวัลใหญ่!</span> ครบ ${checkinCount} วัน รับรางวัล x2! 🎁`;
-      isReward = true;
-    } else if (checkinCount % 7 === 0) {
-      messageEl.innerHTML = `⭐ <span class="font-bold text-amber-500">ยินดีด้วย!</span> ครบ ${checkinCount} วัน รับรางวัล! 🎁`;
-      isReward = true;
-    } else {
-      messageEl.innerHTML = `<span class="text-green-500">เช็คอินสำเร็จ!</span> เดินทางมาแล้ว ${checkinCount} วัน`;
-      delete messageEl.dataset.reward;
-    }
-    // --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---
-    if (isReward) {
-        setTimeout(() => { triggerRewardEffect(); }, 300);
-    }
-  });
 
-  // --- Initial Load ---
-  window.addEventListener('load', () => {
-    const today = new Date().getDay();
-    const currentTheme = themes[today];
-    applyTheme(currentTheme);
-    
-    mainContainer.classList.add('fade-in');
+    // Logic
+    state.count++;
+    state.lastDate = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_COUNT, state.count);
+    localStorage.setItem(STORAGE_KEY_DATE, state.lastDate);
+
+    // Visuals
+    createParticles(e);
+    renderGrid();
     updateUI();
-  });
+    
+    // Feedback
+    const randomMsg = sweetMessages[Math.floor(Math.random() * sweetMessages.length)];
+    disableCheckin(randomMsg);
+    mascotSay("เย้! เก่งที่สุดเลย! 🎉");
+    setMascot(mascots.celebrate);
+
+    // Scroll to day
+    setTimeout(() => {
+      const dayEl = document.getElementById(`day-${state.count}`);
+      if(dayEl) {
+        dayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dayEl.classList.add('scale-125');
+        setTimeout(() => dayEl.classList.remove('scale-125'), 300);
+      }
+    }, 100);
+
+    // Rewards
+    if (state.count % 100 === 0 || state.count % 28 === 0 || state.count % 7 === 0) {
+      triggerConfetti();
+    }
+  }
+
+  // --- UI Functions ---
+  function updateUI() {
+    // Update Text
+    els.dayCount.textContent = state.count;
+    
+    // Update Bar
+    const percent = Math.min((state.count / TOTAL_DAYS) * 100, 100);
+    els.bar.style.width = `${percent}%`;
+    els.progressText.textContent = `${Math.floor(percent)}%`;
+
+    // Mascot State
+    if (!isCheckedInToday()) {
+      setMascot(mascots.idle);
+    } else {
+      setMascot(mascots.love);
+    }
+  }
+
+  function renderGrid() {
+    els.grid.innerHTML = '';
+    
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
+      const div = document.createElement('div');
+      div.id = `day-${i}`;
+      div.className = `
+        aspect-square rounded-xl flex items-center justify-center text-xs font-bold transition-all duration-300 relative
+        ${i <= state.count 
+          ? 'bg-rose-400 text-white shadow-md shadow-rose-200' 
+          : 'bg-white/50 text-rose-300 border border-white'}
+      `;
+
+      // Special styling for checked items
+      if (i <= state.count) {
+        div.innerHTML = '💖';
+        if(i === state.count) div.classList.add('animate-bounce-slow');
+      } else {
+        div.textContent = i;
+      }
+
+      // Reward Days Marker
+      if (i % 100 === 0) div.classList.add('ring-2', 'ring-yellow-400');
+      else if (i % 28 === 0) div.classList.add('ring-2', 'ring-purple-300');
+
+      els.grid.appendChild(div);
+    }
+
+    // Scroll to current
+    setTimeout(() => {
+        const target = document.getElementById(`day-${state.count}`);
+        if(target) target.scrollIntoView({ block: 'center' });
+    }, 500);
+  }
+
+  function disableCheckin(msg) {
+    els.btn.disabled = true;
+    els.btn.innerHTML = `<span class="opacity-80">เจอกันพรุ่งนี้นะ 👋</span>`;
+    els.msg.innerHTML = `<span class="text-rose-500 font-bold animate-pulse">${msg}</span>`;
+  }
+
+  // --- Mascot System ---
+  function setMascot(emoji) {
+    els.mascot.textContent = emoji;
+  }
   
-  // --- Re-pasted functions to avoid being overwritten ---
-  function createStarfall() {
-    const starContainer = document.body;
-    for (let i = 0; i < 150; i++) {
-        const star = document.createElement('div');
-        star.style.position = 'absolute';
-        const size = Math.random() * 20 + 10;
-        star.style.width = `${size}px`;
-        star.style.height = `${size}px`;
-        star.style.left = `${Math.random() * 100}vw`;
-        star.style.top = `${Math.random() * -100 - 50}px`;
-        const colors = ['#f472b6', '#ec4899', '#a855f7', '#f59e0b', '#3b82f6', '#22c55e', '#ef4444', '#ffffff'];
-        star.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        star.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
-        star.style.opacity = '1';
-        star.style.pointerEvents = 'none';
-        starContainer.appendChild(star);
-        const fallDuration = Math.random() * 3 + 2.5;
-        const swingAmplitude = Math.random() * 100 + 50;
-        star.animate([
-            { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
-            { transform: `translate(${Math.random() > 0.5 ? swingAmplitude : -swingAmplitude}px, 120vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
-        ], { duration: fallDuration * 1000, easing: 'ease-out' });
-        setTimeout(() => { star.remove(); }, fallDuration * 1000);
+  function mascotSay(text) {
+    els.bubble.textContent = text;
+    els.bubble.classList.remove('opacity-0', 'scale-75');
+    els.bubble.classList.add('opacity-100', 'scale-100');
+    
+    setTimeout(() => {
+      els.bubble.classList.remove('opacity-100', 'scale-100');
+      els.bubble.classList.add('opacity-0', 'scale-75');
+    }, 3000);
+  }
+
+  function playMascotAnim(animClass) {
+    els.mascot.classList.add(animClass);
+    setTimeout(() => els.mascot.classList.remove(animClass), 1000);
+  }
+
+  // --- Effects ---
+  function createFloatingHearts() {
+    for(let i=0; i<15; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart';
+      heart.textContent = Math.random() > 0.5 ? '❤️' : '💖';
+      heart.style.left = `${Math.random() * 100}vw`;
+      heart.style.animationDelay = `${Math.random() * 10}s`;
+      heart.style.fontSize = `${Math.random() * 20 + 10}px`;
+      els.heartContainer.appendChild(heart);
     }
   }
-  function triggerRewardEffect() {
-    createStarfall();
-    const container = document.getElementById('mainContainer');
-    container.classList.add('reward-glow');
-    setTimeout(() => { container.classList.remove('reward-glow'); }, 800);
-  }
-  function createParticles(event) {
-    const btn = event.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('particle');
-        document.body.appendChild(particle);
-        const size = Math.random() * 10 + 5;
-        const angle = Math.random() * 360;
-        const distance = Math.random() * 80 + 50;
-        const particleX = rect.left + x;
-        const particleY = rect.top + y;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        particle.style.left = `${particleX}px`;
-        particle.style.top = `${particleY}px`;
-        const colors = ['#ec4899', '#f472b6', '#f9a8d4', '#a855f7'];
-        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-        particle.animate([
-            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-            { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`, opacity: 0 }
-        ], { duration: Math.random() * 500 + 500, easing: 'ease-out' });
-        setTimeout(() => { particle.remove(); }, 1000);
+
+  function createParticles(e) {
+    const rect = els.btn.getBoundingClientRect();
+    const center = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+    
+    for(let i=0; i<12; i++) {
+      const p = document.createElement('div');
+      p.style.position = 'fixed';
+      p.style.left = center.x + 'px';
+      p.style.top = center.y + 'px';
+      p.style.fontSize = '20px';
+      p.style.pointerEvents = 'none';
+      p.style.zIndex = 100;
+      p.textContent = ['💖','✨','🌸','🐻'][Math.floor(Math.random()*4)];
+      
+      const angle = (Math.PI * 2 * i) / 12;
+      const velocity = 100;
+      const tx = Math.cos(angle) * velocity;
+      const ty = Math.sin(angle) * velocity;
+
+      p.animate([
+        { transform: 'translate(0,0) scale(0)', opacity: 1 },
+        { transform: `translate(${tx}px, ${ty}px) scale(1.5)`, opacity: 0 }
+      ], { duration: 800, easing: 'ease-out' }).onfinish = () => p.remove();
+      
+      document.body.appendChild(p);
     }
   }
+
+  function triggerConfetti() {
+    for(let i=0; i<50; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.backgroundColor = ['#ff69b4', '#ffd700', '#87ceeb', '#ffb6c1'][Math.floor(Math.random()*4)];
+      c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }
+  }
+
+  // --- Listeners ---
+  els.btn.addEventListener('click', handleCheckin);
+  window.addEventListener('load', init);
 
 </script>
-
 </body>
-
 </html>
