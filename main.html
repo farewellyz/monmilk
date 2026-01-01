@@ -2,123 +2,205 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เลือกดูความน่ารัก 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Mitr', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body {
-      background-color: #ffe4ec;
-      font-family: 'Kanit', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      color: #d14776;
-      margin-bottom: 20px;
-    }
-
-    .menu {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 800px;
-    }
-
-    .card {
       background-color: #fff0f5;
-      border: 2px dashed #ff9abb;
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      transition: transform 0.2s;
-      cursor: pointer;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-
-    .card:hover {
+    .glass-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 2px dashed #ff9abb; /* กลับมาใช้เส้นประที่ดูเป็นเอกลักษณ์เดิม */
+      box-shadow: 0 8px 32px rgba(244, 114, 182, 0.1);
+      transition: all 0.2s ease;
+      /* ปรับขนาด card ให้ใกล้เคียงของเดิม */
+      width: 100%;
+      max-width: 240px; 
+      margin: 0 auto;
+    }
+    .glass-card:hover {
       transform: scale(1.05);
-      background-color: #ffe6ef;
+      background: rgba(255, 255, 255, 0.85);
     }
-
-    .card h3 {
-      margin-top: 10px;
-      color: #d14776;
+    .card-image {
+      width: 100%;
+      height: auto; /* ให้สูงตามสัดส่วนรูปจริง รูปจะได้ไม่แตก */
+      max-height: 180px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      display: block;
     }
-
-    .card img {
-      width: 100px;
-      height: 100px;
-      border-radius: 0px;
-      object-fit: cover;
+    .floating-heart {
+      position: fixed;
+      color: rgba(244, 114, 182, 0.3);
+      animation: floatUp 12s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.5; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
-<body>
-  <h1>เลือกดูความน่ารัก 💕</h1>
+<body class="p-6">
 
-  <div class="menu">
-    <div class="card" onclick="location.href='mail/index.html'">
-      <img src="thumbs/thumb1.jpg" alt="preview1">
-      <h3>จดหมาย💌</h3>
+  <!-- Background Hearts -->
+  <div id="heartContainer"></div>
+
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10 animate-float">
+      <h1 class="text-3xl font-bold text-rose-500 mb-2">เลือกดูความน่ารัก 💖</h1>
+      <p class="text-rose-400 font-medium">รวมทุกความทรงจำไว้ที่นี่เพื่อเธอคนเดียว</p>
     </div>
-    <div class="card" onclick="location.href='voice/index.html'">
-      <img src="thumbs/thumb2.jpg" alt="preview2">
-      <h3>เสียงคิดถึง🎤</h3>
+
+    <!-- Menu Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      
+      <!-- Card 1 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='mail/index.html'">
+        <img src="thumbs/thumb1.jpg" alt="จดหมาย" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">จดหมาย💌</h3>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='voice/index.html'">
+        <img src="thumbs/thumb2.jpg" alt="เสียงคิดถึง" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">เสียงคิดถึง🎤</h3>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='luvpop/index.html'">
+        <img src="thumbs/thumb3.jpg" alt="จำนวนความคิดถึง" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">จำนวนความคิดถึง🥰</h3>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='date/index.html'">
+        <img src="thumbs/thumb4.jpg" alt="ปฏิทินรัก" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">ปฏิทินรัก📅</h3>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='slide/slide.html'">
+        <img src="thumbs/thumb5.jpg" alt="การเดินทาง" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">การเดินทาง🛣️</h3>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='memo/mem.html'">
+        <img src="thumbs/thumb6.jpg" alt="บันทึกความทรงจำ" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">บันทึกความทรงจำ📔</h3>
+      </div>
+
+      <!-- Card 7 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='daily/daily.html'">
+        <img src="thumbs/thumb7.jpg" alt="เช็คอิน" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">เช็คอิน✅</h3>
+      </div>
+
+      <!-- Card 8 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='randombox/box.html'">
+        <img src="thumbs/thumb8.jpg" alt="กล่องจุ่ม" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">กล่องจุ่ม🎁</h3>
+      </div>
+
+      <!-- Card 9 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='picm/picm.html'">
+        <img src="thumbs/thumb9.jpg" alt="รูปประจำเดือน" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">รูปประจำเดือน📷</h3>
+      </div>
+
+      <!-- Card 10 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='text/text.html'">
+        <img src="thumbs/thumb10.jpg" alt="ฝนดาวรัก" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">ฝนดาวรัก💕</h3>
+      </div>
+
+      <!-- Card 11 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='auto/chat.html'">
+        <img src="thumbs/thumb11.jpg" alt="แชทคลั่งรัก" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">แชทคลั่งรัก💋</h3>
+      </div>
+
+      <!-- Card 12 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='diary/diary.html'">
+        <img src="thumbs/thumb12.jpg" alt="ไดอารี" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">ไดอารี🍼</h3>
+      </div>
+
+      <!-- Card 13 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='univers/univers.html'">
+        <img src="thumbs/thumb13.jpg" alt="จักรวาลของเรา" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">จักรวาลของเรา✨</h3>
+      </div>
+
+      <!-- Card 14 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='jigsaw/jigsaw.html'">
+        <img src="thumbs/thumb14.jpg" alt="จิ๊กซอว์สื่อรัก" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">จิ๊กซอว์สื่อรัก🧩</h3>
+      </div>
+
+      <!-- Card 15 -->
+      <div class="glass-card p-5 rounded-2xl text-center cursor-pointer group" onclick="location.href='games/index.html'">
+        <img src="thumbs/thumb15.jpg" alt="เกมของม่อน" class="card-image">
+        <h3 class="text-rose-600 font-bold text-lg">เกมของม่อน⭐</h3>
+      </div>
+
     </div>
-    <div class="card" onclick="location.href='luvpop/index.html'">
-      <img src="thumbs/thumb3.jpg" alt="preview3">
-      <h3>จำนวนความคิดถึง🥰</h3>
-    </div>
-    <div class="card" onclick="location.href='date/index.html'">
-      <img src="thumbs/thumb4.jpg" alt="preview4">
-      <h3>ปฏิทินรัก📅</h3>
-    </div>
-	<div class="card" onclick="location.href='slide/slide.html'">
-      <img src="thumbs/thumb5.jpg" alt="preview5">
-      <h3>การเดินทาง🛣️</h3>
-    </div>
-	<div class="card" onclick="location.href='memo/mem.html'">
-      <img src="thumbs/thumb6.jpg" alt="preview6">
-      <h3>บันทึกความทรงจำ📔</h3>
-    </div>
-	 <div class="card" onclick="location.href='daily/daily.html'">
-      <img src="thumbs/thumb7.jpg" alt="preview7">
-      <h3>เช็คอิน✅</h3>
-    </div>
-	 <div class="card" onclick="location.href='randombox/box.html'">
-      <img src="thumbs/thumb8.jpg" alt="preview8">
-      <h3>กล่องจุ่ม🎁</h3>
-    </div>
-	  <div class="card" onclick="location.href='picm/picm.html'">
-      <img src="thumbs/thumb9.jpg" alt="preview9">
-      <h3>รูปประจำเดือน📷</h3>
-    </div>
-    	  <div class="card" onclick="location.href='text/text.html'">
-      <img src="thumbs/thumb10.jpg" alt="preview10">
-      <h3>ฝนดาวรัก💕</h3>
-    </div>
-    	  <div class="card" onclick="location.href='auto/chat.html'">
-      <img src="thumbs/thumb11.jpg" alt="preview11">
-      <h3>แชทคลั่งรัก💋</h3>
-    </div>
-    	  <div class="card" onclick="location.href='diary/diary.html'">
-      <img src="thumbs/thumb12.jpg" alt="preview12">
-      <h3>ไดอารีของ🍼</h3>
-    </div>
-    	  <div class="card" onclick="location.href='univers/univers.html'">
-      <img src="thumbs/thumb13.jpg" alt="preview13">
-      <h3>จักรวารของเรา✨</h3>
-    </div>
-    	  <div class="card" onclick="location.href='jigsaw/jigsaw.html'">
-      <img src="thumbs/thumb14.jpg" alt="preview14">
-      <h3>จิ๊กซอว์สื่อรัก🧩</h3>
-   </div>
-    	  <div class="card" onclick="location.href='games/index.html'">
-      <img src="thumbs/thumb15.jpg" alt="preview15">
-      <h3>เกมของม่อน⭐</h3>
-    <!-- เพิ่มได้อีก -->
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-rose-300 text-sm font-medium pb-8">
+      บันทึกรักของเรา | Made with 💖 for you
+    </footer>
   </div>
+
+  <script>
+    function createHearts() {
+      const container = document.getElementById('heartContainer');
+      const icons = ['❤️', '💖', '✨', '🌸'];
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDuration = (Math.random() * 5 + 10) + 's';
+        heart.style.animationDelay = (Math.random() * 10) + 's';
+        heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+        container.appendChild(heart);
+      }
+    }
+    window.onload = createHearts;
+  </script>
 </body>
 </html>
